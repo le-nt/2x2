@@ -399,33 +399,25 @@ local function CreateUsernameHealthMenuItem()
 	local humanoidChangedConn, childAddedConn, childRemovedConn = nil
 	--------------
 
+	-- A full-screen tint needs fixed bounds: the old 20x size tween could
+	-- expand far beyond the viewport and fail to visibly flash on some builds.
+	local hurtAnimation = 0
 	local function AnimateHurtOverlay()
-		if hurtOverlay then
-			local newSize = UDim2.new(20, 0, 20, 0)
-			local newPos = UDim2.new(-10, 0, -10, 0)
-
-			if hurtOverlay:IsDescendantOf(game) then
-				-- stop any tweens on overlay
-				hurtOverlay:TweenSizeAndPosition(newSize, newPos, Enum.EasingDirection.Out, Enum.EasingStyle.Linear, 0, true, function()
-					-- show the gui
-					hurtOverlay.Size = UDim2.new(1,0,1,0)
-					hurtOverlay.Position = UDim2.new(0,0,0,0)
-					hurtOverlay.Visible = true
-					-- now tween the hide
-					if hurtOverlay:IsDescendantOf(game) then
-						hurtOverlay:TweenSizeAndPosition(newSize, newPos, Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.65, false, function()
-							hurtOverlay.Visible = false
-						end)
-					else
-						hurtOverlay.Size = newSize
-						hurtOverlay.Position = newPos
-					end
-				end)
-			else
-				hurtOverlay.Size = newSize
-				hurtOverlay.Position = newPos
+		if not hurtOverlay or not hurtOverlay:IsDescendantOf(game) then return end
+		hurtAnimation = hurtAnimation + 1
+		local sequence = hurtAnimation
+		hurtOverlay.Position = UDim2.new(0,0,0,0)
+		hurtOverlay.Size = UDim2.new(1,0,1,0)
+		hurtOverlay.BackgroundTransparency = 0.76
+		hurtOverlay.Visible = true
+		spawn(function()
+			for step = 1, 12 do
+				wait(0.05)
+				if sequence ~= hurtAnimation or not hurtOverlay:IsDescendantOf(game) then return end
+				hurtOverlay.BackgroundTransparency = 0.76 + (0.24 * step / 12)
 			end
-		end
+			if sequence == hurtAnimation then hurtOverlay.Visible = false end
+		end)
 	end
 
 	local healthColorToPosition = {
