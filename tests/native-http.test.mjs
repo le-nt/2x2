@@ -58,7 +58,7 @@ test('native protocol shares 2x2 identity, requires the key, and gates WebSocket
   const me=await(await request('/api/me')).json();assert.equal(me.user.username,'NativeTester');
   const launch=await(await request('/api/native/launch?id='+classic)).json();assert.equal(launch.placeId,1);assert.ok(launch.joinScriptUrl.startsWith(base+'/native/'));
   assert.equal((await request('/api/native/launch?id=unknown')).status,503);
-  if(cross){const crossroadsLaunch=await request('/api/native/launch?id=2008m-crossroads');assert.equal(crossroadsLaunch.status,200);assert.equal((await crossroadsLaunch.json()).placeId,294);const delivered=await request('/native/asset?id=294',{headers:{AccessKey:key}},'');assert.equal(createHash('sha256').update(Buffer.from(await delivered.arrayBuffer())).digest('hex'),cross.sha256);}
+  if(cross){assert.equal(cross.file,'2008m-crossroads.rbxl','the repaired Crossroads map must be registered');const crossroadsLaunch=await request('/api/native/launch?id=2008m-crossroads');assert.equal(crossroadsLaunch.status,200);assert.equal((await crossroadsLaunch.json()).placeId,294);const delivered=await request('/native/asset?id=294',{headers:{AccessKey:key}},'');assert.deepEqual(Buffer.from(await delivered.arrayBuffer()),fs.readFileSync(path.join(root,'server/native/maps',cross.file)));}
   const poll='/native/game/placelauncher?placeId=1';let joining;
   for(let i=0;i<50;i++){const r=await request(poll,{method:'POST'});const data=await r.json();if(data.status===2){joining=data;break;}await new Promise(r=>setTimeout(r,25));}
   assert.ok(joining,logs);assert.equal(starts,1);
