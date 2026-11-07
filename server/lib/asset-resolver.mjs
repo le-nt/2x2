@@ -36,12 +36,12 @@ export function rewriteLegacyAssetUrls(xml, publicOrigin) {
   try {
     const url = new URL(publicOrigin);
     if (!['http:', 'https:'].includes(url.protocol) || url.username || url.password ||
-        url.pathname !== '/' || url.search || url.hash) return xml;
-    origin = url.origin;
+        !['/', '/native'].includes(url.pathname) || url.search || url.hash) return xml;
+    origin = url.origin + (url.pathname === '/native' ? '/native' : '');
   } catch { return xml; }
   // Rewrite asset references only; keep external URLs and non-XML binaries intact.
   return xml.replace(/https?:\/\/(?:www\.)?roblox\.com\/asset\/?\?id=([1-9]\d{0,15})(?=[^0-9]|$)/gi,
-    (match, id) => validId(id) ? origin + '/api/asset?id=' + id : match);
+    (match, id) => validId(id) ? origin + (origin.endsWith('/native') ? '/asset?id=' : '/api/asset?id=') + id : match);
 }
 export function createAssetResolver({serverDir, siteDir, publicOrigin = ''}) {
   const roots = [
