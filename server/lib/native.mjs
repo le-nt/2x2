@@ -11,6 +11,7 @@ import { gunzipSync } from 'node:zlib';
 import { issue,verify,equal,clientTicket,safeRelative } from './native-security.mjs';
 import {createNativeChat} from './native-chat.mjs';
 import {rewriteLegacyAssetUrls} from './asset-resolver.mjs';
+import {inspectAvatarDependencies} from './native-avatar-deps.mjs';
 
 const json=(res,status,value)=>{res.writeHead(status,{'Content-Type':'application/json','Cache-Control':'no-store'});res.end(JSON.stringify(value));};
 const xmlEscape=value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;'}[c]));
@@ -95,7 +96,7 @@ export function createNative({db,cfg,root,port,sessionUser,isGated,assetResolver
  function validSession(user,sessionHash,claims){return user&&claims&&claims.uid===user.id&&equal(claims.sid,sessionHash);}
  function appearance(id){const row=db.prepare('SELECT avatar FROM users WHERE id=?').get(id);let avatar={};try{avatar=JSON.parse(row?.avatar||'{}');}catch{}return avatar;}
  function appearanceURL(id){return `${base}/appearance/${id}`;}
- function avatarPaths(av){return [...(Array.isArray(av.hats)?av.hats:[]).slice(0,3).map(v=>'hats/'+v),...Object.entries({face:'faces',head:'heads',shirt:'shirts',pants:'pants',tshirt:'tshirts',extra:'custom'}).filter(([key])=>typeof av[key]==='string').map(([key,folder])=>folder+'/'+av[key])].filter(p=>beneath(charRoot,p));}
+ function avatarPaths(av){return inspectAvatarDependencies(charRoot,av).files;}
  function machineAllowed(url){return /^\/native\/(?:asset\/?$|appearance\/\d+$|bodycolors\/\d+$|content$|api\/game\/players\/[1-9][0-9]{0,15}$|api\/moderation\/filtertext$|internal\/gameserver\/(?:heartbeat|shutdown)$|Game\/LoadPlaceInfo\.ashx$)/.test(url.pathname);}
  function machine(req,url){return machineAllowed(url)&&!!n.accessKey&&equal(req.headers.accesskey,n.accessKey);}
  async function route(req,res,url,user,sessionHash){
