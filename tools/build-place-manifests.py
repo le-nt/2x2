@@ -73,7 +73,7 @@ def inspect_xml(path):
                     'linkedSourceId': linked.group(1) if linked else None,
                     'containerTool': next((x['name'] for x in reversed(ancestry[:-1]) if x['class'] in TOOL_CLASSES), None),
                 })
-            if kind == 'Part' and current['name'] == 'Handle':
+            if kind in {'Part','MeshPart','UnionOperation','WedgePart','TrussPart','CornerWedgePart'} and current['name'] == 'Handle':
                 parent_tool = next(('/'.join(x['name'] or x['class'] for x in ancestry[:i+1]) for i in range(len(ancestry)-2,-1,-1) if ancestry[i]['class'] == 'Tool'), None)
                 if parent_tool: handles.add(parent_tool)
             if kind in TOOL_CLASSES:
