@@ -48,3 +48,7 @@ site/native-client.previous-*/
 *.db
 *.db-wal
 *.db-shm
+
+# Native client backup folders
+site/native-client.previous/
+site/native-client.previous-*/
