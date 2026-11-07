@@ -201,7 +201,7 @@ pub fn SocketForwarding(job_id: String, ws: WebSocket, _key: AccessKey) -> rocke
                 }
             };
 
-            let udp_socket = match UdpSocket::bind("0.0.0.0:0").await {
+            let udp_socket = match UdpSocket::bind("127.0.0.1:0").await {
                 Ok(socket) => {
                     println!(
                         "UDP socket bound for job_id {} on local port {}",

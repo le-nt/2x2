@@ -24,7 +24,6 @@ local HEALTH_GREEN_COLOR = Color3.new(27/255, 252/255, 107/255)
 
 local HEALTH_PERCANTAGE_FOR_OVERLAY = 5 / 100
 
-local HURT_OVERLAY_IMAGE = "http://www.roblox.com/asset/?id=34854607"
 
 local DEBOUNCE_TIME = 0.25
 
@@ -381,11 +380,13 @@ local function CreateUsernameHealthMenuItem()
 		container, username, healthContainer, healthFill = createNormalHealthBar()
 	end
 
-	local hurtOverlay = Util.Create'ImageLabel'
+	-- No dependency on an external, potentially missing hurt texture.
+	local hurtOverlay = Util.Create'Frame'
 	{
 		Name = "HurtOverlay";
-		BackgroundTransparency = 1;
-		Image = HURT_OVERLAY_IMAGE;
+		BorderSizePixel = 0;
+		BackgroundColor3 = Color3.new(0.85, 0.06, 0.07);
+		BackgroundTransparency = 0.82;
 		Position = UDim2.new(-10,0,-10,0);
 		Size = UDim2.new(20,0,20,0);
 		Visible = false;
@@ -412,7 +413,7 @@ local function CreateUsernameHealthMenuItem()
 					hurtOverlay.Visible = true
 					-- now tween the hide
 					if hurtOverlay:IsDescendantOf(game) then
-						hurtOverlay:TweenSizeAndPosition(newSize, newPos, Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 10, false, function()
+						hurtOverlay:TweenSizeAndPosition(newSize, newPos, Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.65, false, function()
 							hurtOverlay.Visible = false
 						end)
 					else

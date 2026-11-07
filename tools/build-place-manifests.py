@@ -17,7 +17,7 @@ from rbxl_binary_inventory import inspect_binary, BinaryFormatError
 SCRIPT_CLASSES = {'Script', 'LocalScript', 'ModuleScript'}
 TOOL_CLASSES = {'Tool', 'HopperBin'}
 MAX_BYTES = 256 * 1024 * 1024
-ASSET_PATTERN = re.compile(r'(?:rbxassetid://|https?://(?:www\.)?roblox\.com/asset/\?id=)(\d+)', re.I)
+ASSET_PATTERN = re.compile(r'(?:rbxassetid://|https?://(?:www\.)?roblox\.com/asset/\?(?:[^#]*?&)?id=|https?://assetdelivery\.roblox\.com/v1/asset\?(?:[^#]*?&)?id=)([1-9][0-9]{0,15})(?!\d)', re.I)
 SAFE_FILE = re.compile(r'(?:[a-f0-9]{64}|[a-z0-9-]+)\.rbxl\Z')
 
 
@@ -39,13 +39,15 @@ def property_text(props, name):
         return ''
     for field in props:
         if field.get('name') == name:
-            return field.text or ''
+            return ''.join(field.itertext()) if name == 'LinkedSource' else (field.text or '')
     return ''
 
 
 def inspect_xml(path):
     """Parse trusted local XML map as data; never execute embedded script content."""
     scripts, tools, assets = [], [], set()
+    handles = set()
+    classes = Counter()
     ancestry = []
     for event, element in ET.iterparse(path, events=('start', 'end')):
         if event == 'start':
@@ -60,18 +62,26 @@ def inspect_xml(path):
             current['name'] = property_text(props, 'Name') or current['class']
             item_path = '/'.join(x['name'] or x['class'] for x in ancestry)
             kind = current['class']
+            classes[kind] += 1
             if kind in SCRIPT_CLASSES:
                 source = property_text(props, 'Source')
+                linked = ASSET_PATTERN.search(property_text(props, 'LinkedSource'))
                 scripts.append({
                     'class': kind, 'path': item_path,
                     'referent': current['referent'],
                     'sourcePresent': bool(source),
                     'sourceSha256': hashlib.sha256(source.encode('utf-8')).hexdigest() if source else None,
                     'sourceBytes': len(source.encode('utf-8')),
+                    'linkedSourceId': linked.group(1) if linked else None,
                     'containerTool': next((x['name'] for x in reversed(ancestry[:-1]) if x['class'] in TOOL_CLASSES), None),
                 })
+            if kind in {'Part','MeshPart','UnionOperation','WedgePart','TrussPart','CornerWedgePart'} and current['name'] == 'Handle':
+                parent_tool = next(('/'.join(x['name'] or x['class'] for x in ancestry[:i+1]) for i in range(len(ancestry)-2,-1,-1) if ancestry[i]['class'] == 'Tool'), None)
+                if parent_tool: handles.add(parent_tool)
             if kind in TOOL_CLASSES:
-                tools.append({'class': kind, 'path': item_path, 'referent': current['referent']})
+                tools.append({'class': kind, 'path': item_path, 'referent': current['referent'],
+                              'hasHandle': item_path in handles if kind == 'Tool' else None,
+                              'requiresHandle': property_text(props, 'RequiresHandle') != 'false' if kind == 'Tool' else None})
             # Read content property values of this item only, not all descendants.
             if props is not None:
                 for field in props:
@@ -80,7 +90,7 @@ def inspect_xml(path):
                             assets.add(asset)
             ancestry.pop()
             element.clear()
-    return {'scripts': scripts, 'tools': tools, 'assetIds': sorted(assets, key=lambda x: (len(x), x))}
+    return {'scripts': scripts, 'tools': tools, 'assetIds': sorted(assets, key=lambda x: (len(x), x)), 'classCounts': dict(classes)}
 
 
 # XML 1.0 permits only these character ranges inside numeric references.
@@ -196,6 +206,7 @@ def build(root, limit=None):
         }
         manifest = {**public, 'sha256':details.get('sha256'), 'bytes':details.get('bytes'),
                     'scripts':details['scripts'], 'tools':details['tools'], 'assetIds':details['assetIds'],
+                    'classCounts':details.get('classCounts', {}),
                     'unsupportedBinaryProperties':details.get('unsupportedBinaryProperties', []),
                     'binaryInstanceCount':details.get('binaryInstanceCount'), 'decodeError': details.get('error')}
         atomic_json(manifest_dir/(place_id+'.json'), manifest)

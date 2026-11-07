@@ -37,10 +37,8 @@ local characterAddedConnection = nil
 local greenBarImage = "rbxasset://textures/ui/Health-BKG-Center.png"
 local greenBarImageLeft = "rbxasset://textures/ui/Health-BKG-Left-Cap.png"
 local greenBarImageRight = "rbxasset://textures/ui/Health-BKG-Right-Cap.png"
-local hurtOverlayImage = "http://www.roblox.com/asset/?id=34854607"
 
 game:GetService("ContentProvider"):Preload(greenBarImage)
-game:GetService("ContentProvider"):Preload(hurtOverlayImage)
 
 while not game:GetService("Players").LocalPlayer do
 	wait(1/60)
@@ -58,10 +56,13 @@ function CreateGui()
 		return 
 	end
 
-	local hurtOverlay = Instance.new("ImageLabel")
+	-- The old external image asset may be unavailable offline.
+	-- Use a lightweight local tint instead of a permanently missing texture.
+	local hurtOverlay = Instance.new("Frame")
 	hurtOverlay.Name = "HurtOverlay"
-	hurtOverlay.BackgroundTransparency = 1
-	hurtOverlay.Image = hurtOverlayImage
+	hurtOverlay.BorderSizePixel = 0
+	hurtOverlay.BackgroundColor3 = Color3.new(0.85, 0.06, 0.07)
+	hurtOverlay.BackgroundTransparency = 0.82
 	hurtOverlay.Position = UDim2.new(-10,0,-10,0)
 	hurtOverlay.Size = UDim2.new(20,0,20,0)
 	hurtOverlay.Visible = false
@@ -231,7 +232,7 @@ function AnimateHurtOverlay()
 			
 			-- now tween the hide
 			if overlay:IsDescendantOf(game) then
-				overlay:TweenSizeAndPosition(newSize,newPos,Enum.EasingDirection.Out,Enum.EasingStyle.Quad,10,false,function()
+				overlay:TweenSizeAndPosition(newSize,newPos,Enum.EasingDirection.Out,Enum.EasingStyle.Quad,0.65,false,function()
 					overlay.Visible = false
 				end)
 			else
@@ -280,9 +281,9 @@ function startGui()
 
 	healthChangedConnection = currentHumanoid.HealthChanged:connect(UpdateGui)
 	humanoidDiedConnection = currentHumanoid.Died:connect(humanoidDied)
-	UpdateGui(currentHumanoid.Health)
-		
+	lastHealth = currentHumanoid.Health
 	CreateGui()
+	UpdateGui(currentHumanoid.Health)
 end
 
 
