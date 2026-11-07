@@ -1,0 +1,32 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import http from 'node:http';
+import {createAds} from '../server/lib/ads.mjs';
+
+test('ad discovery lists only bounded regular image files and URL-encodes names',async t=>{
+  const root=fs.mkdtempSync(path.join(os.tmpdir(),'2x2-ads-'));
+  const dir=path.join(root,'img/ads');fs.mkdirSync(dir,{recursive:true});
+  fs.writeFileSync(path.join(dir,'friend "art".PNG'),'png fixture');
+  fs.writeFileSync(path.join(dir,'poster.webp'),'webp fixture');
+  fs.writeFileSync(path.join(dir,'README.md'),'instructions');
+  fs.writeFileSync(path.join(dir,'script.svg'),'<svg/>');
+  fs.writeFileSync(path.join(dir,'empty.jpg'),'');
+  fs.mkdirSync(path.join(dir,'not-an-image.png'));
+  fs.writeFileSync(path.join(root,'private.png'),'secret');
+  fs.symlinkSync(path.join(root,'private.png'),path.join(dir,'symlink.png'));
+  const handle=createAds({siteDir:root});
+  const server=http.createServer((req,res)=>{if(!handle(req,res,new URL(req.url,'http://localhost')))res.writeHead(404).end();});
+  await new Promise(r=>server.listen(0,'127.0.0.1',r));
+  t.after(async()=>{server.closeAllConnections();await new Promise(r=>server.close(r));fs.rmSync(root,{recursive:true,force:true});});
+  const base=`http://127.0.0.1:${server.address().port}`;
+  const r=await fetch(base+'/api/ads');
+  assert.equal(r.status,200);
+  assert.deepEqual(await r.json(),{images:[{src:'/img/ads/friend%20%22art%22.PNG'},{src:'/img/ads/poster.webp'}]});
+  const head=await fetch(base+'/api/ads',{method:'HEAD'});
+  assert.equal(head.status,200);assert.equal(await head.text(),'');
+  assert.equal((await fetch(base+'/api/ads',{method:'POST'})).status,405);
+  assert.equal((await fetch(base+'/api/ads/extra')).status,404);
+});

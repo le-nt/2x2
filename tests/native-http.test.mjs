@@ -13,7 +13,8 @@ test('native protocol shares 2x2 identity, requires the key, and gates WebSocket
  fs.writeFileSync(path.join(tmp,'server/native/maps/binary.rbxl'),binary);
  fs.mkdirSync(path.join(tmp,'server/native/asset-library'),{recursive:true});
  fs.mkdirSync(path.join(tmp,'server/native/asset-recovery/scripts'),{recursive:true});
- fs.writeFileSync(path.join(tmp,'server/native/asset-library/34854607.mesh'),'version 1.00\n');
+ fs.writeFileSync(path.join(tmp,'server/native/asset-library/34854608.mesh'),'version 1.00\n');
+ fs.copyFileSync(path.join(root,'server/native/asset-library/34854607.png'),path.join(tmp,'server/native/asset-library/34854607.png'));
  fs.writeFileSync(path.join(tmp,'server/native/asset-recovery/scripts/1014476.lua'),'print("linked Lua delivered")\n');
  fs.writeFileSync(path.join(tmp,'server/native/places.json'),JSON.stringify({format:1,places:{[classic]:{id:1,file:'test.rbxl'},'binary-map':{id:2,file:'binary.rbxl'}}}));
  const realPlaces=JSON.parse(fs.readFileSync(path.join(root,'server/native/places.json'))).places;
@@ -48,14 +49,22 @@ test('native protocol shares 2x2 identity, requires the key, and gates WebSocket
   async function request(route,options={},cookie=cookies){return fetch(base+route,{redirect:'manual',...options,headers:{Cookie:cookie,...options.headers}});}
   assert.equal((await request('/native-client/manifest.json')).status,401);
   assert.equal((await request('/api/native/status')).status,401);
+  assert.equal((await request('/api/ads')).status,401,'ad discovery keeps the entrance gate');
   assert.equal((await request('/native/internal/gameserver/heartbeat',{method:'POST',headers:{AccessKey:'wrong'},body:'{}'})).status,401);
   assert.equal((await request('/api/me',{headers:{AccessKey:key}})).status,401,'machine key cannot bypass the account API');
   const entry=await request('/?key='+cfg.accessToken);cookies=entry.headers.getSetCookie().map(x=>x.split(';')[0]).join('; ');assert.equal(entry.status,303);
   assert.equal((await request('/api/native/status')).status,401,'key is not a login');
+  assert.deepEqual(await(await request('/api/ads')).json(),{images:[]},'a missing ad folder is harmless');
   assert.equal((await(await request('/api/native/version')).json()).version,'2x2-native-map-pack-v1');
   const register=await request('/api/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:'NativeTester',password:'A_test_password!2'})});assert.equal(register.status,200);
   cookies+='; '+register.headers.getSetCookie().map(x=>x.split(';')[0]).join('; ');
   const me=await(await request('/api/me')).json();assert.equal(me.user.username,'NativeTester');
+  const chatInfo='/native/api/game/players/'+me.user.id;
+  assert.deepEqual(await(await request(chatInfo,{headers:{AccessKey:key}},'')).json(),{ChatFilter:'blacklist'},'RCC can fetch chat settings without entrance cookies');
+  assert.equal((await request(chatInfo,{headers:{AccessKey:'wrong'}},'')).status,401);
+  const chat=await request('/native/api/moderation/filtertext',{method:'POST',headers:{AccessKey:key,'Content-Type':'application/x-www-form-urlencoded'},body:'userId='+me.user.id+'&text=hello+multiplayer'},'');
+  assert.equal(chat.status,200);assert.deepEqual(await chat.json(),{data:{white:'hello multiplayer',black:'hello multiplayer'}});
+  assert.equal((await request('/native/api/moderation/filtertext',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:'text=spoofed'})).status,403,'browser sessions cannot impersonate the worker filter');
   const launch=await(await request('/api/native/launch?id='+classic)).json();assert.equal(launch.placeId,1);assert.ok(launch.joinScriptUrl.startsWith(base+'/native/'));
   assert.equal((await request('/api/native/launch?id=unknown')).status,503);
   if(cross){assert.equal(cross.file,'2008m-crossroads.rbxl','the repaired Crossroads map must be registered');const crossroadsLaunch=await request('/api/native/launch?id=2008m-crossroads');assert.equal(crossroadsLaunch.status,200);assert.equal((await crossroadsLaunch.json()).placeId,294);const delivered=await request('/native/asset?id=294',{headers:{AccessKey:key}},'');assert.deepEqual(Buffer.from(await delivered.arrayBuffer()),fs.readFileSync(path.join(root,'server/native/maps',cross.file)));}
@@ -66,11 +75,14 @@ test('native protocol shares 2x2 identity, requires the key, and gates WebSocket
   const app=await request('/native/appearance/'+me.user.id);assert.equal(app.status,200);assert.ok((await app.text()).includes('/native/bodycolors/'+me.user.id));
   const binaryResponse=await request('/native/asset?id=2',{headers:{AccessKey:key}},'');assert.deepEqual(Buffer.from(await binaryResponse.arrayBuffer()),binary,'binary map bytes must not be decoded as UTF-8');
   const serviceMap=await request('/native/asset?id=1',{headers:{AccessKey:key}},'');assert.equal(serviceMap.status,200);assert.ok((await serviceMap.text()).startsWith('<roblox'));
-  const mesh=await request('/native/asset?id=34854607',{headers:{AccessKey:key}},'');
+  const mesh=await request('/native/asset?id=34854608',{headers:{AccessKey:key}},'');
   assert.equal(mesh.status,200);assert.equal(await mesh.text(),'version 1.00\n');
+  const overlay=await request('/api/asset?id=34854607',{headers:{AccessKey:key}},'');
+  assert.equal(overlay.status,200);assert.equal(overlay.headers.get('Content-Type'),'image/png');
+  assert.deepEqual(Buffer.from(await overlay.arrayBuffer()),fs.readFileSync(path.join(root,'server/native/asset-library/34854607.png')));
   const lua=await request('/native/asset?id=1014476',{headers:{AccessKey:key}},'');
   assert.equal(lua.status,200);assert.match(await lua.text(),/linked Lua delivered/);
-  assert.equal((await request('/native/asset?id=34854607',{headers:{AccessKey:'wrong'}},'')).status,401);
+  assert.equal((await request('/native/asset?id=34854608',{headers:{AccessKey:'wrong'}},'')).status,401);
   assert.equal((await request('/native/asset?id=999999999',{headers:{AccessKey:key}},'')).status,404);
   const socketURL=new URL(info.WebSocketAddress);
   async function handshake(cookie,origin){return new Promise((resolve,reject)=>{

@@ -39,7 +39,7 @@
   async function showIndex() {
     const d = await RB.api("forums");
     document.title = "Forums - 2x2";
-    main.innerHTML = `<h1 class="PageTitle" style="margin-bottom:16px">Forums</h1>
+    main.innerHTML = `<section class="CommunityMasthead"><div><h1>2x2 Forums</h1><p>Old places. New conversations.</p></div></section>
       <form class="ForumSearch" id="ForumSearch"><input id="ForumQuery" type="search" maxlength="80" value="" placeholder="Search forums" aria-label="Search forums"> <button class="Button Primary">Search</button></form>
       <table class="ForumTable"><thead><tr><th>Forum</th><th class="Num">Threads</th><th class="Num Hide">Posts</th><th class="Last">Last Post</th></tr></thead><tbody>
       ${d.categories.map((c) => `<tr class="Category"><td colspan="4">${RB.esc(c.name)}</td></tr>` + c.boards.map((b) => `

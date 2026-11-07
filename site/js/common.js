@@ -240,7 +240,8 @@ const RB = {
       <div class="RailFoot">
         <a href="settings.html"${current === "Settings" ? ' class="current" aria-current="page"' : ""}>${RB.navIcon("settings")}<span>Settings</span></a>
         <a href="about.html"${current === "About" ? ' class="current" aria-current="page"' : ""}>${RB.navIcon("info")}<span>About 2x2</span></a>
-      </div>`;
+      </div>
+      <figure class="RailArtwork"><img src="img/ads/tree-perch.webp" width="160" height="145" alt="A classic Roblox character perched above the trees" loading="lazy"><figcaption>A little further from ordinary.</figcaption></figure>`;
   },
   renderAuth(u) {
     const el = document.getElementById("Authentication");
@@ -253,7 +254,7 @@ const RB = {
         <a class="Wallet tix" href="catalog.html" title="Tickets">${RB.icon("tix", 22)}<span>${RB.num(u.tix)}</span></a>
         <div class="Account">
           <button class="AccountBtn" type="button" aria-haspopup="menu" aria-expanded="false">
-            <span class="Initial" aria-hidden="true">${RB.esc(u.username.slice(0, 1).toUpperCase())}</span><span class="AccName">${RB.esc(u.username)}</span>${RB.icon("down", 16)}
+            <span class="Initial UserHeadshot" aria-hidden="true">${RB.icon('avatar',20)}</span><span class="AccName">${RB.esc(u.username)}</span>${RB.icon("down", 16)}
           </button>
           <div class="Menu" role="menu" hidden>
             <a role="menuitem" href="profile.html">${RB.icon("profile", 18)}Profile</a>
@@ -269,9 +270,10 @@ const RB = {
       document.addEventListener("click", (e) => { if (!menu.hidden && !menu.contains(e.target)) setOpen(false); });
       document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !menu.hidden) { setOpen(false); btn.focus(); } });
       document.getElementById("LogoutLink").addEventListener("click", () => RB.logout());
+      RB.headshot(el.querySelector('.UserHeadshot'),u.avatar,28);
     }
     const ru = document.getElementById("RailUser");
-    if (ru) { ru.hidden = !u; if (u) { document.getElementById("RailInitial").textContent = u.username.slice(0, 1).toUpperCase(); document.getElementById("RailName").textContent = u.username; } }
+    if (ru) { ru.hidden = !u; if (u) { const av=document.getElementById("RailInitial");av.classList.add('UserHeadshot');RB.headshot(av,u.avatar,28);document.getElementById("RailName").textContent = u.username; } }
     const badge = document.getElementById("FriendBadge");
     if (badge) { badge.hidden = !(u && u.friendRequests); badge.textContent = u ? u.friendRequests : ""; }
   },
@@ -293,6 +295,9 @@ const RB = {
 
   // Shows the page shell. Synchronous (play.html calls it); the account box fills in when /api/me answers.
   mount(current) {
+    if(!document.getElementById('CommunityShellStyles')){
+      const css=document.createElement('link');css.id='CommunityShellStyles';css.rel='stylesheet';css.href='css/community-shell.css';document.head.appendChild(css);
+    }
     if (document.getElementById("PlayContainer")) document.documentElement.classList.add("Theater");
     const h = document.getElementById("Header");
     if (h) h.innerHTML = RB.header();
@@ -300,6 +305,7 @@ const RB = {
     if (s) s.innerHTML = RB.sidebar(current);
     const f = document.getElementById("FooterSlot");
     if (f) f.innerHTML = RB.footer();
+    RB.mountAds();
 
     if (s && !document.getElementById("Scrim")) { const sc = document.createElement("div"); sc.id = "Scrim"; document.body.appendChild(sc); }
     const toggle = document.querySelector(".NavToggle");
@@ -390,6 +396,47 @@ const RB = {
   },
 
   // Small rendered avatar for lists (uses avatar.js when loaded, a coloured silhouette otherwise).
+  async headshot(el,avatar,size=64){
+    if(!el)return;
+    const stage=document.createElement('span');stage.className='UserHeadshotStage';
+    stage.innerHTML=RB.icon('avatar',20);el.replaceChildren(stage);
+    try{
+      if(typeof RBAvatar==='undefined'){
+        RB._avatarLoader ||= new Promise((resolve,reject)=>{
+          const script=document.createElement('script');script.src='js/avatar.js';
+          script.onload=resolve;script.onerror=reject;document.head.appendChild(script);
+        });
+        await RB._avatarLoader;
+      }
+      RBAvatar.headshot(stage,avatar,await RB.items(),size);
+    }catch{/* Keep the neutral avatar silhouette when rendering is unavailable. */}
+  },
+
+  async mountAds(){
+    const page=document.getElementById('Page');
+    if(!page||page.dataset.adsMounted||document.documentElement.classList.contains('Theater')||document.body.classList.contains('Landing'))return;
+    page.dataset.adsMounted='true';
+    try{
+      const {images}=await RB.api('ads');
+      const available=(Array.isArray(images)?images:[]).filter(i=>typeof i.src==='string'&&/^\/img\/ads\/[^/]+$/.test(i.src));
+      if(!available.length)return;
+      // Shuffle once per navigation; two distinct creatives when the folder has enough.
+      for(let i=available.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[available[i],available[j]]=[available[j],available[i]];}
+      const content=document.createElement('div');content.className='PageContent';
+      while(page.firstChild)content.appendChild(page.firstChild);
+      const rail=(entry,side)=>{
+        const ad=document.createElement('aside');ad.className='SideAd SideAd'+side;ad.setAttribute('aria-label',side+' community advertisement');
+        const img=document.createElement('img');img.src=entry.src;img.alt='Community artwork';img.width=160;img.height=600;img.decoding='async';
+        if(entry.src.includes('tree-perch'))img.style.objectPosition='65% center';
+        img.addEventListener('error',()=>ad.hidden=true,{once:true});
+        const label=document.createElement('span');label.className='AdLabel';label.textContent='Advertisement';
+        ad.append(img,label);return ad;
+      };
+      page.append(rail(available[0],'Left'),content,rail(available[1]||available[0],'Right'));
+      page.classList.add('AdLayout');
+    }catch{/* An empty or unavailable ad folder never blocks the page. */}
+  },
+
   async avatarThumb(el, avatar, size = 60) {
     if (!window.RBAvatar) return;
     try { RBAvatar.render(el, avatar, await RB.items(), { scale: size / 6.4, angle: -18, still: true }); } catch { /* ignore */ }

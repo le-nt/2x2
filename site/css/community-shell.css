@@ -1,0 +1,46 @@
+/* Classic 160 x 600 rails, with a readable center column and room for the sidebar. */
+#Page.AdLayout { display:grid; grid-template-columns:160px minmax(0,1040px) 160px; gap:24px; align-items:start; justify-content:center; padding:22px 24px 0; }
+.PageContent { min-width:0; width:100%; }
+#Page.AdLayout #Main { max-width:none; padding:0 0 48px; }
+.SideAd { width:160px; margin:0; position:sticky; top:calc(var(--top-h,48px) + 22px); }
+.SideAd[hidden] { visibility:hidden; display:block; }
+.SideAd img { display:block; width:160px; height:600px; object-fit:cover; object-position:center; background:var(--raised,#eee); }
+.AdLabel { display:block; margin-top:4px; font-size:9px; line-height:1.3; font-weight:400; text-transform:uppercase; letter-spacing:.04em; color:var(--muted,#666); }
+.UserHeadshot { position:relative; overflow:hidden; flex-shrink:0; border-radius:50%; background:var(--raised,#eee) !important; }
+.UserHeadshotStage { display:grid; place-items:center; width:100% !important; height:100% !important; overflow:hidden; }
+.UserHeadshotStage img, .UserHeadshotStage canvas { display:block; width:100% !important; height:100% !important; object-fit:contain; }
+.UserHeadshotStage > .Icon { color:var(--muted,#666); }
+.RailArtwork { display:block; margin:18px 14px 0; overflow:hidden; border-radius:3px; }
+.RailArtwork img { display:block; width:100%; height:145px; object-fit:cover; object-position:65% 45%; }
+.RailArtwork figcaption { padding-top:5px; font-size:11px; color:var(--faint,#777); }
+.BrandBanner.ArtBanner { min-height:190px; background:linear-gradient(90deg,#19172f 0%,#19172fe6 30%,#19172f18 80%),url('../img/ads/checkered-crowd.webp') center 35%/cover; }
+.BrandBanner.ArtBanner::before { display:none; }
+.ArtBanner .BannerCopy { max-width:340px; }
+.ArtBanner .BannerCopy h2 { line-height:1.12; margin-bottom:9px; }
+.ArtBanner .BannerCopy p { color:#e5e0f7; }
+.ArtBanner .BannerBlocks { display:none; }
+.CommunityFeature { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); overflow:hidden; margin:0 0 26px; background:var(--surface); border-radius:4px; box-shadow:var(--shadow); }
+.CommunityFeature > img { width:100%; height:230px; object-fit:cover; object-position:50% 47%; }
+.CommunityFeatureCopy { align-self:center; padding:24px; }
+.CommunityFeatureCopy h2 { margin:0 0 8px; font-size:25px; font-weight:400; }
+.CommunityFeatureCopy p { margin:0 0 18px; color:var(--muted); }
+.CommunityMasthead { position:relative; display:flex; align-items:flex-end; min-height:170px; padding:24px; margin-bottom:22px; overflow:hidden; border-radius:4px; color:#fff; background:linear-gradient(90deg,#211a32ed,#211a3218),url('../img/ads/builder-and-robot.webp') center 42%/cover; }
+.CommunityMasthead h1 { color:#fff; margin:0; font-size:30px; font-weight:400; }
+.CommunityMasthead p { color:#f0e7f4; margin:5px 0 0; }
+@media(max-width:1279px) {
+  #Page.AdLayout { display:block; padding:0; }
+  #Page.AdLayout #Main { max-width:1040px; margin:0 auto; padding:22px 24px 48px; }
+  .SideAd { display:none; }
+  .SideAd[hidden] { display:none; }
+}
+@media(max-width:700px) {
+  #Page.AdLayout #Main { padding:20px 16px 32px; }
+  .BrandBanner.ArtBanner { min-height:210px; background-position:60% 35%; }
+  .ArtBanner .BannerCopy { max-width:240px; }
+  .CommunityFeature { grid-template-columns:1fr; }
+  .CommunityFeature > img { height:190px; }
+  .CommunityFeatureCopy { padding:20px; }
+  .CommunityMasthead { min-height:150px; padding:20px; }
+}
+html.Theater #Page.AdLayout { display:block; padding:0; }
+html.Theater .SideAd, html.embed .SideAd { display:none; }

@@ -67,12 +67,17 @@
       </div>
     </div>
 
-    <section class="BrandBanner" data-shader="studs" aria-label="Explore 2x2"><div class="BannerBlocks" aria-hidden="true"><i></i><i></i><i></i><i></i></div><div class="BannerCopy"><h2>Same blocks. Endless possibilities.</h2><p>Your next favorite place is out there.</p></div><a class="Button Primary" href="games.html">Discover games &rarr;</a></section>
+    <section class="BrandBanner ArtBanner" data-shader="studs" aria-label="Explore 2x2"><div class="BannerBlocks" aria-hidden="true"><i></i><i></i><i></i><i></i></div><div class="BannerCopy"><h2>Same blocks. Endless possibilities.</h2><p>Your next favorite place is out there.</p></div><a class="Button Primary" href="games.html">Discover games &rarr;</a></section>
 
     ${shelf("Friends", `<a href="friends.html">See all</a>`, friendsHtml)}
     ${recent.length ? shelf("Continue playing", `<a href="games.html?sort=mine">See all</a>`, rail(recent, (m) => `<span>${RB.ago(m.last)}</span>`)) : ""}
     ${playingNow.length ? shelf("Playing right now", `<a href="games.html?sort=playing">See all</a>`, rail(playingNow.slice(0, 10))) : ""}
     ${shelf("Featured places", `<a href="games.html?sort=featured">See all</a>`, rail(featured))}
+
+    <section class="CommunityFeature">
+      <img src="img/ads/builder-and-robot.webp" alt="A classic Roblox builder facing a blocky robot" width="1024" height="768" loading="lazy">
+      <div class="CommunityFeatureCopy"><h2>Better with a friend.</h2><p>Revisit an old favorite, make something new, or find your people.</p><a class="Button Primary" href="friends.html">Find friends</a></div>
+    </section>
 
     <div class="Split">
       <section class="StandardBox">

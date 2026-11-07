@@ -45,6 +45,9 @@ const RBAvatarCSS = (() => {
     const S = opts.scale || 40;
     let angle = opts.angle ?? -20;
     const tilt = opts.tilt ?? -8;
+    const originX=opts.headshot?opts.size/2:2.3*S;
+    const originY=opts.headshot?opts.size*.8:3.6*S;
+    if(opts.headshot)el.style.overflow='hidden';
     el.classList.add("AvatarStage");
     el.style.width = el.style.width || `${4.6 * S}px`;
     el.style.height = el.style.height || `${6.6 * S}px`;
@@ -74,7 +77,7 @@ const RBAvatarCSS = (() => {
         return l;
       };
       const H = 1.25 * S;
-      let html = `<div class="av-rig" style="transform:translate(${2.3 * S}px,${3.6 * S}px) rotateX(${tilt}deg) rotateY(${angle}deg)">`;
+      let html = `<div class="av-rig" style="transform:translate(${originX}px,${originY}px) rotateX(${tilt}deg) rotateY(${angle}deg)">`;
       html += box(2 * S, 2 * S, S, 0, 0, 0, hex(colors.torso), torsoLayers);
       html += box(S, 2 * S, S, -1.5 * S, 0, 0, hex(colors.rightArm), clothes(LIMB_R, true, false));
       html += box(S, 2 * S, S, 1.5 * S, 0, 0, hex(colors.leftArm), clothes(LIMB_L, true, false));
@@ -95,7 +98,7 @@ const RBAvatarCSS = (() => {
       angle = a;
       const rig = el.querySelector(".av-rig");
       if (!rig) return;
-      rig.style.transform = `translate(${2.3 * S}px,${3.6 * S}px) rotateX(${tilt}deg) rotateY(${angle}deg)`;
+      rig.style.transform = `translate(${originX}px,${originY}px) rotateX(${tilt}deg) rotateY(${angle}deg)`;
       for (const h of rig.querySelectorAll(".av-hat")) h.style.transform = h.style.transform.replace(/rotateY\([^)]*\)/, `rotateY(${-angle}deg)`);
     }
 
