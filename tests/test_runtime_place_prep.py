@@ -4,6 +4,7 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
+import xml.etree.ElementTree as ET
 
 FILE = Path(__file__).resolve().parents[1] / 'tools' / 'prepare-runtime-place.py'
 spec = importlib.util.spec_from_file_location('native_runtime_prep', FILE)
@@ -51,7 +52,9 @@ class RuntimePlacePrepTests(unittest.TestCase):
         self.assertEqual(result['counts']['repaired_places'], 1)
         self.assertEqual(result['counts']['restored_crossroads_template'], 1)
         out = self.maps / '2x2-runtime-ready/test-tools.rbxl'
-        self.assertIn(scripts[script].encode(), out.read_bytes())
+        converted = ET.fromstring(out.read_bytes())
+        source = next(x for x in converted.iter('ProtectedString') if x.get('name') == 'Source')
+        self.assertEqual(source.text, scripts[script])
         self.assertEqual((self.maps / 'test-tools.rbxl').read_bytes(), self.source)
         self.assertEqual(self.registry_file.read_bytes(), original_registry)
         self.assertFalse((self.maps / '2x2-runtime-ready/other-place.rbxl').exists())
