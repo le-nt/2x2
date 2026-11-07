@@ -1,11 +1,13 @@
 """Regression checks for handle/link inventory and read-only audit."""
 import importlib.util
 import json
+import sys
 import tempfile
 import unittest
 from pathlib import Path
 
 ROOT=Path(__file__).resolve().parents[1]
+sys.path.insert(0,str(ROOT/'tools'))
 def load(name,file):
     spec=importlib.util.spec_from_file_location(name,ROOT/'tools'/file)
     obj=importlib.util.module_from_spec(spec);spec.loader.exec_module(obj)
