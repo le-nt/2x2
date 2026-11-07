@@ -15,9 +15,9 @@ test('resolve local numeric asset IDs',()=>assert.equal(fs.readFileSync(resolver
 test('resolve previously exported scene assets',()=>assert.ok(resolver.lookup('345').file.endsWith('assets_345.png')));
 test('reject paths and unsafe identifiers',()=>{for(const id of ['../123','0','-1','1/2','1%2f2','99999999999999999999'])assert.equal(resolver.lookup(id),null);});
 test('missing IDs remain missing rather than fetching externally',()=>assert.equal(resolver.lookup('8888888'),null));
-test('never follow symlinks outside the trusted directory',()=>{
+test('never follow symlinks outside the trusted directory',(t)=>{
   const outside=path.join(tmp,'secret');fs.writeFileSync(outside,'secret');
-  try {fs.symlinkSync(outside,path.join(a,'999.mesh'));assert.equal(resolver.lookup('999'),null);} finally {try{fs.unlinkSync(path.join(a,'999.mesh'));}catch{}}
+  try {try{fs.symlinkSync(outside,path.join(a,'999.mesh'));}catch(error){if(process.platform==='win32' && error.code==='EPERM'){t.skip('Windows symlink privilege unavailable');return;}throw error;}assert.equal(resolver.lookup('999'),null);} finally {try{fs.unlinkSync(path.join(a,'999.mesh'));}catch{}}
 });
 
 
