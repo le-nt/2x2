@@ -26,6 +26,31 @@ class EngineCoreSourceTests(unittest.TestCase):
         self.assertIn("ChatModule:TopbarEnabledChanged(topbarEnabled)", topbar)
         self.assertIn("ChatModule:ToggleVisibility()", topbar)
 
+    def test_chat_object_scopes_and_idempotent_visibility(self):
+        import re
+        chat = (ROOT / "Modules/Chat.lua").read_text(encoding="utf-8")
+        # The module constructs several widgets as 'this'; an unbound 'self'
+        # previously broke focus, fade, message sending and visibility.
+        live_source = "\n".join(line for line in chat.splitlines()
+                                if not line.lstrip().startswith("--"))
+        self.assertIsNone(re.search(r"\bself[.:]", live_source))
+        self.assertIn('function this:ToggleVisibility(visible)', chat)
+        self.assertIn('if type(visible) ~= "boolean" then', chat)
+        self.assertIn('SetVisbility(visible)', chat)
+        self.assertIn('function moduleApiTable:ToggleVisibility(visible)', chat)
+        self.assertIn('ChatInstance:ToggleVisibility(visible)', chat)
+        self.assertIn('return this.WidgetVisible and (chatCoreGuiEnabled or NON_CORESCRIPT_MODE)', chat)
+
+    def test_topbar_chat_survives_missing_optional_services(self):
+        topbar = (ROOT / "CoreScripts/Topbar.lua").read_text(encoding="utf-8")
+        chat = (ROOT / "Modules/Chat.lua").read_text(encoding="utf-8")
+        self.assertIn('local gotPlatform, platform = pcall(function()', topbar)
+        self.assertIn('local loaded, ChatModule = pcall(function()', topbar)
+        self.assertIn('if not loaded or not ChatModule then', topbar)
+        self.assertIn('local bubbleChatIsOn = false', topbar)
+        self.assertIn('local ok, err = pcall(function()', chat)
+        self.assertIn('GuiRoot.Modules:WaitForChild("PlayerDropDown", 8)', chat)
+
     def test_topbar_does_not_hang_on_missing_settings(self):
         topbar = (ROOT / "CoreScripts/Topbar.lua").read_text(encoding="utf-8")
         self.assertIn('GuiRoot.Modules:WaitForChild("Settings", 8)', topbar)
