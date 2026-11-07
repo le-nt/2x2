@@ -86,7 +86,7 @@ export function createAssetResolver({serverDir, siteDir, publicOrigin = ''}) {
     return null;
   }
   function handle(req, res, url) {
-    if (url.pathname !== '/api/asset') return false;
+    if (!['/api/asset', '/asset', '/asset/'].includes(url.pathname)) return false;
     if (req.method !== 'GET' && req.method !== 'HEAD') {
       res.writeHead(405, {'Allow':'GET, HEAD'}).end(); return true;
     }

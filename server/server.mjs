@@ -183,7 +183,7 @@ async function handler(req, res) {
     catch (error) { console.error("[2x2 native]", error.message); if (!res.headersSent) res.writeHead(500, { "Content-Type": "application/json" }).end('{"error":"Native request failed."}'); else res.destroy(); return; }
   }
   // Numeric legacy asset IDs are resolved locally; no arbitrary external proxy.
-  if (urlPath === "/api/asset") {
+  if (urlPath === "/api/asset" || urlPath === "/asset" || urlPath === "/asset/") {
     return assetResolver.handle(req, res, url);
   }
   // ---- API ----

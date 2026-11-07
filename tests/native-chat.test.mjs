@@ -37,6 +37,7 @@ test('native chat uses worker authorization, legacy response keys and bounded lo
   assert.equal((await get('/native/api/game/players/3',{'x-test-session':'valid'})).status,403);
   assert.equal((await get('/native/api/game/players/3',worker)).status,404);
   assert.equal((await get(metadata+'/extra',worker)).status,401,'worker allowlist must match the complete path');
+  assert.equal((await get('/native/asset/extra',worker)).status,401,'asset worker allowlist must not accept path suffixes');
   assert.equal((await get('/api/me',worker)).status,401,'chat does not broaden worker access');
   assert.equal((await get(filter,worker)).status,405);
   const post=(body,headers=worker)=>fetch(base+filter,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded',...headers},body});
