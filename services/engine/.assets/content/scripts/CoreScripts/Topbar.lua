@@ -163,7 +163,8 @@ local function CreateTopBar()
 
 		local playerGui = Player:FindFirstChild('PlayerGui')
 		if playerGui then
-			return playerGui:GetTopbarTransparency()
+			local ok, transparency = pcall(function() return playerGui:GetTopbarTransparency() end)
+			if ok and type(transparency) == "number" then return transparency end
 		end
 
 		return TOPBAR_TRANSLUCENT_TRANSPARENCY
@@ -399,33 +400,25 @@ local function CreateUsernameHealthMenuItem()
 	local humanoidChangedConn, childAddedConn, childRemovedConn = nil
 	--------------
 
+	-- A full-screen tint needs fixed bounds: the old 20x size tween could
+	-- expand far beyond the viewport and fail to visibly flash on some builds.
+	local hurtAnimation = 0
 	local function AnimateHurtOverlay()
-		if hurtOverlay then
-			local newSize = UDim2.new(20, 0, 20, 0)
-			local newPos = UDim2.new(-10, 0, -10, 0)
-
-			if hurtOverlay:IsDescendantOf(game) then
-				-- stop any tweens on overlay
-				hurtOverlay:TweenSizeAndPosition(newSize, newPos, Enum.EasingDirection.Out, Enum.EasingStyle.Linear, 0, true, function()
-					-- show the gui
-					hurtOverlay.Size = UDim2.new(1,0,1,0)
-					hurtOverlay.Position = UDim2.new(0,0,0,0)
-					hurtOverlay.Visible = true
-					-- now tween the hide
-					if hurtOverlay:IsDescendantOf(game) then
-						hurtOverlay:TweenSizeAndPosition(newSize, newPos, Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.65, false, function()
-							hurtOverlay.Visible = false
-						end)
-					else
-						hurtOverlay.Size = newSize
-						hurtOverlay.Position = newPos
-					end
-				end)
-			else
-				hurtOverlay.Size = newSize
-				hurtOverlay.Position = newPos
+		if not hurtOverlay or not hurtOverlay:IsDescendantOf(game) then return end
+		hurtAnimation = hurtAnimation + 1
+		local sequence = hurtAnimation
+		hurtOverlay.Position = UDim2.new(0,0,0,0)
+		hurtOverlay.Size = UDim2.new(1,0,1,0)
+		hurtOverlay.BackgroundTransparency = 0.76
+		hurtOverlay.Visible = true
+		spawn(function()
+			for step = 1, 12 do
+				wait(0.05)
+				if sequence ~= hurtAnimation or not hurtOverlay:IsDescendantOf(game) then return end
+				hurtOverlay.BackgroundTransparency = 0.76 + (0.24 * step / 12)
 			end
-		end
+			if sequence == hurtAnimation then hurtOverlay.Visible = false end
+		end)
 	end
 
 	local healthColorToPosition = {
@@ -663,9 +656,20 @@ end
 --- SETTINGS ---
 local function CreateSettingsIcon(topBarInstance)
 	local MenuModule = nil
-	game.CoreGui.RobloxGui.Modules:WaitForChild("Settings")
-	game.CoreGui.RobloxGui.Modules.Settings:WaitForChild("SettingsHub")
-	MenuModule = require(game.CoreGui.RobloxGui.Modules.Settings.SettingsHub)
+	-- A missing settings module must not prevent Chat, Health, PlayerList
+	-- and the rest of the topbar from being constructed.
+	local settingsFolder = GuiRoot.Modules:WaitForChild("Settings", 8)
+	local settingsHub = settingsFolder and settingsFolder:WaitForChild("SettingsHub", 8)
+	if not settingsHub then
+		warn("[2x2 topbar] SettingsHub is unavailable; continuing without settings icon.")
+		return nil
+	end
+	local ok, result = pcall(function() return require(settingsHub) end)
+	if not ok or not result then
+		warn("[2x2 topbar] SettingsHub failed: " .. tostring(result))
+		return nil
+	end
+	MenuModule = result
 
 	local settingsIconButton = Util.Create'ImageButton'
 	{
@@ -1096,7 +1100,7 @@ end
 if shiftlockIcon then
 	LEFT_ITEM_ORDER[shiftlockIcon] = 5
 end
-LEFT_ITEM_ORDER[stopRecordingIcon] = 6
+if stopRecordingIcon then LEFT_ITEM_ORDER[stopRecordingIcon] = 6 end
 
 RIGHT_ITEM_ORDER = {}
 if leaderstatsMenuItem then
@@ -1142,7 +1146,7 @@ local function OnCoreGuiChanged(coreGuiType, enabled)
 		end
 	end
 	if coreGuiType == Enum.CoreGuiType.Chat or coreGuiType == Enum.CoreGuiType.All then
-		if enabled and Player.ChatMode == Enum.ChatMode.TextAndMenu then
+		if enabled then -- 2x2: missing ChatMode must not hide the chat icon
 			if chatIcon then
 				AddItemInOrder(LeftMenubar, chatIcon, LEFT_ITEM_ORDER)
 			end

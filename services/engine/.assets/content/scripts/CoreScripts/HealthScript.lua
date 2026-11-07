@@ -212,39 +212,25 @@ function UpdateGui(health)
 
 end
 
+local hurtAnimation = 0
 function AnimateHurtOverlay()
 	if not HealthGui then return end
-	
 	local overlay = HealthGui:FindFirstChild("HurtOverlay")
-	if not overlay then return end
-	
-	local newSize = UDim2.new(20, 0, 20, 0)
-	local newPos = UDim2.new(-10, 0, -10, 0)
-
-	if overlay:IsDescendantOf(game) then
-		-- stop any tweens on overlay
-		overlay:TweenSizeAndPosition(newSize,newPos,Enum.EasingDirection.Out,Enum.EasingStyle.Linear,0,true,function()
-			
-			-- show the gui
-			overlay.Size = UDim2.new(1,0,1,0)
-			overlay.Position = UDim2.new(0,0,0,0)
-			overlay.Visible = true
-			
-			-- now tween the hide
-			if overlay:IsDescendantOf(game) then
-				overlay:TweenSizeAndPosition(newSize,newPos,Enum.EasingDirection.Out,Enum.EasingStyle.Quad,0.65,false,function()
-					overlay.Visible = false
-				end)
-			else
-				overlay.Size = newSize
-				overlay.Position = newPos
-			end
-		end)
-	else
-		overlay.Size = newSize
-		overlay.Position = newPos
-	end
-
+	if not overlay or not overlay:IsDescendantOf(game) then return end
+	hurtAnimation = hurtAnimation + 1
+	local sequence = hurtAnimation
+	overlay.Position = UDim2.new(0,0,0,0)
+	overlay.Size = UDim2.new(1,0,1,0)
+	overlay.BackgroundTransparency = 0.76
+	overlay.Visible = true
+	spawn(function()
+		for step = 1, 12 do
+			wait(0.05)
+			if sequence ~= hurtAnimation or not overlay:IsDescendantOf(game) then return end
+			overlay.BackgroundTransparency = 0.76 + (0.24 * step / 12)
+		end
+		if sequence == hurtAnimation then overlay.Visible = false end
+	end)
 end
 
 function humanoidDied()
