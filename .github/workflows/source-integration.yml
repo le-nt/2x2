@@ -1,0 +1,37 @@
+name: 2x2 source integration checks
+
+on:
+  pull_request:
+    paths:
+      - 'server/lib/ads.mjs'
+      - 'server/lib/asset-resolver.mjs'
+      - 'tests/ads.test.mjs'
+      - 'tests/asset-resolver.test.mjs'
+      - 'tests/test_engine_core_sources.py'
+      - 'services/engine/.assets/content/scripts/**'
+      - '.github/workflows/source-integration.yml'
+      - 'site/img/userads/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  source-regressions:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Asset and advertisement tests
+        run: node --test tests/ads.test.mjs tests/asset-resolver.test.mjs
+      - name: Native topbar chat health source tests
+        run: python -m unittest discover -s tests -p test_engine_core_sources.py -v
