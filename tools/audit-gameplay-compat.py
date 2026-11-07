@@ -14,6 +14,9 @@ from pathlib import Path
 VALID={'inventoried','inventoried_with_xml_recovery'}
 TOOL_CLASSES={'Tool','HopperBin'}
 ID=re.compile(r'^[a-zA-Z0-9][a-zA-Z0-9_-]{0,150}$')
+MODERN_CLASSES={'Terrain','MeshPart','UnionOperation','Folder','ParticleEmitter',
+                'ViewportFrame','SurfaceAppearance','ProximityPrompt','TextChatService',
+                'Beam','Trail','Attachment','SkinnedMeshPart','VideoFrame'}
 EXTENSIONS=('.rbxm','.rbxmx','.mesh','.png','.jpg','.jpeg','.dds','.wav','.mp3','.ogg','.txt','.lua')
 
 def local_asset(root,ident):
@@ -29,6 +32,8 @@ def local_asset(root,ident):
     return False
 
 def audit_one(root,manifest):
+    classes=manifest.get('classCounts') or {}
+    modern={name:count for name,count in classes.items() if name in MODERN_CLASSES and count}
     scripts=manifest.get('scripts') or []
     tools=manifest.get('tools') or []
     assetids=manifest.get('assetIds') or []
@@ -60,13 +65,14 @@ def audit_one(root,manifest):
     return {
       'id':manifest['id'],'status':manifest.get('status'),
       'tools':tools_info,
+      'modernInstanceClasses':modern,
       'counts':{'tools':len(tools_info),'scripts':len(scripts),
                 'embeddedSources':len(scripts)-len(scripts_empty),
                 'emptySources':len(scripts_empty),
                 'unavailableLinkedLua':len(not_cached),
                 'assetReferences':len(assetids),'cachedAssets':len(resolved),
                 'missingAssets':len(assetids)-len(resolved),
-                'toolIssues':dict(issues)},
+                'toolIssues':dict(issues),'modernClassInstances':sum(modern.values())},
       'warnings':[
        'Code presence, Handle shape and cached assets do not prove client execution, physics, hit detection or network replication.'
       ]
@@ -94,12 +100,12 @@ def run(root,place=None,write=False):
         item=audit_one(root,manifest)
         results.append(item)
         totals['audited_places']+=1
-        for field in ('tools','scripts','embeddedSources','emptySources','unavailableLinkedLua','assetReferences','cachedAssets','missingAssets'):
+        for field in ('tools','scripts','embeddedSources','emptySources','unavailableLinkedLua','assetReferences','cachedAssets','missingAssets','modernClassInstances'):
             totals[field]+=item['counts'][field]
         for issue,count in item['counts']['toolIssues'].items():
             totals[issue]+=count
     results.sort(key=lambda row:(
-       -(row['counts']['emptySources']+row['counts']['missingAssets']+sum(row['counts']['toolIssues'].values())),
+       -(row['counts']['emptySources']+row['counts']['missingAssets']+row['counts']['modernClassInstances']+sum(row['counts']['toolIssues'].values())),
        row['id']))
     report={'schemaVersion':1,'counts':dict(totals),
             'limitations':'Static inventory only; does not verify live chat, damage, tool activation or engine API compatibility.',
@@ -109,7 +115,7 @@ def run(root,place=None,write=False):
         out.mkdir(parents=True,exist_ok=True)
         (out/'compatibility-audit.json').write_text(json.dumps(report,indent=2)+'\n',encoding='utf-8')
         with (out/'compatibility-audit.csv').open('w',newline='',encoding='utf-8') as handle:
-            fields=['id','status','tools','scripts','emptySources','unavailableLinkedLua','missingAssets','cachedAssets','toolIssues']
+            fields=['id','status','tools','scripts','emptySources','unavailableLinkedLua','missingAssets','cachedAssets','modernClassInstances','toolIssues']
             writer=csv.DictWriter(handle,fieldnames=fields);writer.writeheader()
             for row in results:
                 counts=row['counts']
