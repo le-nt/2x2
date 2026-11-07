@@ -65,3 +65,25 @@ test('extensionless local Aya library resolves images and XML by signature',()=>
   else process.env.AYA_ASSETS_DIR=saved;
  }
 });
+
+test('legacy /asset aliases resolve locally and preserve HEAD responses', async t => {
+  const {createServer}=await import('node:http');
+  const server=createServer((req,res)=>{
+    const url=new URL(req.url,'http://localhost');
+    if(!resolver.handle(req,res,url))res.writeHead(404).end();
+  });
+  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
+  t.after(async()=>{server.closeAllConnections();await new Promise(resolve=>server.close(resolve));});
+  const base='http://127.0.0.1:'+server.address().port;
+  for(const route of ['/api/asset?id=34854607','/asset?id=34854607','/asset/?id=34854607']){
+    const get=await fetch(base+route);
+    assert.equal(get.status,200,route);
+    assert.deepEqual(Buffer.from(await get.arrayBuffer()),Buffer.from([0,1,2]));
+    const head=await fetch(base+route,{method:'HEAD'});
+    assert.equal(head.status,200);
+    assert.equal(head.headers.get('content-length'),'3');
+    assert.equal((await head.arrayBuffer()).byteLength,0);
+  }
+  assert.equal((await fetch(base+'/asset/malicious?id=34854607')).status,404);
+  assert.equal((await fetch(base+'/asset/?id=../../secret')).status,400);
+});
