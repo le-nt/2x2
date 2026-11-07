@@ -30,9 +30,15 @@ scriptContext:AddCoreScriptLocal("CoreScripts/DeveloperConsole", RobloxGui)
 -- In-game notifications script
 scriptContext:AddCoreScriptLocal("CoreScripts/NotificationScript2", RobloxGui)
 
--- Chat script
+-- Chat must be initialized whether or not the top-bar feature flag exists.
+-- Chat.lua supports both top-bar and legacy layouts.
+spawn(function()
+	local ok, err = pcall(function()
+		require(RobloxGui.Modules:WaitForChild("Chat"))
+	end)
+	if not ok then warn("[2x2 core] Chat module failed: " .. tostring(err)) end
+end)
 if useTopBar then
-	spawn(function() require(RobloxGui.Modules.Chat) end)
 	spawn(function() require(RobloxGui.Modules.PlayerlistModule) end)
 end
 
