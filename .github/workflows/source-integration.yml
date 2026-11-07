@@ -5,6 +5,7 @@ on:
     paths:
       - 'server/lib/ads.mjs'
       - 'server/lib/asset-resolver.mjs'
+      - 'server/server.mjs'
       - 'server/lib/native-avatar-deps.mjs'
       - 'server/lib/native.mjs'
       - 'tests/native-avatar-deps.test.mjs'
