@@ -39,7 +39,7 @@ def property_text(props, name):
         return ''
     for field in props:
         if field.get('name') == name:
-            return field.text or ''
+            return ''.join(field.itertext()) if name == 'LinkedSource' else (field.text or '')
     return ''
 
 
