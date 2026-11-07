@@ -163,7 +163,8 @@ local function CreateTopBar()
 
 		local playerGui = Player:FindFirstChild('PlayerGui')
 		if playerGui then
-			return playerGui:GetTopbarTransparency()
+			local ok, transparency = pcall(function() return playerGui:GetTopbarTransparency() end)
+			if ok and type(transparency) == "number" then return transparency end
 		end
 
 		return TOPBAR_TRANSLUCENT_TRANSPARENCY
@@ -655,9 +656,20 @@ end
 --- SETTINGS ---
 local function CreateSettingsIcon(topBarInstance)
 	local MenuModule = nil
-	game.CoreGui.RobloxGui.Modules:WaitForChild("Settings")
-	game.CoreGui.RobloxGui.Modules.Settings:WaitForChild("SettingsHub")
-	MenuModule = require(game.CoreGui.RobloxGui.Modules.Settings.SettingsHub)
+	-- A missing settings module must not prevent Chat, Health, PlayerList
+	-- and the rest of the topbar from being constructed.
+	local settingsFolder = GuiRoot.Modules:WaitForChild("Settings", 8)
+	local settingsHub = settingsFolder and settingsFolder:WaitForChild("SettingsHub", 8)
+	if not settingsHub then
+		warn("[2x2 topbar] SettingsHub is unavailable; continuing without settings icon.")
+		return nil
+	end
+	local ok, result = pcall(function() return require(settingsHub) end)
+	if not ok or not result then
+		warn("[2x2 topbar] SettingsHub failed: " .. tostring(result))
+		return nil
+	end
+	MenuModule = result
 
 	local settingsIconButton = Util.Create'ImageButton'
 	{
@@ -1088,7 +1100,7 @@ end
 if shiftlockIcon then
 	LEFT_ITEM_ORDER[shiftlockIcon] = 5
 end
-LEFT_ITEM_ORDER[stopRecordingIcon] = 6
+if stopRecordingIcon then LEFT_ITEM_ORDER[stopRecordingIcon] = 6 end
 
 RIGHT_ITEM_ORDER = {}
 if leaderstatsMenuItem then
@@ -1134,7 +1146,7 @@ local function OnCoreGuiChanged(coreGuiType, enabled)
 		end
 	end
 	if coreGuiType == Enum.CoreGuiType.Chat or coreGuiType == Enum.CoreGuiType.All then
-		if enabled and Player.ChatMode == Enum.ChatMode.TextAndMenu then
+		if enabled then -- 2x2: missing ChatMode must not hide the chat icon
 			if chatIcon then
 				AddItemInOrder(LeftMenubar, chatIcon, LEFT_ITEM_ORDER)
 			end
