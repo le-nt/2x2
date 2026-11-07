@@ -417,24 +417,65 @@ const RB = {
     if(!page||page.dataset.adsMounted||document.documentElement.classList.contains('Theater')||document.body.classList.contains('Landing'))return;
     page.dataset.adsMounted='true';
     try{
-      const {images}=await RB.api('ads');
-      const available=(Array.isArray(images)?images:[]).filter(i=>typeof i.src==='string'&&/^\/img\/ads\/[^/]+$/.test(i.src));
-      if(!available.length)return;
-      // Shuffle once per navigation; two distinct creatives when the folder has enough.
-      for(let i=available.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[available[i],available[j]]=[available[j],available[i]];}
-      const content=document.createElement('div');content.className='PageContent';
-      while(page.firstChild)content.appendChild(page.firstChild);
-      const rail=(entry,side)=>{
-        const ad=document.createElement('aside');ad.className='SideAd SideAd'+side;ad.setAttribute('aria-label',side+' community advertisement');
-        const img=document.createElement('img');img.src=entry.src;img.alt='Community artwork';img.width=160;img.height=600;img.decoding='async';
-        if(entry.src.includes('tree-perch'))img.style.objectPosition='65% center';
-        img.addEventListener('error',()=>ad.hidden=true,{once:true});
-        const label=document.createElement('span');label.className='AdLabel';label.textContent='Advertisement';
-        ad.append(img,label);return ad;
+      const payload=await RB.api('ads');
+      const entries=(Array.isArray(payload.images)?payload.images:[]).filter(item=>
+        item&&typeof item.src==='string'&&
+        /^\/img\/(?:ads\/[^/]+|userads\/(?:skyscraper|banner|rectangle|feature)\/[^/]+|userads\/[^/]+)$/.test(item.src)&&
+        ['skyscraper','banner','rectangle','feature'].includes(item.category));
+      const groups={skyscraper:[],banner:[],rectangle:[],feature:[]};
+      for(const entry of entries)groups[entry.category].push(entry);
+      for(const list of Object.values(groups)){
+        for(let i=list.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[list[i],list[j]]=[list[j],list[i]];}
+      }
+      const makeAd=(entry,category)=>{
+        const ad=document.createElement('aside');
+        ad.className='UserAd UserAd'+category;
+        ad.setAttribute('aria-label','Community advertisement');
+        const image=document.createElement('img');
+        image.src=entry.src;
+        image.alt='Archived Roblox community advertisement';
+        image.loading='lazy';
+        image.decoding='async';
+        image.width=Number(entry.width)||({banner:728,rectangle:300,feature:800,skyscraper:160}[category]);
+        image.height=Number(entry.height)||({banner:90,rectangle:250,feature:600,skyscraper:600}[category]);
+        image.addEventListener('error',()=>{ad.hidden=true;},{once:true});
+        const label=document.createElement('span');
+        label.className='AdLabel';
+        label.textContent='Advertisement';
+        ad.append(image,label);
+        return ad;
       };
-      page.append(rail(available[0],'Left'),content,rail(available[1]||available[0],'Right'));
-      page.classList.add('AdLayout');
-    }catch{/* An empty or unavailable ad folder never blocks the page. */}
+      const main=page.querySelector('#Main');
+      // Historical 728x90 leaderboard is above the place/game content.
+      if(main&&groups.banner.length){
+        const banner=makeAd(groups.banner[0],'banner');
+        banner.classList.add('PlaceLeaderboard');
+        main.prepend(banner);
+      }
+      // Rectangular ads belong alongside the place details, not stretched
+      // vertically into skyscraper rail slots.
+      if(main&&/\/game\.html$/i.test(location.pathname)){
+        const info=main.querySelector('.PlaceInfo');
+        const rectangle=groups.rectangle[0]||groups.feature[0];
+        if(info&&rectangle)info.appendChild(makeAd(rectangle,rectangle.category));
+      }
+      if(groups.skyscraper.length){
+        const content=document.createElement('div');
+        content.className='PageContent';
+        while(page.firstChild)content.appendChild(page.firstChild);
+        const rail=(entry,side)=>{
+          const ad=makeAd(entry,'skyscraper');
+          ad.classList.add('SideAd','SideAd'+side);
+          return ad;
+        };
+        const left=groups.skyscraper[0];
+        const right=groups.skyscraper[1]||left;
+        page.append(rail(left,'Left'),content,rail(right,'Right'));
+        page.classList.add('AdLayout');
+      }
+    }catch(error){
+      console.warn('[2x2 ads] Could not mount archive advertisements:',error);
+    }
   },
 
   async avatarThumb(el, avatar, size = 60) {
