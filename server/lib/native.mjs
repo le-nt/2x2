@@ -9,6 +9,7 @@ import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { gunzipSync } from 'node:zlib';
 import { issue,verify,equal,clientTicket,safeRelative } from './native-security.mjs';
+import {createNativeChat} from './native-chat.mjs';
 
 const json=(res,status,value)=>{res.writeHead(status,{'Content-Type':'application/json','Cache-Control':'no-store'});res.end(JSON.stringify(value));};
 const xmlEscape=value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;'}[c]));
@@ -17,6 +18,7 @@ function origin(value){const u=new URL(value);if(!['http:','https:'].includes(u.
 function beneath(root,rel){if(!safeRelative(rel))return null;try{const base=fs.realpathSync(root),file=fs.realpathSync(path.join(base,rel));return file.startsWith(base+path.sep)&&fs.statSync(file).isFile()?file:null;}catch{return null;}}
 export function createNative({db,cfg,root,port,sessionUser,isGated,assetResolver}){
  const n=cfg.native;
+ const chat=createNativeChat({db,config:n.chat});
  const publicOrigin=origin(n.publicOrigin||`http://localhost:${port}`);
  const base=publicOrigin+'/native';
  const serverDir=path.join(root,'../server');
@@ -93,7 +95,7 @@ export function createNative({db,cfg,root,port,sessionUser,isGated,assetResolver
  function appearance(id){const row=db.prepare('SELECT avatar FROM users WHERE id=?').get(id);let avatar={};try{avatar=JSON.parse(row?.avatar||'{}');}catch{}return avatar;}
  function appearanceURL(id){return `${base}/appearance/${id}`;}
  function avatarPaths(av){return [...(Array.isArray(av.hats)?av.hats:[]).slice(0,3).map(v=>'hats/'+v),...Object.entries({face:'faces',head:'heads',shirt:'shirts',pants:'pants',tshirt:'tshirts',extra:'custom'}).filter(([key])=>typeof av[key]==='string').map(([key,folder])=>folder+'/'+av[key])].filter(p=>beneath(charRoot,p));}
- function machineAllowed(url){return /^\/native\/(?:asset\/?$|appearance\/\d+$|bodycolors\/\d+$|content$|internal\/gameserver\/(?:heartbeat|shutdown)$|Game\/LoadPlaceInfo\.ashx$)/.test(url.pathname);}
+ function machineAllowed(url){return /^\/native\/(?:asset\/?$|appearance\/\d+$|bodycolors\/\d+$|content$|api\/game\/players\/[1-9][0-9]{0,15}$|api\/moderation\/filtertext$|internal\/gameserver\/(?:heartbeat|shutdown)$|Game\/LoadPlaceInfo\.ashx$)/.test(url.pathname);}
  function machine(req,url){return machineAllowed(url)&&!!n.accessKey&&equal(req.headers.accesskey,n.accessKey);}
  async function route(req,res,url,user,sessionHash){
   const p=url.pathname;
@@ -112,6 +114,7 @@ export function createNative({db,cfg,root,port,sessionUser,isGated,assetResolver
   const service=machine(req,url);
   if(!service&&!user)return json(res,401,{error:'A current 2x2 session is required.'});
   if(req.method!=='GET'&&req.method!=='HEAD'&&req.method!=='POST')return json(res,405,{error:'Method not supported.'});
+  if(await chat(req,res,url,{service,user}))return;
   if(p==='/native/negotiate'){res.writeHead(200,{'Content-Type':'text/plain','Cache-Control':'no-store'});return res.end('OK');}
   if(p==='/native/game/placelauncher'){
    if(req.method!=='POST')return json(res,405,{error:'Use POST.'});

@@ -4,6 +4,7 @@
 import http from "node:http";
 import { createNative } from "./lib/native.mjs";
 import { createAssetResolver } from "./lib/asset-resolver.mjs";
+import { createAds } from "./lib/ads.mjs";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -36,6 +37,7 @@ const types = {
   ".css": "text/css; charset=utf-8", ".json": "application/json", ".wasm": "application/wasm",
   ".zip": "application/zip", ".png": "image/png", ".gif": "image/gif", ".jpg": "image/jpeg",
   ".svg": "image/svg+xml", ".ico": "image/x-icon", ".txt": "text/plain; charset=utf-8", ".md": "text/plain; charset=utf-8",
+  ".webp": "image/webp", ".avif": "image/avif", ".jpeg": "image/jpeg",
   ".wav": "audio/wav", ".mp3": "audio/mpeg",
 };
 // A CSP for our own pages. The emulator (emu*/) and the game page are left alone so they can use workers/wasm freely.
@@ -92,6 +94,7 @@ function sessionUser(cookies) {
 }
 
 const assetResolver = createAssetResolver({serverDir:here,siteDir:root});
+const ads = createAds({siteDir:root});
 const native = createNative({ db, cfg, root, port, assetResolver, sessionUser, isGated: cookies => safeEqual(cookies[GATE_COOKIE] || "", gateValue) });
 
 function serveStatic(req, res, urlPath) {
@@ -184,6 +187,7 @@ async function handler(req, res) {
     return assetResolver.handle(req, res, url);
   }
   // ---- API ----
+  if (ads(req,res,url)) return;
   if (urlPath.startsWith("/api/")) {
     const { user, sessionHash } = sessionUser(cookies);
     return api({ req, res, url, user, sessionHash, ip });

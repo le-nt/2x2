@@ -1,6 +1,7 @@
-import hashlib, importlib.util, json, tempfile, unittest
+import hashlib, importlib.util, json, sys, tempfile, unittest
 from pathlib import Path
 SCRIPT = Path(__file__).resolve().parents[1]/'tools/build-place-manifests.py'
+sys.path.insert(0,str(SCRIPT.parent))
 spec = importlib.util.spec_from_file_location('place_manifests', SCRIPT)
 m = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(m)
@@ -24,7 +25,7 @@ class ScannerTests(unittest.TestCase):
  def test_binary_and_mismatched_hash(self):
   with tempfile.TemporaryDirectory() as d:
    p=Path(d)/'x.rbxl';p.write_bytes(b'<roblox!\x89\xff\r\n\x1a\nother')
-   self.assertEqual(m.inspect_place(p)['status'],'binary_needs_decoder')
+   self.assertEqual(m.inspect_place(p)['status'],'binary_decode_error')
    self.assertEqual(m.inspect_place(p,'a'*64)['status'],'hash_mismatch')
  def test_xml_error_has_safe_position(self):
   with tempfile.TemporaryDirectory() as d:
