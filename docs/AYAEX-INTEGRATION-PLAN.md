@@ -33,7 +33,7 @@ Work branch: `integration/ayaex-stability-pass-20261107`.
 
 ## Phase C — legacy client compatibility
 1. [ ] Inventory the actual 2006–2010 and 2016 asset/character HTTP requests from client logs and compare with `/native/*` and `/api/asset`.
-2. [ ] Add narrowly scoped aliases only for verified paths; retain gate and worker authorization boundaries.
+2. [x] Add gated \`/asset?id=\` and \`/asset/?id=\` aliases to the existing local asset resolver; keep the separate native worker endpoint and gate checks. Other aliases remain pending request-log verification.
 3. [ ] Validate XML models, appearance URLs, image/mesh MIME types, redirects, content URLs and browser cross-origin isolation.
 4. [ ] Keep compatibility per client family; do not assume 2016 Lua/UI scripts work in 2008 executables.
 
