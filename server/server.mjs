@@ -92,7 +92,7 @@ function sessionUser(cookies) {
 }
 
 const assetResolver = createAssetResolver({serverDir:here,siteDir:root});
-const native = createNative({ db, cfg, root, port, sessionUser, isGated: cookies => safeEqual(cookies[GATE_COOKIE] || "", gateValue) });
+const native = createNative({ db, cfg, root, port, assetResolver, sessionUser, isGated: cookies => safeEqual(cookies[GATE_COOKIE] || "", gateValue) });
 
 function serveStatic(req, res, urlPath) {
   if (urlPath.endsWith("/")) urlPath += "index.html";
