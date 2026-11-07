@@ -38,3 +38,13 @@ server/native/place-manifests/
 *.db-shm
 *.sqlite
 *.sqlite3
+
+# Large native-client binaries
+site/native-client/*.data
+site/native-client/*.wasm
+site/native-client.previous-*/
+
+# SQLite runtime files
+*.db
+*.db-wal
+*.db-shm
