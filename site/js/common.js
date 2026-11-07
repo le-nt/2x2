@@ -170,11 +170,9 @@ const RB = {
   brick(size = 34) {
     return `<img class="BrickMark" src="img/logo-2x2.png" width="${size}" height="${size}" alt="" decoding="async">`;
   },
-  // Sidebar icon: the line icon, plus an optional Sunny Day PNG (img/icons/<file>.png) that replaces it once it loads.
-  toyFile: { home: "home", games: "games", catalog: "shopping_cart", avatar: "user", friends: "group", chat: "chat", forums: "speech_balloon", guestbook: "book", settings: "gear", info: "info" },
+  // Use the bundled inline icons; the optional legacy PNG paths do not exist.
   navIcon(name) {
-    const f = RB.toyFile[name];
-    return `<span class="NavIcon">${RB.icon(name)}${f ? `<img class="Toy" src="img/icons/${f}.png" alt="" width="28" height="28" decoding="async" onload="window.__toyLoaded&&__toyLoaded(this)" onerror="this.remove()">` : ""}</span>`;
+    return `<span class="NavIcon">${RB.icon(name)}</span>`;
   },
   logo(href = "home.html") {
     return `<a class="Logo" href="${href}" aria-label="2x2 home">${RB.brick(34)}<span class="Wordmark">2x2</span></a>`;
