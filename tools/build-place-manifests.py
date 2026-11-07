@@ -46,6 +46,7 @@ def property_text(props, name):
 def inspect_xml(path):
     """Parse trusted local XML map as data; never execute embedded script content."""
     scripts, tools, assets = [], [], set()
+    handles = set()
     ancestry = []
     for event, element in ET.iterparse(path, events=('start', 'end')):
         if event == 'start':
@@ -62,16 +63,23 @@ def inspect_xml(path):
             kind = current['class']
             if kind in SCRIPT_CLASSES:
                 source = property_text(props, 'Source')
+                linked = ASSET_PATTERN.search(property_text(props, 'LinkedSource'))
                 scripts.append({
                     'class': kind, 'path': item_path,
                     'referent': current['referent'],
                     'sourcePresent': bool(source),
                     'sourceSha256': hashlib.sha256(source.encode('utf-8')).hexdigest() if source else None,
                     'sourceBytes': len(source.encode('utf-8')),
+                    'linkedSourceId': linked.group(1) if linked else None,
                     'containerTool': next((x['name'] for x in reversed(ancestry[:-1]) if x['class'] in TOOL_CLASSES), None),
                 })
+            if kind == 'Part' and current['name'] == 'Handle':
+                parent_tool = next(('/'.join(x['name'] or x['class'] for x in ancestry[:i+1]) for i in range(len(ancestry)-2,-1,-1) if ancestry[i]['class'] == 'Tool'), None)
+                if parent_tool: handles.add(parent_tool)
             if kind in TOOL_CLASSES:
-                tools.append({'class': kind, 'path': item_path, 'referent': current['referent']})
+                tools.append({'class': kind, 'path': item_path, 'referent': current['referent'],
+                              'hasHandle': item_path in handles if kind == 'Tool' else None,
+                              'requiresHandle': property_text(props, 'RequiresHandle') != 'false' if kind == 'Tool' else None})
             # Read content property values of this item only, not all descendants.
             if props is not None:
                 for field in props:
