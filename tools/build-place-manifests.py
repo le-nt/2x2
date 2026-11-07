@@ -17,7 +17,7 @@ from rbxl_binary_inventory import inspect_binary, BinaryFormatError
 SCRIPT_CLASSES = {'Script', 'LocalScript', 'ModuleScript'}
 TOOL_CLASSES = {'Tool', 'HopperBin'}
 MAX_BYTES = 256 * 1024 * 1024
-ASSET_PATTERN = re.compile(r'(?:rbxassetid://|https?://(?:www\.)?roblox\.com/asset/\?id=)(\d+)', re.I)
+ASSET_PATTERN = re.compile(r'(?:rbxassetid://|https?://(?:www\.)?roblox\.com/asset/\?(?:[^#]*?&)?id=|https?://assetdelivery\.roblox\.com/v1/asset\?(?:[^#]*?&)?id=)([1-9][0-9]{0,15})(?!\d)', re.I)
 SAFE_FILE = re.compile(r'(?:[a-f0-9]{64}|[a-z0-9-]+)\.rbxl\Z')
 
 
