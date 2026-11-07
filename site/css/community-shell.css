@@ -44,3 +44,22 @@
 }
 html.Theater #Page.AdLayout { display:block; padding:0; }
 html.Theater .SideAd, html.embed .SideAd { display:none; }
+
+/* Original Roblox user advertisements: preserve the uploaded aspect ratio.
+   The 727px banners have their own intrinsic width and never get stretched. */
+.UserAd { margin:0; max-width:100%; }
+.UserAd img { display:block; width:100%; height:auto; max-width:100%; object-fit:contain; background:transparent; }
+.UserAd .AdLabel { text-align:left; }
+.UserAdbanner { width:min(728px,100%); margin:8px auto 20px; }
+.UserAdbanner img { width:100%; height:auto; aspect-ratio:728 / 90; object-fit:contain; }
+.UserAdrectangle { width:300px; margin:22px auto 0; }
+.UserAdfeature { width:300px; margin:22px auto 0; }
+.UserAdfeature img { aspect-ratio:4 / 3; object-fit:contain; }
+.PlaceLeaderboard { position:relative; }
+.SideAd.UserAdskyscraper { width:160px; }
+.SideAd.UserAdskyscraper img { width:160px; height:600px; object-fit:contain; object-position:center top; }
+.UserAd[hidden], .SideAd.UserAd[hidden] { display:none; }
+@media(max-width:700px){
+  .UserAdrectangle, .UserAdfeature { width:min(300px,100%); }
+  .UserAdbanner { margin:2px auto 14px; }
+}
