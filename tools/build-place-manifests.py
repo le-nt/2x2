@@ -162,7 +162,11 @@ def inspect_place(path, expected_hash=None):
                         'invalidCharacterReferencesReplaced': fixes, **details}
         except (ET.ParseError, UnicodeError, ValueError, OSError):
             pass
-        return {'status': 'xml_parse_error', 'bytes': size, 'sha256': hash_value, 'error': type(e).__name__, 'scripts': [], 'tools': [], 'assetIds': []}
+        failure={'status': 'xml_parse_error', 'bytes': size, 'sha256': hash_value,
+                 'error': type(e).__name__, 'scripts': [], 'tools': [], 'assetIds': []}
+        if isinstance(e,ET.ParseError):
+            failure.update(parseLine=e.position[0],parseColumn=e.position[1])
+        return failure
 
 
 def build(root, limit=None):
