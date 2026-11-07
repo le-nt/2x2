@@ -93,7 +93,7 @@ function sessionUser(cookies) {
   return { user: user || null, sessionHash: user ? h : null };
 }
 
-const assetResolver = createAssetResolver({serverDir:here,siteDir:root});
+const assetResolver = createAssetResolver({serverDir:here,siteDir:root,publicOrigin:cfg.native?.publicOrigin || ''});
 const ads = createAds({siteDir:root});
 const native = createNative({ db, cfg, root, port, assetResolver, sessionUser, isGated: cookies => safeEqual(cookies[GATE_COOKIE] || "", gateValue) });
 
