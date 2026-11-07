@@ -33,7 +33,7 @@ def main():
         invoke(['install-asset-route.py','--root',root])
     if not args.skip_download:
         invoke(['bulk-compat.py','--root',root,'--assets-only','--workers',args.workers])
-    if not args.skip-download and not args.skip_linked_scripts:
+    if not args.skip_download and not args.skip_linked_scripts:
         invoke(['recover-linked-lua.py','--root',root,'--workers',args.workers])
     if not args.skip_conversion:
         # The standalone converter writes copies first. It does not activate yet;
