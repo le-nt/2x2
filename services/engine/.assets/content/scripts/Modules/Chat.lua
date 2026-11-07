@@ -102,8 +102,9 @@ end
 --[[ END OF SCRIPT VARIABLES ]]
 
 local function GetTopBarFlag()
-	local topbarSuccess, topbarFlagValue = pcall(function() return settings():GetFFlag("UseInGameTopBar") end)
-	return topbarSuccess and topbarFlagValue == true
+	-- The 2x2 2016 player always boots the original Topbar.lua. The flag
+	-- can be absent in reconstructed browser settings; match the actual HUD.
+	return true
 end
 
 local function GetLuaChatFilteringFlag()
