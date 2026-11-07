@@ -58,7 +58,7 @@ function detectExtension(file) {
   if (b.subarray(0,4).toString('latin1') === 'DDS ') return '.dds';
   if (b.subarray(0,4).toString('latin1') === 'RIFF' && b.subarray(8,12).toString('latin1') === 'WAVE') return '.wav';
   if (b.subarray(0,4).toString('latin1') === 'OggS') return '.ogg';
-  if (/^\\s*(?:<\\?xml[^>]*>\\s*)?<roblox(?:\\s|>)/i.test(b.toString('utf8'))) return '.rbxmx';
+  if (/^\s*(?:<\?xml[^>]*>\s*)?<roblox(?:\s|>)/i.test(b.toString('utf8'))) return '.rbxmx';
   return '.rbxm';
 }
 
