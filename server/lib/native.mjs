@@ -13,7 +13,7 @@ const xmlEscape=value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&l
 async function body(req){const parts=[];let size=0;for await(const chunk of req){size+=chunk.length;if(size>65536)throw Error('Request too large');parts.push(chunk);}let data=Buffer.concat(parts);if(req.headers['content-encoding']==='gzip')data=gunzipSync(data,{maxOutputLength:65536});else if(req.headers['content-encoding']&&req.headers['content-encoding']!=='identity')throw Error('Unsupported encoding');return data.length?JSON.parse(data.toString('utf8')):{};}
 function origin(value){const u=new URL(value);if(!['http:','https:'].includes(u.protocol)||u.pathname!=='/'||u.username||u.password||u.search||u.hash)throw Error('Use an HTTP(S) publicOrigin without a path.');return u.origin;}
 function beneath(root,rel){if(!safeRelative(rel))return null;try{const base=fs.realpathSync(root),file=fs.realpathSync(path.join(base,rel));return file.startsWith(base+path.sep)&&fs.statSync(file).isFile()?file:null;}catch{return null;}}
-export function createNative({db,cfg,root,port,sessionUser,isGated}){
+export function createNative({db,cfg,root,port,sessionUser,isGated,assetResolver}){
  const n=cfg.native;
  const publicOrigin=origin(n.publicOrigin||`http://localhost:${port}`);
  const base=publicOrigin+'/native';
@@ -139,7 +139,14 @@ export function createNative({db,cfg,root,port,sessionUser,isGated}){
    const rel=url.searchParams.get('path');file=beneath(charRoot,rel);
    if(file&&!/\.(rbxm|rbxmx|png|jpe?g|mesh|dds|wav|mp3)$/i.test(file))file=null;
    kind=path.extname(file||'');
-  }else if(/^\/native\/asset\/?$/.test(p)){const entry=places.get(Number(url.searchParams.get('id')));file=hasMap(entry);kind='.rbxl';}
+  }else if(/^\/native\/asset\/?$/.test(p)){
+   const assetId=url.searchParams.get('id');
+   const entry=/^[1-9][0-9]*$/.test(assetId||'')?places.get(Number(assetId)):null;
+   file=hasMap(entry);kind=file?'.rbxl':undefined;
+   // Place IDs retain priority; every other numeric ID can resolve to a cached
+   // mesh, texture, model, audio file, or exact linked Lua dependency.
+   if(!file){const asset=assetResolver?.lookup(assetId);if(asset){file=asset.file;kind=asset.ext;}}
+  }
   else if(p==='/native/Game/LoadPlaceInfo.ashx'){
    const id=Number(url.searchParams.get('PlaceId'));if(!places.has(id))return json(res,404,{error:'Unknown place.'});
    res.writeHead(200,{'Content-Type':'text/plain','Cache-Control':'no-store'});return res.end(`--rbxsig%=0\npcall(function() game:SetPlaceID(${id}, false) end)`);
@@ -150,7 +157,7 @@ export function createNative({db,cfg,root,port,sessionUser,isGated}){
   if(data.includes(Buffer.from('shareddata/charcustom/')) && ['.rbxm','.rbxmx','.rbxl'].includes(kind) && /^\s*(?:<\?xml[^>]*>\s*)?<roblox(?:\s|>)/.test(xmlHeader)){
    data=Buffer.from(data.toString('utf8').replace(/(<url>\s*)h?rbxasset:\/\/[./]*shareddata\/charcustom\/([^<]+?)(\s*<\/url>)/g,(_,before,rel,after)=>before+xmlEscape(base+'/content?path='+encodeURIComponent(rel.trim()))+after));
   }
-  const types={'.png':'image/png','.jpg':'image/jpeg','.jpeg':'image/jpeg','.wav':'audio/wav','.mp3':'audio/mpeg'};
+  const types={'.png':'image/png','.jpg':'image/jpeg','.jpeg':'image/jpeg','.wav':'audio/wav','.mp3':'audio/mpeg','.ogg':'audio/ogg','.rbxmx':'application/xml','.lua':'text/plain; charset=utf-8','.txt':'text/plain; charset=utf-8'};
   res.writeHead(200,{'Content-Type':types[kind]||'application/octet-stream','Content-Length':data.length,'Cache-Control':'no-store'});res.end(req.method==='HEAD'?undefined:data);
  }
  function upgrade(req,socket,head,cookies){

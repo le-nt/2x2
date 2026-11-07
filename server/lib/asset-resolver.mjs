@@ -2,8 +2,8 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
-const extensions = ['.rbxm', '.rbxmx', '.mesh', '.png', '.jpg', '.jpeg', '.dds', '.wav', '.mp3', '.ogg', '.txt'];
-const types = {'.rbxm':'application/octet-stream','.rbxmx':'application/xml','.mesh':'application/octet-stream','.png':'image/png','.jpg':'image/jpeg','.jpeg':'image/jpeg','.dds':'application/octet-stream','.wav':'audio/wav','.mp3':'audio/mpeg','.ogg':'audio/ogg','.txt':'text/plain; charset=utf-8'};
+const extensions = ['.rbxm', '.rbxmx', '.mesh', '.png', '.jpg', '.jpeg', '.dds', '.wav', '.mp3', '.ogg', '.txt', '.lua'];
+const types = {'.rbxm':'application/octet-stream','.rbxmx':'application/xml','.mesh':'application/octet-stream','.png':'image/png','.jpg':'image/jpeg','.jpeg':'image/jpeg','.dds':'application/octet-stream','.wav':'audio/wav','.mp3':'audio/mpeg','.ogg':'audio/ogg','.txt':'text/plain; charset=utf-8','.lua':'text/plain; charset=utf-8'};
 const allowed = new Set(extensions);
 function validId(value) {return typeof value === 'string' && /^[1-9][0-9]{0,15}$/.test(value) && Number.isSafeInteger(Number(value));}
 function safeFile(base, name) {
@@ -20,6 +20,7 @@ export function createAssetResolver({serverDir, siteDir}) {
   const roots = [
     {dir:path.join(serverDir,'native','asset-library'), prefix:''},
     {dir:path.join(siteDir,'data','scenes','assets'), prefix:'assets_'},
+    {dir:path.join(serverDir,'native','asset-recovery','scripts'), prefix:''},
   ];
   function lookup(id) {
     if (!validId(id)) return null;

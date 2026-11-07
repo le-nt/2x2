@@ -3,9 +3,9 @@
   "places": {
     "2008m-crossroads": {
       "id": 1,
-      "file": "919fb3a096a51c774d1f5157ae724b54a4ca5e2d784abbf2020295b2f50bb5c5.rbxl",
+      "file": "2008m-crossroads.rbxl",
       "name": "Crossroads",
-      "sha256": "919fb3a096a51c774d1f5157ae724b54a4ca5e2d784abbf2020295b2f50bb5c5",
+      "sha256": null,
       "source": {
         "repository": "Novetus/Novetus-Map-Pack",
         "commit": "6d7c962e3afe81d61a868b301771767d06471426",
@@ -13,7 +13,8 @@
         "sha256": "919fb3a096a51c774d1f5157ae724b54a4ca5e2d784abbf2020295b2f50bb5c5",
         "compressedSha256": "798f19e137a5f85e48f23b48786ced0422862624403166be6032a0e039547f4a",
         "format": "xml"
-      }
+      },
+      "repairNote": "Uses the latest manually repaired Crossroads file; historical source hash is retained under source.sha256."
     },
     "2009e-chaos-canyon": {
       "id": 2,
