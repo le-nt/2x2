@@ -37,6 +37,46 @@ namespace HttpPlatformImpl
         return "";
     }
 
+    // Legacy 2016 models, decals and meshes often request Roblox's historical
+    // numeric asset endpoint. In the browser client, resolve these through
+    // 2x2's same-origin native asset endpoint instead of crossing origins.
+    // Only exact Roblox asset host/path matches with a numeric ID are eligible.
+    static std::string localLegacyAssetUrl(const std::string& url)
+    {
+        static const char* prefixes[] = {
+            "http://www.roblox.com/asset?", "https://www.roblox.com/asset?",
+            "http://www.roblox.com/asset/?", "https://www.roblox.com/asset/?",
+            "http://roblox.com/asset?", "https://roblox.com/asset?",
+            "http://roblox.com/asset/?", "https://roblox.com/asset/?"
+        };
+        for (unsigned int i = 0; i < sizeof(prefixes) / sizeof(prefixes[0]); ++i)
+        {
+            const std::string prefix(prefixes[i]);
+            if (url.compare(0, prefix.size(), prefix) != 0) continue;
+            const std::string query = url.substr(prefix.size());
+            std::string::size_type start = 0;
+            while (start < query.size())
+            {
+                const std::string::size_type end = query.find('&', start);
+                const std::string field = query.substr(start, end == std::string::npos
+                    ? std::string::npos : end - start);
+                if (field.compare(0, 3, "id=") == 0)
+                {
+                    const std::string id = field.substr(3);
+                    if (id.empty() || id.size() > 15 || id[0] == '0') return url;
+                    bool numeric = true;
+                    for (std::string::size_type j = 0; j < id.size(); ++j)
+                        if (id[j] < '0' || id[j] > '9') { numeric = false; break; }
+                    if (numeric) return "/native/asset?id=" + id;
+                    return url;
+                }
+                if (end == std::string::npos) break;
+                start = end + 1;
+            }
+        }
+        return url;
+    }
+
     void perform(HttpOptions& options, std::string& response)
     {
         emscripten_fetch_attr_t attr;
@@ -76,7 +116,7 @@ namespace HttpPlatformImpl
         attr.requestHeaders = requestHeaders.data();
         attr.withCredentials = EM_TRUE;
         attr.timeoutMSecs = options.performTimeoutMillis > 0 ? options.performTimeoutMillis : 60000;
-        emscripten_fetch_t *fetch = emscripten_fetch(&attr, options.url.c_str());
+        emscripten_fetch_t *fetch = emscripten_fetch(&attr, localLegacyAssetUrl(options.url).c_str());
         if (!fetch) throw std::runtime_error("Native HTTP request could not be created");
         long statusCode = fetch->status;
 
