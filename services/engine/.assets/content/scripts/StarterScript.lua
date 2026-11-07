@@ -12,10 +12,16 @@ soundFolder.Name = "Sounds"
 soundFolder.Parent = RobloxGui
 
 -- TopBar
-local topbarSuccess, topbarFlagValue = pcall(function() return settings():GetFFlag("UseInGameTopBar") end)
-local useTopBar = (topbarSuccess and topbarFlagValue == true)
-if useTopBar then
+-- 2x2 always supplies the 2016 topbar core script. The reconstructed
+-- settings service may not contain the original UseInGameTopBar feature flag,
+-- so a missing flag must not disable the entire navigation and health HUD.
+local useTopBar = true
+local topbarStarted, topbarError = pcall(function()
 	scriptContext:AddCoreScriptLocal("CoreScripts/Topbar", RobloxGui)
+end)
+if not topbarStarted then
+	warn("[2x2 core] Topbar startup failed: " .. tostring(topbarError))
+	useTopBar = false
 end
 
 -- SettingsScript
@@ -32,12 +38,14 @@ scriptContext:AddCoreScriptLocal("CoreScripts/NotificationScript2", RobloxGui)
 
 -- Chat must be initialized whether or not the top-bar feature flag exists.
 -- Chat.lua supports both top-bar and legacy layouts.
-spawn(function()
-	local ok, err = pcall(function()
-		require(RobloxGui.Modules:WaitForChild("Chat"))
+if not useTopBar then
+	spawn(function()
+		local ok, err = pcall(function()
+			require(RobloxGui.Modules:WaitForChild("Chat"))
+		end)
+		if not ok then warn("[2x2 core] Chat module failed: " .. tostring(err)) end
 	end)
-	if not ok then warn("[2x2 core] Chat module failed: " .. tostring(err)) end
-end)
+end
 if useTopBar then
 	spawn(function() require(RobloxGui.Modules.PlayerlistModule) end)
 end

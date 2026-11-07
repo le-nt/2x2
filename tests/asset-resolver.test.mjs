@@ -40,3 +40,28 @@ test('binary RBXM stays a binary file',()=>{
   fs.writeFileSync(path.join(a,'678.rbxm'),bytes);
   assert.deepEqual(fs.readFileSync(resolver.lookup('678').file),bytes);
 });
+
+
+test('native legacy URL substitution uses native route',async()=>{
+ const {rewriteLegacyAssetUrls}=await import('../server/lib/asset-resolver.mjs');
+ const xml='<roblox><url>http://www.roblox.com/asset/?id=123</url></roblox>';
+ assert.match(rewriteLegacyAssetUrls(xml,'https://example.test/native'),/https:\/\/example\.test\/native\/asset\?id=123/);
+});
+test('extensionless local Aya library resolves images and XML by signature',()=>{
+ const aya=path.join(tmp,'aya-assets');
+ fs.mkdirSync(aya,{recursive:true});
+ const saved=process.env.AYA_ASSETS_DIR;
+ process.env.AYA_ASSETS_DIR=aya;
+ try {
+  fs.writeFileSync(path.join(aya,'776'),Buffer.from([137,80,78,71,13,10,26,10,0]));
+  fs.writeFileSync(path.join(aya,'777'),Buffer.from([255,216,255,0]));
+  fs.writeFileSync(path.join(aya,'778'),'<roblox version="4"></roblox>');
+  const local=createAssetResolver({serverDir:path.join(tmp,'server'),siteDir:path.join(tmp,'site')});
+  assert.equal(local.lookup('776')?.ext,'.png');
+  assert.equal(local.lookup('777')?.ext,'.jpg');
+  assert.equal(local.lookup('778')?.ext,'.rbxmx');
+ }finally{
+  if(saved===undefined)delete process.env.AYA_ASSETS_DIR;
+  else process.env.AYA_ASSETS_DIR=saved;
+ }
+});

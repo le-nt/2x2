@@ -3,7 +3,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
-const extensions = ['.rbxm', '.rbxmx', '.mesh', '.png', '.jpg', '.jpeg', '.dds', '.wav', '.mp3', '.ogg', '.txt', '.lua'];
+const extensions = ['.rbxm', '.rbxmx', '.mesh', '.png', '.jpg', '.jpeg', '.dds', '.wav', '.mp3', '.ogg', '.txt', '.lua', ''];
 const types = {'.rbxm':'application/octet-stream','.rbxmx':'application/xml','.mesh':'application/octet-stream','.png':'image/png','.jpg':'image/jpeg','.jpeg':'image/jpeg','.dds':'application/octet-stream','.wav':'audio/wav','.mp3':'audio/mpeg','.ogg':'audio/ogg','.txt':'text/plain; charset=utf-8','.lua':'text/plain; charset=utf-8'};
 const MAX_FILE = 64 * 1024 * 1024;
 const MISS_TTL = 15000;
@@ -36,18 +36,38 @@ export function rewriteLegacyAssetUrls(xml, publicOrigin) {
   try {
     const url = new URL(publicOrigin);
     if (!['http:', 'https:'].includes(url.protocol) || url.username || url.password ||
-        url.pathname !== '/' || url.search || url.hash) return xml;
-    origin = url.origin;
+        !['/', '/native'].includes(url.pathname) || url.search || url.hash) return xml;
+    origin = url.origin + (url.pathname === '/native' ? '/native' : '');
   } catch { return xml; }
   // Rewrite asset references only; keep external URLs and non-XML binaries intact.
   return xml.replace(/https?:\/\/(?:www\.)?roblox\.com\/asset\/?\?id=([1-9]\d{0,15})(?=[^0-9]|$)/gi,
-    (match, id) => validId(id) ? origin + '/api/asset?id=' + id : match);
+    (match, id) => validId(id) ? origin + (origin.endsWith('/native') ? '/asset?id=' : '/api/asset?id=') + id : match);
 }
+
+// AyaEX libraries may store an asset as just its numeric ID with no extension.
+// Sniff only enough bytes to classify the response, without modifying its payload.
+function detectExtension(file) {
+  const fd = fs.openSync(file, 'r');
+  const head = Buffer.alloc(256);
+  let length;
+  try { length = fs.readSync(fd, head, 0, head.length, 0); }
+  finally { fs.closeSync(fd); }
+  const b = head.subarray(0,length);
+  if (b.subarray(0,8).equals(Buffer.from([137,80,78,71,13,10,26,10]))) return '.png';
+  if (b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff) return '.jpg';
+  if (b.subarray(0,4).toString('latin1') === 'DDS ') return '.dds';
+  if (b.subarray(0,4).toString('latin1') === 'RIFF' && b.subarray(8,12).toString('latin1') === 'WAVE') return '.wav';
+  if (b.subarray(0,4).toString('latin1') === 'OggS') return '.ogg';
+  if (/^\s*(?:<\?xml[^>]*>\s*)?<roblox(?:\s|>)/i.test(b.toString('utf8'))) return '.rbxmx';
+  return '.rbxm';
+}
+
 export function createAssetResolver({serverDir, siteDir, publicOrigin = ''}) {
   const roots = [
     {dir:path.join(serverDir,'native','asset-library'), prefix:''},
     {dir:path.join(siteDir,'data','scenes','assets'), prefix:'assets_'},
     {dir:path.join(serverDir,'native','asset-recovery','scripts'), prefix:''},
+    ...(process.env.AYA_ASSETS_DIR ? [{dir:path.resolve(process.env.AYA_ASSETS_DIR),prefix:''}] : []),
   ];
   const missing = new Map();
   function lookup(id) {
@@ -57,7 +77,7 @@ export function createAssetResolver({serverDir, siteDir, publicOrigin = ''}) {
     if (expiration) missing.delete(id);
     for (const {dir,prefix} of roots) for (const ext of extensions) {
       const hit = safeFile(dir, prefix + id + ext);
-      if (hit) { missing.delete(id); return {...hit, ext}; }
+      if (hit) { missing.delete(id); return {...hit, ext: ext || detectExtension(hit.file)}; }
     }
     // FIFO cache: bounds filesystem work for broken references without locking
     // out newly imported assets indefinitely.
