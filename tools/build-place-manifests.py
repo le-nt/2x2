@@ -47,6 +47,7 @@ def inspect_xml(path):
     """Parse trusted local XML map as data; never execute embedded script content."""
     scripts, tools, assets = [], [], set()
     handles = set()
+    classes = Counter()
     ancestry = []
     for event, element in ET.iterparse(path, events=('start', 'end')):
         if event == 'start':
@@ -61,6 +62,7 @@ def inspect_xml(path):
             current['name'] = property_text(props, 'Name') or current['class']
             item_path = '/'.join(x['name'] or x['class'] for x in ancestry)
             kind = current['class']
+            classes[kind] += 1
             if kind in SCRIPT_CLASSES:
                 source = property_text(props, 'Source')
                 linked = ASSET_PATTERN.search(property_text(props, 'LinkedSource'))
@@ -88,7 +90,7 @@ def inspect_xml(path):
                             assets.add(asset)
             ancestry.pop()
             element.clear()
-    return {'scripts': scripts, 'tools': tools, 'assetIds': sorted(assets, key=lambda x: (len(x), x))}
+    return {'scripts': scripts, 'tools': tools, 'assetIds': sorted(assets, key=lambda x: (len(x), x)), 'classCounts': dict(classes)}
 
 
 # XML 1.0 permits only these character ranges inside numeric references.
@@ -204,6 +206,7 @@ def build(root, limit=None):
         }
         manifest = {**public, 'sha256':details.get('sha256'), 'bytes':details.get('bytes'),
                     'scripts':details['scripts'], 'tools':details['tools'], 'assetIds':details['assetIds'],
+                    'classCounts':details.get('classCounts', {}),
                     'unsupportedBinaryProperties':details.get('unsupportedBinaryProperties', []),
                     'binaryInstanceCount':details.get('binaryInstanceCount'), 'decodeError': details.get('error')}
         atomic_json(manifest_dir/(place_id+'.json'), manifest)
