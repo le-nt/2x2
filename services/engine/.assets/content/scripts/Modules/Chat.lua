@@ -94,9 +94,18 @@ local topbarEnabled = true
 
 
 if not NON_CORESCRIPT_MODE then
-	playerDropDownModule = require(GuiRoot.Modules:WaitForChild("PlayerDropDown"))
-	playerDropDown = playerDropDownModule:CreatePlayerDropDown()
-	blockingUtility = playerDropDownModule:CreateBlockingUtility()
+	-- This social menu is optional in the reconstructed native runtime.
+	-- Missing network-backed block APIs must not kill basic game chat.
+	local ok, err = pcall(function()
+		local dropdown = GuiRoot.Modules:WaitForChild("PlayerDropDown", 8)
+		if not dropdown then error("PlayerDropDown unavailable") end
+		playerDropDownModule = require(dropdown)
+		playerDropDown = playerDropDownModule:CreatePlayerDropDown()
+		blockingUtility = playerDropDownModule:CreateBlockingUtility()
+	end)
+	if not ok then
+		warn("[2x2 chat] Optional player dropdown unavailable: " .. tostring(err))
+	end
 end
 
 --[[ END OF SCRIPT VARIABLES ]]
