@@ -12,7 +12,9 @@
 -- 3) IN THE LOCALSCRIPT require() THE CHAT MODULE YOU MADE IN STEP 1
 -- 4) CONFIGURE YOUR PLACE ON THE WEBSITE TO USE BUBBLE-CHAT
 -- 5) SET THE FOLLOWING TWO VARIABLES TO TRUE
-local FORCE_CHAT_GUI = false
+-- 2x2: the rebuilt client can join before the legacy ChatMode property
+-- initializes. Create the GUI; CoreGui.Enabled still governs interaction.
+local FORCE_CHAT_GUI = true
 local NON_CORESCRIPT_MODE = false
 -- 6) (OPTIONAL) PUT THE FOLLOWING LINE IN A SERVER SCRIPT TO MAKE CHAT PERSIST THROUGH RESPAWNING
 --  game:GetService('StarterGui').ResetPlayerGuiOnSpawn = false
@@ -2612,7 +2614,11 @@ local function CreateChat()
 			this:PrintWelcome()
 		end
 
-		--SetVisbility(true)
+		-- Original source left the chat hidden until a topbar toggle. In the
+		-- 2x2 WebAssembly build, that toggle may never arrive, leaving no chat.
+		if StarterGui:GetCoreGuiEnabled(Enum.CoreGuiType.Chat) then
+			SetVisbility(true)
+		end
 	end
 
 	return this
