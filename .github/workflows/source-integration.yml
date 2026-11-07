@@ -5,6 +5,11 @@ on:
     paths:
       - 'server/lib/ads.mjs'
       - 'server/lib/asset-resolver.mjs'
+      - 'server/lib/native-avatar-deps.mjs'
+      - 'server/lib/native.mjs'
+      - 'tests/native-avatar-deps.test.mjs'
+      - 'tests/native-chat.test.mjs'
+      - 'docs/AYAEX-INTEGRATION-PLAN.md'
       - 'tests/ads.test.mjs'
       - 'tests/asset-resolver.test.mjs'
       - 'tests/test_engine_core_sources.py'
@@ -32,6 +37,6 @@ jobs:
         with:
           python-version: '3.12'
       - name: Asset and advertisement tests
-        run: node --test tests/ads.test.mjs tests/asset-resolver.test.mjs
+        run: node --test tests/ads.test.mjs tests/asset-resolver.test.mjs tests/native-avatar-deps.test.mjs tests/native-chat.test.mjs
       - name: Native topbar chat health source tests
         run: python -m unittest discover -s tests -p test_engine_core_sources.py -v
