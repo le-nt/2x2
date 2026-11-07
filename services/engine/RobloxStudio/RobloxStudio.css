@@ -1,0 +1,39 @@
+QAbstractItemView::item 
+{
+    border: 1px solid transparent;
+}
+
+QAbstractItemView::item:selected 
+{
+    border: 1px solid #567DBC;
+}
+
+QAbstractItemView::item:selected:active
+{
+    background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #6EA1F1, stop: 1 #567DBC);
+}
+
+QAbstractItemView::item:selected:!active 
+{
+    background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #6B9BE8, stop: 1 #577FBF);
+}
+
+QComboBox QAbstractItemView
+{
+    selection-background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #6EA1F1, stop: 1 #567DBC);
+}
+
+/* Setting the TabBar's left and right arrow's background color explicitly because the Qt default is transparent
+   which looks incorrect when overlapping tabs. */
+
+QDockWidget::title
+{
+   text-align: center;
+}
+
+QTabBar::tab {
+    min-width: 8ex;
+    padding: 1px;
+    padding-left: 6px;
+    padding-right: 8px;
+}

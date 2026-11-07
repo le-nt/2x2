@@ -1,0 +1,565 @@
+.icon-default-games,
+.icon-inventory,
+.icon-games,
+.icon-catalog,
+.icon-like,
+.icon-like.selected,
+.icon-dislike,
+.icon-dislike.selected,
+.icon-playaudio,
+.icon-copylocked,
+.icon-nocopylocked,
+.icon-publicserver,
+.icon-privateserver,
+.icon-allgears,
+.icon-partialgears,
+.icon-nogear,
+.icon-MeleeWeapon,
+.icon-RangedWeapon,
+.icon-PowerUp,
+.icon-Explosive,
+.icon-MusicalInstrument,
+.icon-NavigationEnhancer,
+.icon-BuildingTool,
+.icon-SocialItem,
+.icon-PersonalTransport {
+  background-image: url(/images/NextStyleGuide/games.svg);
+  background-repeat: no-repeat;
+  background-size: auto auto;
+  width: 28px;
+  height: 28px;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.icon-nogear {
+  background-position: 0 -336px;
+}
+
+.icon-like {
+  background-position: 0 -84px;
+}
+
+.icon-like:hover {
+  background-position: -28px -84px;
+}
+
+.icon-dislike {
+  background-position: 0 -112px;
+}
+
+.icon-dislike:hover {
+  background-position: -28px -112px;
+}
+
+.icon-default-branded,
+.icon-playerpoint,
+.icon-clanpoint,
+.icon-leaderboard,
+.icon-favorite,
+.icon-favorite.favorited,
+.icon-robux,
+.icon-tix {
+  background-image: url(/images/NextStyleGuide/branded.svg);
+  background-repeat: no-repeat;
+  background-size: auto auto;
+  width: 28px;
+  height: 28px;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.icon-favorite {
+  background-position: 0 -84px;
+}
+
+.icon-favorite:hover {
+  background-position: -28px -84px;
+}
+
+.header .navbar-icon-group li span[class^="icon"] {
+  vertical-align: middle;
+  margin-top: -2px;
+}
+
+.icon-nav-menu {
+  background-position: 0 0;
+}
+
+.icon-nav-robux {
+  background-position: 0 -28px;
+}
+
+.icon-nav-tix {
+  background-position: 0 -56px;
+}
+
+.icon-nav-settings {
+  background-position: 0 -84px;
+}
+
+button:hover .icon-nav-robux,
+a:hover .icon-nav-robux {
+  background-position: -28px -28px;
+}
+
+.icon-nav-robux:hover {
+  background-position: -28px -28px;
+}
+
+button:hover .icon-nav-tix,
+a:hover .icon-nav-tix {
+  background-position: -28px -56px;
+}
+
+.icon-nav-tix:hover {
+  background-position: -28px -56px;
+}
+
+button:hover .icon-nav-settings,
+a:hover .icon-nav-settings {
+  background-position: -28px -84px;
+}
+
+.icon-nav-settings:hover {
+  background-position: -28px -84px;
+}
+
+button:hover .icon-nav-home,
+a:hover .icon-nav-home {
+  background-position: -28px -140px;
+}
+
+.icon-nav-home:hover {
+  background-position: -28px -140px;
+}
+
+.icon-nav-home {
+  background-position: 0 -140px;
+}
+
+button:hover .icon-nav-profile,
+a:hover .icon-nav-profile {
+  background-position: -28px -168px;
+}
+
+.icon-nav-profile:hover {
+  background-position: -28px -168px;
+}
+
+.icon-nav-profile {
+  background-position: 0 -168px;
+}
+
+.icon-nav-message {
+  background-position: 0 -196px;
+}
+
+.icon-nav-message:hover {
+  background-position: -28px -196px;
+}
+
+button:hover .icon-nav-message,
+a:hover .icon-nav-message {
+  background-position: -28px -196px;
+}
+
+button:hover .icon-nav-friends,
+a:hover .icon-nav-friends {
+  background-position: -28px -224px;
+}
+
+.icon-nav-friends:hover {
+  background-position: -28px -224px;
+}
+
+.icon-nav-friends {
+  background-position: 0 -224px;
+}
+
+.icon-nav-charactercustomizer {
+  background-position: 0 -252px;
+}
+
+button:hover .icon-nav-charactercustomizer,
+a:hover .icon-nav-charactercustomizer {
+  background-position: -28px -252px;
+}
+
+.icon-nav-charactercustomizer:hover {
+  background-position: -28px -252px;
+}
+
+.icon-nav-inventory {
+  background-position: 0 -280px;
+}
+
+button:hover .icon-nav-inventory,
+a:hover .icon-nav-inventory {
+  background-position: -28px -280px;
+}
+
+.icon-nav-inventory:hover {
+  background-position: -28px -280px;
+}
+
+.icon-nav-trade {
+  background-position: 0 -308px;
+}
+
+button:hover .icon-nav-trade,
+a:hover .icon-nav-trade {
+  background-position: -28px -308px;
+}
+
+.icon-nav-trade:hover {
+  background-position: -28px -308px;
+}
+
+.icon-nav-group {
+  background-position: 0 -336px;
+}
+
+button:hover .icon-nav-group,
+a:hover .icon-nav-group {
+  background-position: -28px -336px;
+}
+
+.icon-nav-group:hover {
+  background-position: -28px -336px;
+}
+
+.icon-nav-forum {
+  background-position: 0 -364px;
+}
+
+button:hover .icon-nav-forum,
+a:hover .icon-nav-forum {
+  background-position: -28px -364px;
+}
+
+.icon-nav-forum:hover {
+  background-position: -28px -364px;
+}
+
+.icon-nav-blog {
+  background-position: 0 -392px;
+}
+
+button:hover .icon-nav-blog,
+a:hover .icon-nav-blog {
+  background-position: -28px -392px;
+}
+
+.icon-nav-blog:hover {
+  background-position: -28px -392px;
+}
+
+.icon-nav-shop {
+  background-position: 0 -448px;
+}
+
+button:hover .icon-nav-shop,
+a:hover .icon-nav-shop {
+  background-position: -28px -448px;
+}
+
+.icon-nav-shop:hover {
+  background-position: -28px -448px;
+}
+
+.icon-default-navigation,
+.icon-nav-menu,
+.icon-nav-robux,
+.icon-nav-tix,
+.icon-nav-settings,
+.icon-nav-search,
+.icon-nav-home,
+.icon-nav-profile,
+.icon-nav-message,
+.icon-nav-friends,
+.icon-nav-charactercustomizer,
+.icon-nav-inventory,
+.icon-nav-trade,
+.icon-nav-group,
+.icon-nav-forum,
+.icon-nav-blog,
+.icon-nav-search-white,
+.icon-nav-shop {
+  background-image: url(/images/NextStyleGuide/navigation_02012016.svg);
+  background-repeat: no-repeat;
+  background-size: auto auto;
+  width: 28px;
+  height: 28px;
+  display: inline-block;
+}
+
+.icon-default-generic,
+.btn-generic-edit-lg .icon-edit,
+a.btn-generic-edit-lg .icon-edit,
+.btn-generic-edit-lg:hover .icon-edit,
+a.btn-generic-edit-lg:hover .icon-edit,
+.btn-generic-edit-md .icon-edit,
+a.btn-generic-edit-md .icon-edit,
+.btn-generic-edit-md:hover .icon-edit,
+a.btn-generic-edit-md:hover .icon-edit,
+.btn-generic-edit-sm .icon-edit,
+a.btn-generic-edit-sm .icon-edit,
+.btn-generic-edit-sm:hover .icon-edit,
+a.btn-generic-edit-sm:hover .icon-edit,
+.btn-generic-edit-xs .icon-edit,
+a.btn-generic-edit-xs .icon-edit,
+.btn-generic-edit-xs:hover .icon-edit,
+a.btn-generic-edit-xs:hover .icon-edit,
+.icon-edit,
+.icon-male,
+.icon-female,
+.icon-page,
+.icon-moreinfo,
+.icon-more,
+.icon-right,
+.icon-left,
+.icon-checkmark,
+.icon-delete,
+.icon-sorting,
+.icon-carousel-right,
+.icon-carousel-left,
+.icon-games-carousel-right,
+.icon-games-carousel-left,
+.icon-games-carousel-right.hover,
+.icon-games-carousel-left.hover,
+.icon-close,
+.icon-grid,
+.icon-slideshow,
+.icon-grid.selected,
+.icon-slideshow.selected {
+  background-image: url(/images/NextStyleGuide/generic_07072015.svg);
+  background-repeat: no-repeat;
+  background-size: auto auto;
+  width: 28px;
+  height: 28px;
+  display: inline-block;
+}
+
+.icon-default-games,
+.icon-games,
+.icon-like,
+.icon-like.selected,
+.icon-dislike,
+.icon-dislike.selected,
+.icon-privateserver,
+.icon-allgears,
+.icon-partialgears,
+.icon-nogear,
+.icon-MeleeWeapon,
+.icon-RangedWeapon,
+.icon-PowerUp,
+.icon-Explosive,
+.icon-MusicalInstrument,
+.icon-NavigationEnhancer,
+.icon-BuildingTool,
+.icon-SocialItem,
+.icon-PersonalTransport {
+  background-image: url(/images/NextStyleGuide/games.svg);
+  background-repeat: no-repeat;
+  background-size: auto auto;
+  width: 28px;
+  height: 28px;
+  display: inline-block;
+}
+
+.icon-games {
+  background-position: 0 -28px;
+}
+
+.icon-default-creation,
+.icon-develop,
+.icon-charactercustomizer {
+  background-image: url(/images/NextStyleGuide/creation.svg);
+  background-repeat: no-repeat;
+  background-size: auto auto;
+  width: 28px;
+  height: 28px;
+  display: inline-block;
+}
+
+.icon-charactercustomizer {
+  background-position: 0 -56px;
+}
+
+.icon-develop {
+  background-position: 0 -28px;
+}
+
+.icon-default-social,
+.icon-friends,
+.icon-forum,
+.icon-share {
+  background-image: url(/images/NextStyleGuide/social.svg);
+  background-repeat: no-repeat;
+  background-size: auto auto;
+  width: 28px;
+  height: 28px;
+  display: inline-block;
+}
+
+.icon-friends {
+  background-position: 0 -56px;
+}
+
+.icon-default-generic-16x16,
+.input-group-btn .input-dropdown-btn:hover .icon-down,
+.input-group-btn .input-dropdown-btn:focus .icon-down,
+.select-group:hover .icon-down,
+.open .input-dropdown-btn .icon-down,
+.icon-edit-16x16,
+.icon-right-16x16,
+.icon-left-16x16,
+.icon-up-16x16,
+.icon-down-16x16,
+.icon-checkmark-16x16,
+.icon-close-16x16 {
+  background-image: url(/images/NextStyleGuide/generic_07072015.svg);
+  background-repeat: no-repeat;
+  background-size: 32px auto;
+  width: 16px;
+  height: 16px;
+  vertical-align: middle;
+}
+
+.icon-down-16x16 {
+  background-position: 0 -272px;
+}
+
+.icon-games-carousel-left {
+  background-position: 0 -980px;
+}
+
+.icon-games-carousel-right {
+  background-position: 0 -952px;
+}
+
+.icon-thumbs-up {
+  background-position: 0 0;
+}
+
+.icon-default-thumbs,
+.icon-thumbs-up,
+.icon-thumbs-down {
+  background-image: url(/images/Icons/thumbs.svg);
+  background-repeat: no-repeat;
+  background-size: auto auto;
+  width: 16px;
+  height: 16px;
+  display: inline-block;
+}
+
+.icon-thumbs-down {
+  background-position: 0 -16px;
+}
+
+.icon-default-navigation,
+.icon-nav-menu,
+.icon-nav-robux,
+.icon-nav-tix,
+.icon-nav-settings,
+.icon-nav-search,
+.icon-nav-home,
+.icon-nav-profile,
+.icon-nav-message,
+.icon-nav-friends,
+.icon-nav-charactercustomizer,
+.icon-nav-inventory,
+.icon-nav-trade,
+.icon-nav-group,
+.icon-nav-forum,
+.icon-nav-blog,
+.icon-nav-search-white,
+.icon-nav-shop {
+  background-image: url(/images/NextStyleGuide/navigation_02012016.svg);
+  background-repeat: no-repeat;
+  background-size: auto auto;
+  width: 28px;
+  height: 28px;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.icon-nav-search {
+  background-position: 0 -112px;
+}
+
+.icon-default-badges,
+.icon-inviter,
+.icon-friendship,
+.icon-welcome-to-the-club,
+.icon-ambassador,
+.icon-combat-initiation,
+.icon-warrior,
+.icon-bloxxer,
+.icon-homestead,
+.icon-bricksmith,
+.icon-official-model-maker,
+.icon-builders-club,
+.icon-turbo-builders-club,
+.icon-outrageous-builders-club,
+.icon-administrator,
+.icon-veteran {
+  background-image: url(/images/Badges/roblox_badges.svg);
+  background-repeat: no-repeat;
+  background-size: 280px auto;
+  width: 140px;
+  height: 140px;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.icon-administrator {
+  background-position: -140px -840px;
+}
+
+.icon-slideshow {
+  background-position: 0 -1064px;
+}
+
+.icon-slideshow.selected {
+  background-position: -28px -1064px;
+}
+
+.icon-grid {
+  background-position: 0 -1036px;
+}
+
+.icon-grid.selected {
+  background-position: -28px -1036px;
+}
+
+.icon-carousel-left {
+  background-position: 0 -924px;
+}
+
+.icon-carousel-right {
+  background-position: 0 -896px;
+}
+
+span.robux,
+div.robux {
+  color: #060;
+  font-weight: bold;
+  font-size: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+span.robux::before,
+div.robux::before {
+  content: "";
+  background: url('/images/Icons/img-robux.png') no-repeat center center;
+  background-size: 18px 12px;
+  width: 18px;
+  height: 12px;
+  display: inline-block;
+  vertical-align: middle;
+  padding: 0;
+}

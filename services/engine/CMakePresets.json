@@ -1,0 +1,188 @@
+﻿{
+  "version": 9,
+  "configurePresets": [
+    {
+      "name": "emscripten",
+      "displayName": "Emscripten",
+      "description": "Sets Emscripten Toolchain",
+      "generator": "Ninja",
+      "hidden": true,
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "cacheVariables": {
+        "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
+        "VCPKG_CHAINLOAD_TOOLCHAIN_FILE": "$env{EMSDK}/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake",
+        "VCPKG_TARGET_TRIPLET": "wasm32-emscripten",
+        "CMAKE_MAKE_PROGRAM": "ninja",
+        "CMAKE_ASM_COMPILER": "emcc"
+      }
+    },
+    {
+      "name": "clang",
+      "displayName": "Clang",
+      "description": "Use Clang/LLVM toolchain on Unix",
+      "generator": "Ninja",
+      "hidden": true,
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "cacheVariables": {
+        "CMAKE_ASM_COMPILER": "clang",
+        "CMAKE_C_COMPILER": "clang",
+        "CMAKE_CXX_COMPILER": "clang++",
+        "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
+        "CMAKE_C_COMPILER_LAUNCHER": "sccache",
+        "CMAKE_CXX_COMPILER_LAUNCHER": "sccache",
+        "VCPKG_TARGET_TRIPLET": "x64-linux",
+        "CMAKE_MAKE_PROGRAM": "ninja"
+      }
+    },
+    {
+      "name": "clang-cl",
+      "displayName": "Clang-CL",
+      "description": "Use Clang-CL toolchain on Windows",
+      "generator": "Ninja",
+      "hidden": true,
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "cacheVariables": {
+        "CMAKE_ASM_COMPILER": "clang-cl",
+        "CMAKE_C_COMPILER": "clang-cl",
+        "CMAKE_CXX_COMPILER": "clang-cl",
+        "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
+        "VCPKG_TARGET_TRIPLET": "x64-windows",
+        "CMAKE_MAKE_PROGRAM": "ninja"
+      }
+    },
+    {
+      "name": "linux-release",
+      "displayName": "Linux Release",
+      "inherits": "clang",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "name": "linux-debug",
+      "displayName": "Clang Debug",
+      "inherits": "clang",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "linux-rcc-release",
+      "displayName": "Linux RCC Release",
+      "inherits": "clang",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "RCC_BUILD": "ON"
+      }
+    },
+    {
+      "name": "linux-rcc-debug",
+      "displayName": "Linux RCC Debug",
+      "inherits": "clang",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "RCC_BUILD": "ON"
+      }
+    },
+    {
+      "name": "linux-studio-release",
+      "displayName": "Linux Studio Release",
+      "inherits": "clang",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "STUDIO_BUILD": "ON"
+      }
+    },
+    {
+      "name": "linux-studio-debug",
+      "displayName": "Linux Studio Debug",
+      "inherits": "clang",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "STUDIO_BUILD": "ON"
+      }
+    },
+    {
+      "name": "windows-studio-debug",
+      "displayName": "Windows Studio Debug",
+      "inherits": "clang-cl",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "STUDIO_BUILD": "ON"
+      }
+    },
+    {
+      "name": "windows-studio-release",
+      "displayName": "Windows Studio Release",
+      "inherits": "clang-cl",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "STUDIO_BUILD": "ON"
+      }
+    },
+    {
+      "name": "windows-release",
+      "displayName": "Windows Release",
+      "inherits": "clang-cl",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "name": "windows-debug",
+      "displayName": "Windows Debug",
+      "inherits": "clang-cl",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "emscripten-release",
+      "displayName": "Emscripten Release",
+      "inherits": "emscripten",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "name": "emscripten-debug",
+      "displayName": "Emscripten Debug",
+      "inherits": "emscripten",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "android-armv7",
+      "displayName": "Android ARMv7",
+      "description": "Build for Android 32-bit (armeabi-v7a), minSdk 15",
+      "generator": "Ninja",
+      "hidden": false,
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "cacheVariables": {
+        "CMAKE_TOOLCHAIN_FILE": "$env{ANDROID_NDK_HOME}/build/cmake/android.toolchain.cmake",
+        "ANDROID_ABI": "armeabi-v7a",
+        "ANDROID_PLATFORM": "android-19",
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_MAKE_PROGRAM": "ninja",
+        "VCPKG_TARGET_TRIPLET": "arm-neon-android"
+      }
+    },
+    {
+      "name": "android-arm64",
+      "displayName": "Android ARM64",
+      "description": "Build for Android 64-bit (arm64-v8a), minSdk 21",
+      "generator": "Ninja",
+      "hidden": false,
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "cacheVariables": {
+        "CMAKE_TOOLCHAIN_FILE": "$env{ANDROID_NDK_HOME}/build/cmake/android.toolchain.cmake",
+        "ANDROID_ABI": "arm64-v8a",
+        "ANDROID_PLATFORM": "android-21",
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_MAKE_PROGRAM": "ninja",
+        "VCPKG_TARGET_TRIPLET": "arm64-android"
+      }
+    }
+  ]
+}

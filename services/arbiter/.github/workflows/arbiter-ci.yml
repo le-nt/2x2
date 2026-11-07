@@ -1,0 +1,54 @@
+name: Arbiter CI
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build (ubuntu-22.04)
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Cache cargo registry
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
+
+      - name: Fetch Rust toolchain and components
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          profile: minimal
+          components: rustfmt,clippy,rust-src,llvm-tools-preview
+          override: true
+
+      - name: Build Release
+        run: cargo build --release
+
+      - name: Bundling
+        run: |
+          set -e
+          mkdir -p build_artifacts
+          files=$(find target/release -maxdepth 1 -type f -executable ! -name '*.d' ! -name '*.a' ! -name '*.rlib' -print)
+          if [ -z "$files" ]; then
+            echo "No executables found in target/release, adding entire target/release folder instead."
+            zip -r build_artifacts/release-artifacts.zip target/release || true
+          else
+            zip -j build_artifacts/release-artifacts.zip $files
+          fi
+
+      - name: Uploading
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-artifacts
+          path: build_artifacts/release-artifacts.zip

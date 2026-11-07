@@ -1,0 +1,8 @@
+/target
+config.json
+.idea
+RobloxRCC/
+ssl/
+
+# kde adds this if u customise ur folder's colour or something
+.directory

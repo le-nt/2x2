@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<link rel="icon" href="%sveltekit.assets%/favicon.png" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,500,600,700" rel="stylesheet"/>
+		%sveltekit.head%
+	</head>
+	<body data-sveltekit-preload-data="hover">
+		<div style="display: contents">
+			%sveltekit.body%
+		</div>
+        <script>
+            const stopStyle = [
+                'color: red;',
+                'font-size: 72px;',
+                'font-weight: bold;',
+                'text-shadow: -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 2px 2px 0 #000, 4px 4px 5px rgba(0,0,0,0.5);'
+            ].join(' ');
+            const protectYourAccountStyle = [
+                'color: gold;',
+                'font-size: 36px;',
+                'font-weight: bold;',
+                'text-shadow: -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 2px 2px 0 #000, 4px 4px 5px rgba(0,0,0,0.5);'
+            ].join(' ');
+            const infoStyle = 'font-size: 18px; font-family: monospace;';
+            const warningMessage = 
+                "This is a browser feature intended for developers. If someone told you to copy and paste something here to enable a feature or \"hack\" someone's account, it is a scam.\n" +
+                "Pasting code here could give attackers access to your account and personal information.\n";
+                // this message was corny
+            const protectYourAccountMessage = "Protect your account!";
+            
+            for (let i = 0; i < 3; i++) {
+                console.log('%cSTOP!', stopStyle);
+                console.log(`%c${protectYourAccountMessage}`, protectYourAccountStyle);
+                console.log(`%c${warningMessage}`, infoStyle);
+            }
+        </script>
+	</body>
+</html>

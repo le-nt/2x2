@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Setup Admin</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background: #1e1e1e;
+            color: #ffffff;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        #admin-ui {
+            margin-right: auto;
+            margin-left: auto;
+            display: block;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        
+        .loading {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            z-index: 1000;
+        }
+        
+        .spinner {
+            border: 4px solid #333;
+            border-top: 4px solid #007acc;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="loading" class="loading">
+        <div class="spinner"></div>
+    </div>
+    
+    <canvas id="admin-ui"></canvas>
+
+    <script type="module">
+        import init, { start_app } from './admin_ui.js';
+
+        async function run() {
+            const loader = document.getElementById('loading');
+
+            try {
+                if (!WebAssembly.instantiateStreaming) {
+                    console.warn('WebAssembly.instantiateStreaming not available, using fallback');
+                }
+
+                const wasm = await init();
+                if (!wasm || typeof start_app !== 'function') {
+                    throw new Error('WASM module initialised but start_app is unavailable');
+                }
+
+                start_app();
+                loader.style.display = 'none';
+            } catch (error) {
+                console.error('Failed to start admin UI:', error);
+
+                let hint = 'Failed to load admin interface';
+                if (error && typeof error === 'object') {
+                    const msg = error.message || String(error);
+                    if (msg.includes('__wbindgen_closure_wrapper')) {
+                        hint = 'Admin UI assets are out of date. Rebuild admin-ui with cargo build --target wasm32-unknown-unknown --release --lib and cargo run --bin bindgen release, then redeploy deployserv.';
+                    }
+                }
+
+                loader.innerHTML = `<p style="color: #ff6b6b;">${hint}</p>`;
+            }
+        }
+
+        run();
+    </script>
+</body>
+</html>

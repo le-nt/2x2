@@ -1,0 +1,48 @@
+/* Chat: three panes (channels, messages, people) inside the site shell. */
+.ChatPage #Main { max-width: none; padding: 0; display: flex; flex-direction: column; height: calc(100vh - var(--top-h)); min-height: 420px; }
+.chat-top { display: flex; align-items: center; gap: 12px; padding: 0 20px; height: 56px; flex: none; border-bottom: 1px solid var(--line); background: var(--surface); }
+.chat-top .topic { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--muted); }
+.chat-top .topic b { color: var(--text); font-size: 17px; margin-right: 8px; }
+.chat-top #ChanSelect { display: none; }
+.conn { font-size: 13px; font-weight: 600; color: var(--muted); white-space: nowrap; }
+.conn.ok { color: var(--ok); }
+.conn.bad { color: var(--danger); }
+.chat-cols { flex: 1; min-height: 0; display: flex; }
+.chans, .users { width: 220px; flex: none; display: flex; flex-direction: column; background: var(--surface); overflow-y: auto; padding: 8px 0; }
+.chans { border-right: 1px solid var(--line); }
+.users { border-left: 1px solid var(--line); }
+.pane-title { font-weight: 700; padding: 10px 16px 6px; color: var(--muted); font-size: 13px; }
+.chans ul, .users ul { list-style: none; margin: 0; padding: 0 8px; }
+.chans button, .users button { display: flex; align-items: center; gap: 6px; width: 100%; text-align: left; border: 0; background: none; padding: 8px 10px; cursor: pointer; font: inherit; font-size: 14px; font-weight: 600; color: var(--muted); border-radius: var(--r-sm); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.chans button:hover, .users button:hover { background: var(--hover); color: var(--text); }
+.chans button.on { background: var(--raised); color: var(--text); }
+.chans button.unread { color: var(--text); }
+.chans button.ment { color: var(--danger); }
+.badge { margin-left: auto; background: var(--brick); color: #fff; border-radius: 10px; padding: 0 7px; font-size: 12px; line-height: 20px; font-weight: 800; }
+.op { color: var(--tix); }
+.join-select { margin: 8px 12px; font-size: 13px; max-width: calc(100% - 24px); }
+.log-wrap { flex: 1; min-width: 0; display: flex; flex-direction: column; background: var(--bg); }
+.log { flex: 1; min-height: 0; overflow-y: auto; padding: 14px 20px; font-size: 15px; line-height: 1.5; word-wrap: break-word; user-select: text; }
+.line { position: relative; padding: 3px 28px 3px 8px; margin: 0 -8px; border-radius: 6px; }
+.line:hover { background: rgba(255, 255, 255, .04); }
+html[data-theme="light"] .line:hover { background: rgba(0, 0, 0, .04); }
+.line .ts { color: var(--faint); font-size: 12px; margin-right: 8px; }
+.line .nick { font-weight: 800; text-decoration: none; }
+.line.action .body { font-style: italic; color: var(--muted); }
+.line.system { color: var(--faint); font-size: 14px; }
+.line.mention { background: rgba(255, 200, 61, .14); box-shadow: inset 3px 0 var(--tix); }
+.line .del { position: absolute; right: 6px; top: 3px; display: none; border: 0; background: none; color: var(--danger); cursor: pointer; font-size: 18px; line-height: 1; padding: 0 4px; }
+.line:hover .del { display: block; }
+.typing { height: 20px; padding: 0 20px; font-size: 13px; color: var(--muted); font-style: italic; flex: none; }
+.send { display: flex; gap: 10px; padding: 12px 20px 16px; flex: none; }
+.send input { flex: 1; min-width: 0; border-radius: 999px; padding: 11px 18px; }
+@media (max-width: 960px) {
+  .ChatPage #Main { height: calc(100vh - var(--top-h)); }
+  .chans, .users { display: none; }
+  .chat-top { padding: 0 12px; }
+  .chat-top #ChanSelect { display: block; max-width: 45%; }
+  .chat-top .topic { display: none; }
+  .log { padding: 10px 12px; }
+  .send { padding: 10px 12px 14px; }
+}
+.send input:focus-visible, .TopSearch input:focus-visible { outline: 0; }

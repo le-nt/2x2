@@ -1,0 +1,478 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-1.1.x"]
+  output        = "../node_modules/.prisma/client"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// Models
+
+model User {
+  id            Int         @id @default(autoincrement())
+  username      String      @unique
+  password      String
+  createdAt     DateTime    @default(now())
+  accountStatus Int         @default(0)
+  robux         BigInt      @default(25)
+  tickets       BigInt      @default(100)
+  lastLogin     DateTime?   @default(now())
+  membership    Membership?
+  about         String      @default("")
+  gender        Int         @default(0)
+  birthday      DateTime
+
+  moderation         Moderation[] @relation("UserHistory")
+  latestModerationId String?      @unique
+  latestModeration   Moderation?  @relation("LatestMod", fields: [latestModerationId], references: [id])
+
+  sessions               Session[]
+  adminSessions          AdminSession[]
+  boughtTransactions     Transaction[]       @relation("Buyer")
+  soldTransactions       Transaction[]       @relation("Seller")
+  inventory              UserInventory[]
+  accoutrements          UserAccoutrements[]
+  roleSet                UserAdminTrait      @default(Unprivileged)
+  presence               UserPresence?
+  playHistory            PlayHistory[]
+  gameserversCurrentlyIn Gameserver[]
+  forumsOwned            Forum[]
+  forumThreads           ForumThread[]
+  forumPosts             ForumPost[]
+  assets                 Asset[]
+  viewedThreads          ThreadView[]
+  totpSecret             String?
+  totpEnrolled           Boolean             @default(false)
+  fingerprints           Fingerprint[]
+  ips                    Ip[]
+  modNotes               ModerationNotes[]   @relation("UserNotes")
+  modNotesAuthored       ModerationNotes[]   @relation("ModeratorNotes")
+}
+
+model Moderation {
+  id                    String     @id @default(uuid())
+  userId                Int
+  user                  User       @relation("UserHistory", fields: [userId], references: [id])
+  latestForUser         User?      @relation("LatestMod")
+  date                  DateTime   @default(now())
+  resolved              Boolean    @default(false)
+  cannotReactivateUntil DateTime?
+  reason                String
+  internalNotes         String
+  action                Escalation
+}
+
+model ModerationNotes {
+  id Int @id @default(autoincrement())
+  userId    Int
+  moderatorId Int
+  note      String
+  createdAt DateTime @default(now())
+
+  user      User @relation("UserNotes", fields: [userId], references: [id])
+  moderator User @relation("ModeratorNotes", fields: [moderatorId], references: [id])
+}
+
+model Fingerprint {
+  id          String   @id @default(uuid())
+  fingerprint String   @unique
+  createdAt   DateTime @default(now())
+  users       User[]
+}
+
+model Ip {
+  id          String   @id @default(uuid())
+  content     String   @unique
+  contentHash String   @unique
+  expiresAt   DateTime
+  banned      Boolean
+  createdAt   DateTime @default(now())
+  lastSeen    DateTime @default(now())
+  users       User[]
+}
+
+model Gameserver {
+  id        String   @id // Let's just consider this the JobId
+  nodeId    String
+  placeId   BigInt
+  players   User[]
+  createdAt DateTime @default(now())
+  isLoading Boolean  @default(true)
+
+  node  ArbiterNode @relation(fields: [nodeId], references: [id])
+  place Place       @relation(fields: [placeId], references: [id])
+}
+
+model Place {
+  id         BigInt          @id
+  universeId BigInt
+  visits     Int             @default(0)
+  likes      PlaceLikes[]
+  dislikes   PlaceDislikes[]
+
+  copyLocked Boolean   @default(true)
+  featured   Boolean   @default(false)
+  chatStyle  ChatStyle @default(Classic)
+
+  allowedGearCategories Int[]    @default([])
+  allowAnyGearGenre     Boolean  @default(true)
+  commentsAllowed       Boolean  @default(true)
+  playableDevices       Device[] @default([Computer, Phone, Tablet])
+
+  vipEnabled Boolean @default(true)
+  vipPrice   Int     @default(100)
+
+  isBuildServer  Boolean @default(false)
+  maxPlayerCount Int     @default(10)
+
+  universe    Universe?     @relation(fields: [universeId], references: [id])
+  asset       Asset         @relation("AssetPlace", fields: [id], references: [id])
+  playHistory PlayHistory[]
+  gameServers Gameserver[]
+}
+
+model PlaceLikes {
+  id      String @id @default(uuid())
+  userId  Int    @unique
+  placeId BigInt
+
+  place Place @relation(fields: [placeId], references: [id])
+}
+
+model PlaceDislikes {
+  id      String @id @default(uuid())
+  userId  Int    @unique
+  placeId BigInt
+
+  place Place @relation(fields: [placeId], references: [id])
+}
+
+model UserPresence {
+  id       String   @id @default(uuid())
+  userId   Int      @unique
+  lastSeen DateTime @default(now())
+  isOnline Boolean  @default(false)
+  placeId  Int? // user may not be in a place
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model PlayHistory {
+  id        String    @id @default(uuid())
+  userId    Int
+  placeId   BigInt
+  startTime DateTime  @default(now())
+  endTime   DateTime? // the user may still be playing
+
+  user  User  @relation(fields: [userId], references: [id])
+  place Place @relation(fields: [placeId], references: [id])
+}
+
+model Forum {
+  id          Int           @id @default(autoincrement())
+  name        String        @unique
+  description String
+  createdAt   DateTime      @default(now())
+  createdBy   Int
+  category    ForumCategory
+  locked      Boolean       @default(false)
+
+  createdByUser User          @relation(fields: [createdBy], references: [id])
+  threads       ForumThread[]
+  posts         ForumPost[]
+}
+
+model ForumThread {
+  id        Int      @id @default(autoincrement())
+  forumId   Int
+  title     String
+  content   String
+  createdAt DateTime @default(now())
+  createdBy Int
+  hidden    Boolean  @default(false)
+
+  forum         Forum        @relation(fields: [forumId], references: [id])
+  createdByUser User         @relation(fields: [createdBy], references: [id])
+  posts         ForumPost[]
+  views         ThreadView[]
+}
+
+model ThreadView {
+  id       Int         @id @default(autoincrement())
+  thread   ForumThread @relation(fields: [threadId], references: [id])
+  threadId Int
+  user     User        @relation(fields: [userId], references: [id])
+  userId   Int
+  viewedAt DateTime    @default(now())
+
+  @@unique([threadId, userId])
+}
+
+model ForumPost {
+  id        Int      @id @default(autoincrement())
+  threadId  Int
+  forumId   Int
+  content   String
+  createdAt DateTime @default(now())
+  createdBy Int
+  hidden    Boolean  @default(false)
+
+  forum         Forum       @relation(fields: [forumId], references: [id])
+  thread        ForumThread @relation(fields: [threadId], references: [id])
+  createdByUser User        @relation(fields: [createdBy], references: [id])
+}
+
+model ArbiterNode {
+  id   String @id @default(uuid())
+  name String @unique
+  // countryCode String // ISO 3166-1 alpha-2 country code
+
+  url   String  @unique
+  port  Int? // If HTTP, it will default to 80, if TLS, it will default to 443
+  https Boolean @default(true)
+
+  createdAt   DateTime @default(now())
+  heartbeatAt DateTime @default(now())
+  status      Int      @default(0) // 0: Offline, 1: Online, 2: Unknown
+
+  maintenanced Boolean @default(false)
+  gameserver   Boolean
+  renderer     Boolean
+
+  lat Float?
+  lon Float?
+
+  gameservers Gameserver[] // ! relation
+}
+
+model AuditLog {
+  id              String   @id @default(uuid())
+  userId          Int
+  affectedUserId  Int?
+  affectedAssetId Int?
+  action          String
+  details         String?
+  time            DateTime @default(now())
+}
+
+model UserInventory {
+  id        String   @id @default(uuid())
+  userId    Int
+  assetId   BigInt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user  User  @relation(fields: [userId], references: [id])
+  asset Asset @relation(fields: [assetId], references: [id])
+
+  accoutrements UserAccoutrements[] // ! relation
+  // ?^^ items currently being worn
+}
+
+model UserAccoutrements {
+  id              String @id @default(uuid())
+  userId          Int
+  userInventoryId String // ?ID from UserInventory
+
+  user          User          @relation(fields: [userId], references: [id])
+  userInventory UserInventory @relation(fields: [userInventoryId], references: [id])
+}
+
+model Asset {
+  id          BigInt   @id @default(autoincrement())
+  type        Int
+  name        String
+  description String   @default("Asset")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  creatorId   Int
+  creatorType Int
+
+  versions AssetVersion[]
+  product  Product?       @relation("AssetProduct")
+  place    Place?         @relation("AssetPlace")
+
+  assetCategory Int? @default(0)
+  assetGenre    Int  @default(0)
+
+  isReviewed      Boolean @default(false)
+  isApproved      Boolean @default(false)
+  isMigratedAsset Boolean @default(false)
+
+  userInventories UserInventory[] // ! relation
+  creatorUser     User?           @relation(fields: [creatorId], references: [id])
+}
+
+model Session {
+  id        String   @id @default(uuid())
+  userId    Int
+  expiresAt DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model AdminSession {
+  id        String   @id @default(uuid())
+  userId    Int
+  expiresAt DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Transaction {
+  id         String   @id @default(uuid())
+  userId     Int? // User who is buying
+  merchantId Int // User who is selling
+  assetId    Int
+  date       DateTime @default(now())
+  amount     BigInt
+  customer   User?    @relation("Buyer", fields: [userId], references: [id])
+  merchant   User     @relation("Seller", fields: [merchantId], references: [id])
+}
+
+model Invite {
+  id        Int      @id @default(autoincrement())
+  code      String   @unique @default(uuid())
+  createdAt DateTime @default(now())
+  used      Boolean  @default(false)
+  usedBy    Int?     @unique
+}
+
+model Membership {
+  id        Int            @id @default(autoincrement())
+  userId    Int            @unique
+  user      User           @relation(fields: [userId], references: [id])
+  type      MembershipType
+  startDate DateTime       @default(now())
+  endDate   DateTime?
+}
+
+model Product {
+  id              Int      @id @default(autoincrement())
+  assetId         BigInt   @unique
+  priceInRobux    BigInt   @default(0)
+  priceInTickets  BigInt   @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  isForSale       Boolean  @default(true)
+  isLimited       Boolean  @default(false)
+  isLimitedUnique Boolean  @default(false)
+
+  asset Asset @relation("AssetProduct", fields: [assetId], references: [id])
+}
+
+model Universe {
+  id           BigInt      @id @default(autoincrement())
+  startPlaceId BigInt
+  places       Place[]
+  isPrivate    Boolean     @default(false)
+  isCloudEdit  Boolean     @default(false)
+  editors      Int[]       @default([]) // if the place is owned by a user, this should be an array of userIds.
+  creatorId    Int
+  creatorType  Int
+  createdAt    DateTime    @default(now())
+  datastores   DataStore[]
+}
+
+model AssetVersion {
+  id          Int    @id @default(autoincrement())
+  assetId     BigInt
+  versionId   Int
+  versionHash String
+
+  renders   Thumbnail[]
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  asset Asset @relation(fields: [assetId], references: [id], onDelete: Cascade)
+
+  @@unique([assetId, versionId]) // No duplicates
+}
+
+model Thumbnail {
+  id                      String  @id @default(uuid())
+  imageHash               String
+  characterAppearanceHash String?
+  width                   Int
+  height                  Int
+  imageType               Int
+
+  assetVersion         AssetVersion? @relation(fields: [assetVersionIdGlobal], references: [id])
+  assetVersionIdGlobal Int? // * this is NOT the versionId it's the actual id for it
+}
+
+model DataStore {
+  scope      String
+  key        String
+  target     String
+  value      String?
+  valueInt   BigInt?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @default(now()) @updatedAt
+  universeId BigInt
+
+  universe Universe? @relation(fields: [universeId], references: [id])
+
+  @@unique([universeId, key, scope, target])
+}
+
+model SiteFeature {
+  id        Int      @id @default(autoincrement())
+  key       String   @unique
+  enabled   Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+}
+
+// Enums
+
+enum UserAdminTrait {
+  Unprivileged
+  ProtectedUser
+  AssetManager
+  ForumModerator
+  Moderator
+  Administrator
+  SuperAdmin
+}
+
+enum Escalation {
+  Unban
+  Warn
+  Remind
+  Ban_1Day
+  Ban_3Day
+  Ban_7Day
+  Ban_14Day
+  Ban_183Day
+  Ban_365Day
+  Delete
+}
+
+enum MembershipType {
+  BuildersClub
+  TurboBuildersClub
+  OutrageousBuildersClub
+}
+
+enum ForumCategory {
+  Roblox
+  ClubHouses
+  GameCreationAndDevelopment
+  Entertainment
+}
+
+enum ChatStyle {
+  Classic
+  Bubble
+  ClassicAndBubble
+}
+
+enum Device {
+  Computer
+  Phone
+  Tablet
+}

@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Home - 2x2</title>
+<link rel="stylesheet" href="css/site.css">
+<script defer src="js/effects.js"></script>
+<script defer src="js/motion.js"></script>
+<link rel="icon" href="img/logo-2x2.png" type="image/png">
+<link rel="stylesheet" href="css/retro.css">
+<link rel="stylesheet" href="css/modern.css">
+<link rel="stylesheet" href="css/r16.css">
+</head>
+<body>
+<div id="App">
+  <header id="Header"></header>
+  <aside id="Sidebar" aria-label="Site"></aside>
+  <div id="Page">
+    <main id="Main"><div class="Empty">Loading&hellip;</div></main>
+    <div id="FooterSlot"></div>
+  </div>
+</div>
+<script src="js/common.js"></script>
+<script src="js/avatar.js"></script>
+<script>
+(async function () {
+  const me = await RB.page("Home");
+  if (!me) return;
+  const main = document.getElementById("Main");
+  const [maps, items, friendsData, forums, guestbook, profile] = await Promise.all([
+    RB.places(), RB.items(),
+    RB.api("friends").catch(() => ({ friends: [], incoming: [] })),
+    RB.api("forums").catch(() => ({ categories: [] })),
+    RB.api("guestbook").catch(() => ({ entries: [] })),
+    RB.api("users/" + encodeURIComponent(me.username)).then((d) => d.profile).catch(() => null),
+  ]);
+  const byId = new Map(maps.map((m) => [m.id, m]));
+
+  const featuredIds = ["crossroads", "sword-fight-on-the-heights", "rocket-arena", "happy-home-in-robloxia", "chaos-canyon", "haunted-mansion"];
+  const featured = featuredIds.map((f) => maps.filter((m) => m.id.includes(f)).sort((a, b) => b.year - a.year)[0]).filter(Boolean);
+  const recent = (profile?.visited || []).map((v) => byId.get(v.placeId) && { ...byId.get(v.placeId), last: v.last }).filter(Boolean).slice(0, 12);
+  const friends = friendsData.friends.slice().sort((a, b) => (b.online - a.online) || a.username.localeCompare(b.username)).slice(0, 14);
+  const onlineCount = friendsData.friends.filter((f) => f.online).length;
+  const playingNow = maps.filter((m) => m.playing.length).sort((a, b) => b.playing.length - a.playing.length);
+  const threads = forums.categories.flatMap((c) => c.boards.map((b) => b.last && { ...b.last, board: b.name })).filter(Boolean)
+    .sort((a, b) => b.at - a.at).slice(0, 5);
+
+  const shelf = (title, link, body) => `<section class="Shelf"><div class="ShelfHead"><h2>${title}</h2>${link || ""}</div>${body}</section>`;
+  const rail = (list, meta) => `<div class="Rail">${list.map((m) => RB.gameCard(m, meta && meta(m))).join("")}</div>`;
+
+  const friendsHtml = friends.length
+    ? `<div class="Tiles">${friends.map((f, i) => `
+        <div class="Tile${f.online ? " on" : ""}">
+          <a class="Head" href="profile.html?u=${encodeURIComponent(f.username)}" data-head="${i}" aria-label="${RB.esc(f.username)}"></a>
+          <a class="N" href="profile.html?u=${encodeURIComponent(f.username)}">${RB.esc(f.username)}</a>
+          <div class="S${f.playing ? " live" : ""}">${f.playing ? "Playing " + RB.esc(f.playing.name) : f.online ? "Online" : "Offline"}</div>
+        </div>`).join("")}</div>`
+    : `<div class="StandardBox"><div class="Empty">No friends yet. <a href="friends.html">Find people to add</a>.</div></div>`;
+
+  main.innerHTML = `
+    <div class="Greeting">
+      <div class="GreetingAv" id="MyAv"></div>
+      <div>
+        <h1>Hi, ${RB.esc(me.username)}</h1>
+        <p>${onlineCount ? `${onlineCount} friend${onlineCount === 1 ? " is" : "s are"} online.` : "Pick a place and jump in."} ${friendsData.incoming.length ? `<a href="friends.html"><b>${friendsData.incoming.length} new friend request${friendsData.incoming.length === 1 ? "" : "s"}</b></a>` : ""}</p>
+      </div>
+    </div>
+
+    <section class="BrandBanner" data-shader="studs" aria-label="Explore 2x2"><div class="BannerBlocks" aria-hidden="true"><i></i><i></i><i></i><i></i></div><div class="BannerCopy"><h2>Same blocks. Endless possibilities.</h2><p>Your next favorite place is out there.</p></div><a class="Button Primary" href="games.html">Discover games &rarr;</a></section>
+
+    ${shelf("Friends", `<a href="friends.html">See all</a>`, friendsHtml)}
+    ${recent.length ? shelf("Continue playing", `<a href="games.html?sort=mine">See all</a>`, rail(recent, (m) => `<span>${RB.ago(m.last)}</span>`)) : ""}
+    ${playingNow.length ? shelf("Playing right now", `<a href="games.html?sort=playing">See all</a>`, rail(playingNow.slice(0, 10))) : ""}
+    ${shelf("Featured places", `<a href="games.html?sort=featured">See all</a>`, rail(featured))}
+
+    <div class="Split">
+      <section class="StandardBox">
+        <div class="StandardBoxHeader"><span>Forum activity</span><a href="forums.html">Forums</a></div>
+        ${threads.length ? `<ul class="Feed">${threads.map((t) => `<li><span><a class="T" href="forums.html?thread=${t.threadId}&page=last">${RB.esc(t.title)}</a><span class="Label">in ${RB.esc(t.board)}</span></span>
+          <span class="R Label">${RB.ago(t.at)}<br>by ${RB.esc(t.by || "?")}</span></li>`).join("")}</ul>`
+          : `<div class="Empty">No posts yet. <a href="forums.html">Start a thread</a>.</div>`}
+      </section>
+      <section class="StandardBox">
+        <div class="StandardBoxHeader"><span>Guestbook</span><a href="guestbook.html">Sign it</a></div>
+        ${guestbook.entries.length ? `<ul class="Feed">${guestbook.entries.slice(0, 4).map((g) => `<li><span>&ldquo;${RB.esc(g.message.slice(0, 80))}${g.message.length > 80 ? "&hellip;" : ""}&rdquo;</span>
+          <span class="R Label">${RB.esc(g.username)}</span></li>`).join("")}</ul>`
+          : `<div class="Empty">Nobody has signed yet. Be the first.</div>`}
+      </section>
+    </div>
+
+    <section class="StandardBox" style="margin-top:20px">
+      <div class="StandardBoxHeader"><span>What's new</span></div>
+      <div class="BoxBody News">
+        <p><b>Your wallet.</b> You have <span class="Robux">${RB.icon("robux", 16)} ${RB.num(me.robux)}</span> and <span class="Tix">${RB.icon("tix", 16)} ${RB.num(me.tix)}</span>. Log in every day for more, and earn Tix each time you play a place.</p>
+        <p><b>3D avatars.</b> Hats, heads, faces and clothes render like the real thing. Dress up in <a href="avatar.html">Avatar</a>, shop the <a href="catalog.html">Catalog</a>.</p>
+        <p><b>Chat is live.</b> Talk to everyone in <a href="chat.html">Chat</a>, or join the room for the place you're playing.</p>
+      </div>
+    </section>`;
+
+  RBAvatar.headshot(document.getElementById("MyAv"), me.avatar, items, 84);
+  main.querySelectorAll("[data-head]").forEach((el) => RBAvatar.headshot(el, friends[el.dataset.head].avatar, items, 96));
+})();
+</script>
+</body>
+</html>

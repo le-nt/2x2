@@ -1,0 +1,12 @@
+https://www.roblox.loc https://clientsettingscdn.roblox.loc {
+    tls internal
+    reverse_proxy localhost:5173 {
+        header_up X-Forwarded-For {remote_host}
+        header_up x-real-ip {remote_host}
+    }
+    log {
+        output file access.log
+        format console
+        level INFO
+    }
+}

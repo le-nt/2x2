@@ -1,0 +1,5 @@
+[alias]
+get-tools = "install -f wasm-bindgen-cli --version 0.2.100"
+
+[env]
+PATH = { value = "${HOME}/.cargo/bin:${PATH}", force = false }

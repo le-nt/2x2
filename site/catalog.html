@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Catalog - 2x2</title>
+<link rel="stylesheet" href="css/site.css">
+<script defer src="js/effects.js"></script>
+<script defer src="js/motion.js"></script>
+<link rel="icon" href="img/logo-2x2.png" type="image/png">
+<link rel="stylesheet" href="css/retro.css">
+<link rel="stylesheet" href="css/modern.css">
+<link rel="stylesheet" href="css/r16.css">
+</head>
+<body>
+<div id="App">
+  <header id="Header"></header>
+  <aside id="Sidebar" aria-label="Site"></aside>
+  <div id="Page">
+    <main id="Main">
+      <div class="PageHead">
+        <div>
+          <h1 class="PageTitle">Catalog</h1>
+          <p class="PageSub">Earn Tix by logging in daily and playing places, then spend them on hats, faces and clothes.</p>
+        </div>
+      </div>
+      <div class="Tabs" id="Tabs" role="tablist" aria-label="Item type"></div>
+      <div class="CatalogBar">
+        <div class="Chips" id="Filters" role="group" aria-label="Show">
+          <button type="button" class="Chip" data-f="all">Everything</button>
+          <button type="button" class="Chip" data-f="tix">Tix</button>
+          <button type="button" class="Chip" data-f="robux">Robux</button>
+          <button type="button" class="Chip" data-f="free">Free</button>
+          <button type="button" class="Chip" data-f="owned">Owned</button>
+        </div>
+        <div class="Fields">
+          <select id="Sort" aria-label="Sort by">
+            <option value="name">A to Z</option>
+            <option value="low">Price: low to high</option>
+            <option value="high">Price: high to low</option>
+            <option value="year">Oldest first</option>
+          </select>
+          <input type="search" id="Search" placeholder="Search items" aria-label="Search items">
+        </div>
+      </div>
+      <div class="ListMeta"><span class="Title" id="ListTitle"></span><span class="Label" id="ListCount"></span></div>
+      <div class="ItemGrid" id="Items"><div class="Empty" style="grid-column:1/-1">Loading&hellip;</div></div>
+      <div id="Pager"></div>
+    </main>
+    <div id="FooterSlot"></div>
+  </div>
+</div>
+<script src="js/common.js"></script>
+<script>
+(async function () {
+  let me = await RB.page("Catalog");
+  if (!me) return;
+  const data = await RB.items();
+  const TYPES = [["hat", "Hats"], ["face", "Faces"], ["head", "Heads"], ["tshirt", "T-Shirts"], ["shirt", "Shirts"], ["pants", "Pants"], ["extra", "Extras"]];
+  const PER_PAGE = 30;
+  const wanted = RB.param("type");
+  const state = { type: TYPES.some((t) => t[0] === wanted) ? wanted : "hat", f: "all", s: "name", q: "", page: 1 };
+  const $ = (id) => document.getElementById(id);
+  const price = (i) => i.price === 0 ? `<span class="Price Free">Free</span>`
+    : i.currency === "robux" ? `<span class="Price Robux">${RB.icon("robux", 16)}${RB.num(i.price)}</span>` : `<span class="Price Tix">${RB.icon("tix", 16)}${RB.num(i.price)}</span>`;
+  const pic = (i) => i.icon ? `<img src="${i.icon}" alt="" loading="lazy">` : `<span class="Label">No image</span>`;
+
+  $("Tabs").innerHTML = TYPES.map(([t, l]) => `<button type="button" role="tab" data-t="${t}">${l}</button>`).join("");
+
+  function render() {
+    const q = state.q.toLowerCase();
+    let list = data.items.filter((i) => i.type === state.type && !i.builtin &&
+      (state.f === "all" || (state.f === "free" ? i.price === 0 : state.f === "owned" ? i.owned : i.currency === state.f && i.price > 0)) &&
+      (!q || (i.name + " " + i.desc).toLowerCase().includes(q)));
+    const sorts = { name: (a, b) => a.name.localeCompare(b.name), low: (a, b) => a.price - b.price || a.name.localeCompare(b.name),
+      high: (a, b) => b.price - a.price, year: (a, b) => (a.year || 9999) - (b.year || 9999) || a.name.localeCompare(b.name) };
+    list.sort(sorts[state.s]);
+    const pages = Math.max(1, Math.ceil(list.length / PER_PAGE));
+    state.page = Math.min(state.page, pages);
+    const shown = list.slice((state.page - 1) * PER_PAGE, state.page * PER_PAGE);
+    $("ListTitle").textContent = TYPES.find((t) => t[0] === state.type)[1] + (state.q ? ` matching "${state.q}"` : "");
+    $("ListCount").textContent = `${list.length} item${list.length === 1 ? "" : "s"}`;
+    $("Items").innerHTML = shown.length ? shown.map((i) => `
+      <div class="Item" data-id="${RB.esc(i.id)}">
+        <a class="Pic" href="#" data-open aria-label="${RB.esc(i.name)}">${pic(i)}</a>
+        <div class="Name"><a href="#" data-open>${RB.esc(i.name)}</a></div>
+        <div>${price(i)}</div>
+        <div>${i.owned ? `<span class="Owned">${RB.icon("check", 16)}Owned</span>` : `<button class="Button Green Small Block" data-buy type="button">${i.price ? "Buy" : "Get"}</button>`}</div>
+      </div>`).join("") : `<div class="Empty" style="grid-column:1/-1">Nothing here. Try a different filter.</div>`;
+    $("Pager").innerHTML = RB.pager(state.page, pages, (p) => `#page${p}`);
+    for (const a of document.querySelectorAll("[data-t]")) {
+      const on = a.dataset.t === state.type;
+      a.classList.toggle("active", on);
+      a.setAttribute("aria-selected", String(on));
+    }
+    for (const a of document.querySelectorAll("[data-f]")) a.classList.toggle("active", a.dataset.f === state.f);
+  }
+
+  async function buy(item) {
+    const cur = item.currency === "robux" ? "Robux" : "Tix";
+    const have = item.currency === "robux" ? me.robux : me.tix;
+    if (item.price > have) { RB.alert(`${item.name} costs ${RB.num(item.price)} ${cur} and you have ${RB.num(have)}. Log in tomorrow or play some places to earn more.`, { title: "Not enough " + cur }); return; }
+    const verb = item.price ? `Buy ${item.name} for ${RB.num(item.price)} ${cur}?` : `Add ${item.name} to your items for free?`;
+    if (!(await RB.confirm(verb, { title: item.price ? "Buy item" : "Get item", ok: item.price ? "Buy" : "Get", cancel: "Cancel" }))) return;
+    try {
+      await RB.api("catalog/buy", { method: "POST", body: { id: item.id } });
+      item.owned = true;
+      me = await RB.refreshMe();
+      render();
+      const go = await RB.confirm(`You now own ${item.name}. Want to wear it?`, { title: "It's yours", ok: "Open Avatar", cancel: "Keep shopping" });
+      if (go) location.href = "avatar.html";
+    } catch (e) { RB.alert(e.message); }
+  }
+
+  function detail(item) {
+    RB._modal(`<div class="ItemDetail"><div class="Big">${item.icon ? `<img src="${item.icon}" alt="">` : ""}</div>
+      <div style="flex:1;min-width:160px"><h3>${RB.esc(item.name)}</h3>
+        <p style="margin-top:6px">${price(item)} ${item.year ? `<span class="Label">&middot; ${item.year}</span>` : ""}</p>
+        <p class="Blurb">${item.desc ? RB.rich(item.desc) : "<span class='Label'>No description.</span>"}</p>
+        <p class="Label">${RB.esc(item.file)}</p>
+        ${item.owned ? `<p class="Success">You own this</p>` : ""}</div></div>`,
+      item.name, item.owned ? [["Close", false]] : [["Buy", true], ["Close", false]])
+      .then((b) => { if (b) buy(item); });
+    document.querySelector(".ModalBox").style.maxWidth = "540px";
+  }
+
+  document.addEventListener("click", (e) => {
+    const t = e.target.closest("[data-t],[data-f]");
+    if (t) {
+      if (t.dataset.t) { state.type = t.dataset.t; state.page = 1; }
+      if (t.dataset.f) { state.f = t.dataset.f; state.page = 1; }
+      render();
+      return;
+    }
+    const pg = e.target.closest('#Pager a[href^="#page"]');
+    if (pg) { e.preventDefault(); state.page = Number(pg.getAttribute("href").slice(5)); render(); scrollTo(0, 0); return; }
+    const card = e.target.closest(".Item");
+    if (!card) return;
+    const item = data.byId.get(card.dataset.id);
+    if (e.target.closest("[data-buy]")) buy(item);
+    else if (e.target.closest("[data-open]")) { e.preventDefault(); detail(item); }
+  });
+  $("Sort").addEventListener("change", (e) => { state.s = e.target.value; state.page = 1; render(); });
+  $("Search").addEventListener("input", (e) => { state.q = e.target.value.trim(); state.page = 1; render(); });
+  render();
+})();
+</script>
+</body>
+</html>

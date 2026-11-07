@@ -1,0 +1,40 @@
+﻿# Secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*secret*
+*credentials*
+
+# Dependencies and caches
+node_modules/
+__pycache__/
+*.pyc
+*.log
+
+# Large runtime assets
+clients/
+map-pack/
+work/
+*.zip
+*.7z
+*.exe
+*.dll
+
+# Generated assets
+server/native/asset-recovery/
+server/native/compat-prepared/
+server/native/place-manifests/
+
+# Local data
+*.db
+*.sqlite
+*.sqlite3
+
+# SQLite databases and temporary files
+*.db
+*.db-wal
+*.db-shm
+*.sqlite
+*.sqlite3

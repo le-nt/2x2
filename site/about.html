@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>About - 2x2</title>
+<link rel="stylesheet" href="css/site.css">
+<script defer src="js/effects.js"></script>
+<script defer src="js/motion.js"></script>
+<link rel="icon" href="img/logo-2x2.png" type="image/png">
+<link rel="stylesheet" href="css/retro.css">
+<link rel="stylesheet" href="css/modern.css">
+<link rel="stylesheet" href="css/r16.css">
+</head>
+<body>
+<div id="App">
+  <header id="Header"></header>
+  <aside id="Sidebar" aria-label="Site"></aside>
+  <div id="Page">
+    <main id="Main">
+      <div class="PageHead"><div><h1 class="PageTitle">About 2x2</h1><p class="PageSub"><span id="Hits">-</span> visits so far.</p></div></div>
+      <div class="StandardBox">
+        <div class="StandardBoxHeader">How it works</div>
+        <div class="BoxBody Prose">
+          <p>2x2 brings classic places into your browser with Project Pizda’s native WebAssembly client.</p>
+          <p>Your website account and selected character are used when you join a game. The entrance key protects the website and game connections; use Lock website to require it again.</p>
+          <p>Games become available after their original map files and the native game client are installed. Missing game files are reported by the launcher.</p>
+        </div>
+      </div>
+      <div class="StandardBox">
+        <div class="StandardBoxHeader">Credits</div>
+        <div class="BoxBody Prose">
+          <p>Project Pizda native engine and Arbiter by their original contributors. Classic maps and catalog items originate from Novetus by Bitl and contributors. Original notices remain with their sources.</p>
+          <p>ROBLOX is a trademark of Roblox Corporation. 2x2 is a private, non-commercial fan project and is not affiliated with, endorsed by or connected to Roblox Corporation. The 2x2 name, logo and interface are original and use no Roblox artwork.</p>
+        </div>
+      </div>
+    </main>
+    <div id="FooterSlot"></div>
+  </div>
+</div>
+<script src="js/common.js"></script>
+<script>
+RB.mount("About");
+RB.api("hits").then((h) => { document.getElementById("Hits").textContent = RB.num(h.hits); }).catch(() => { document.getElementById("Hits").textContent = "0"; });
+</script>
+</body>
+</html>

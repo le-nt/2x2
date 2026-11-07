@@ -1,0 +1,21 @@
+:global(body) {
+	background-color: var(--bs-tertiary-bg);
+	font-family: system-ui, -apple-system, sans-serif;
+}
+
+.header-logo {
+	background-image: url("/images/Logo/logo_R.svg");
+	background-repeat: no-repeat;
+	background-size: auto auto;
+	width: 30px;
+	height: 30px;
+	display: block;
+	background-size: 30px;
+}
+
+.header-logo.new {
+	background-image: url("/images/Logo/roblox_logo.svg");
+	width: 118px;
+	height: 30px;
+	background-size: 118px 30px;
+}

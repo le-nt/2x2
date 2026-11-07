@@ -1,0 +1,44 @@
+(async () => {
+ 'use strict';
+ const $=id=>document.getElementById(id),canvas=$('GameCanvas');
+ function fail(error){$('Loading').hidden=false;$('Loading').classList.remove('hidden');$('LauncherText').textContent='Unable to start this game';$('LauncherStage').textContent=error.message||String(error);$('LauncherStage').classList.add('NativeError');$('NativeActions').hidden=false;$('NativeStatus').textContent='Launch stopped';}
+ const log=[];
+ function diagnostic(value){log.push(String(value));if(log.length>30)log.shift();$('NativeLog').textContent=log.join('\n');$('NativeDetails').hidden=false;}
+ $('RetryBtn').addEventListener('click',()=>location.reload());
+ $('FullscreenBtn').addEventListener('click',async()=>{try{if(document.fullscreenElement)await document.exitFullscreen();else await $('PlayerFrame').requestFullscreen();}catch(error){diagnostic(error.message);}});
+ try{
+  const me=await RB.page('Games');if(!me)return;
+  if(!isSecureContext||!crossOriginIsolated||typeof SharedArrayBuffer==='undefined')throw Error('Use HTTPS (or localhost) with cross-origin isolation headers enabled.');
+  const map=await RB.map(RB.param('id'));if(!map)throw Error('Choose a valid game from the Games page.');
+  $('PlaceName').textContent=map.name;document.title=map.name+' - 2x2';
+  let launch;
+  try { launch=await RB.api('native/launch?id='+encodeURIComponent(map.id)); }
+  catch(error) { if(error.status===404)throw Error('The running server does not have the native launch route. Stop the old Node server, install the complete update into that project, then restart node server/server.mjs 8090.'); throw error; }
+  const response=await fetch(launch.manifest,{credentials:'same-origin',cache:'no-store'});
+  if(!response.ok)throw Error('The native WebClient manifest is missing.');
+  const manifest=await response.json();
+  if(manifest.format!==1||manifest.entry!=='UniversalClient.js')throw Error('Unsupported native WebClient manifest. Reinstall the client bundle.');
+  function asset(name){const entry=manifest.files[name];if(!entry||typeof entry.path!=='string'||entry.path.includes('..')||entry.path.includes('\\')||entry.path.startsWith('/')||!/^[a-f0-9]{64}$/.test(entry.sha256||''))throw Error('Missing or invalid native client file: '+name);return '/native-client/'+entry.path.split('/').map(encodeURIComponent).join('/')+'?v='+entry.sha256;}
+  for(const name of ['UniversalClient.js','UniversalClient.wasm','UniversalClient.data'])asset(name);
+  const size=()=>{const r=$('PlayerFrame').getBoundingClientRect();canvas.width=Math.max(320,Math.round(r.width));canvas.height=Math.max(240,Math.round(r.height));};size();
+  const resize=new ResizeObserver(size);resize.observe($('PlayerFrame'));
+  $('LauncherStage').textContent='Downloading and starting the native WebAssembly client';
+  window.Module={canvas,mainScriptUrlOrBlob:asset(manifest.entry),locateFile(filename){return asset(filename);},arguments:[`--baseUrl=${launch.baseUrl}`,`--authenticationUrl=${launch.authenticationUrl}`,'--authenticationTicket=browser-session',`--joinScriptUrl=${launch.joinScriptUrl}`],websocket:{subprotocol:null},fastFlags:'{}',print:value=>console.info('[2x2 client]',value),printErr:diagnostic,setStatus:text=>{if(text)$('LauncherStage').textContent=String(text);},onRuntimeInitialized(){
+try {
+  const vfs = typeof FS !== 'undefined' ? FS : window.Module.FS;
+  const filename = '/content/scripts/LoadingScript.lua';
+  const source = vfs.readFile(filename, {encoding:'utf8'});
+  const marker = '\nInfoProvider:LoadAssets()';
+  if (!source.includes(marker)) throw Error('Lua insertion point missing');
+  vfs.writeFile(filename, source.replace(marker, "\nprint(\"[2x2 loading-check] Lua probe started\")\n\nspawn(function()\n    local players = game:GetService(\"Players\")\n    for i = 1, 90 do\n        if players.LocalPlayer and players.LocalPlayer.Character then break end\n        wait(1)\n    end\n    print(\"[2x2 loading-check] loaded=\" .. tostring(game:IsLoaded())\n        .. \" queue=\" .. tostring(game:GetService(\"ContentProvider\").RequestQueueSize)\n        .. \" character=\" .. tostring(players.LocalPlayer and players.LocalPlayer.Character))\n    local background = currScreenGui and currScreenGui:FindFirstChild(\"BlackFrame\")\n    print(\"[2x2 loading-check] background=\" .. tostring(background))\n    if background then\n        background.Visible = false\n        print(\"[2x2 loading-check] Background temporarily hidden\")\n    end\nend)\n\nInfoProvider:LoadAssets()"));
+  console.info('[2x2 loading-check] Diagnostic installed');
+} catch (error) {
+  console.error('[2x2 loading-check] Installation failed:', error);
+}
+clearTimeout(timeout);$('Loading').hidden=true;$('Loading').classList.add('hidden');$('NativeStatus').textContent='Native client running';canvas.focus();},onAbort(reason){clearTimeout(timeout);fail(Error('Native client stopped: '+reason));}};
+  const flags=manifest.files['ClientAppSettings.json'];if(flags){const r=await fetch(asset('ClientAppSettings.json'),{credentials:'same-origin'});if(r.ok)window.Module.fastFlags=JSON.stringify(await r.json());}
+  document.addEventListener('pointerlockchange',()=>{if(!document.pointerLockElement&&typeof window.Module.ccall==='function'){try{window.Module.ccall('notifyPointerLockLost','void',[],[]);}catch(error){diagnostic(error.message);}}});
+  const timeout=setTimeout(()=>fail(Error('The native client has not initialized after 3 minutes. Check client diagnostics and game-worker logs.')),180000);
+  const script=document.createElement('script');script.src=asset(manifest.entry);script.onerror=()=>{clearTimeout(timeout);fail(Error('The native JavaScript client failed to load.'));};document.body.append(script);
+ }catch(error){fail(error);}
+})();

@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Games - 2x2</title>
+<link rel="stylesheet" href="css/site.css">
+<script defer src="js/effects.js"></script>
+<script defer src="js/motion.js"></script>
+<link rel="icon" href="img/logo-2x2.png" type="image/png">
+<link rel="stylesheet" href="css/retro.css">
+<link rel="stylesheet" href="css/modern.css">
+<link rel="stylesheet" href="css/r16.css">
+</head>
+<body>
+<div id="App">
+  <header id="Header"></header>
+  <aside id="Sidebar" aria-label="Site"></aside>
+  <div id="Page">
+    <main id="Main">
+      <div class="PageHead">
+        <div>
+          <h1 class="PageTitle">Games</h1>
+          <p class="PageSub">Explore the complete Novetus map pack: classic eras, legacy variants, and exclusives.</p>
+        </div>
+        <input type="search" id="Search" class="BrowseSearch" placeholder="Search games" aria-label="Search games">
+      </div>
+
+      <div class="Browse">
+        <div class="ChipLabel" id="SortLabel">Sort by</div>
+        <div class="Chips" id="SortList" role="group" aria-labelledby="SortLabel">
+          <button type="button" class="Chip" data-sort="popular">Most popular</button>
+          <button type="button" class="Chip" data-sort="featured">Featured</button>
+          <button type="button" class="Chip" data-sort="newest">Newest</button>
+          <button type="button" class="Chip" data-sort="playing">Friends playing</button>
+          <button type="button" class="Chip" data-sort="mine">My recent</button>
+          <button type="button" class="Chip" data-sort="name">A to Z</button>
+          <button type="button" class="Chip" data-sort="smallest">Quickest to load</button>
+        </div>
+        <div class="ChipLabel" id="EraLabel">Era</div>
+        <div class="Chips" id="EraList" role="group" aria-labelledby="EraLabel"></div>
+      </div>
+
+      <div class="ListMeta"><span class="Title" id="ListTitle">Most popular</span><span class="Label" id="ListCount"></span></div>
+      <div class="GameList" id="GameList"><div class="Empty">Loading games&hellip;</div></div>
+    </main>
+    <div id="FooterSlot"></div>
+  </div>
+</div>
+
+<script src="js/common.js"></script>
+<script>
+(async function () {
+  RB.mount("Games");
+  const maps = await RB.places();
+  const capabilityIndex = await RB.capabilities();
+
+  const state = { sort: RB.param("sort") || "popular", era: RB.param("era") || "all", q: RB.param("q") || "" };
+  const featured = ["crossroads", "sword-fight-on-the-heights", "rocket-arena", "happy-home-in-robloxia", "chaos-canyon", "haunted-mansion"];
+  const isFeatured = (m) => featured.some((f) => m.id.includes(f));
+
+  const eras = [...new Set(maps.map((m) => m.era))].sort();
+  document.getElementById("EraList").innerHTML =
+    `<button type="button" class="Chip" data-era="all">All eras</button>` + eras.map((e) => `<button type="button" class="Chip" data-era="${RB.esc(e)}">${RB.esc(e)}</button>`).join("");
+  document.getElementById("Search").value = state.q;
+
+  function render() {
+    const q = state.q.toLowerCase();
+    let list = maps.filter((m) =>
+      (state.era === "all" || m.era === state.era) &&
+      (!q || (m.name + " " + m.description).toLowerCase().includes(q)) &&
+      (state.sort !== "featured" || isFeatured(m)) &&
+      (state.sort !== "playing" || m.playing.length) &&
+      (state.sort !== "mine" || m.mine));
+    const sorters = {
+      popular: (a, b) => b.visits - a.visits,
+      featured: (a, b) => b.visits - a.visits,
+      newest: (a, b) => b.year - a.year || b.visits - a.visits,
+      playing: (a, b) => b.playing.length - a.playing.length,
+      mine: (a, b) => b.mine - a.mine,
+      name: (a, b) => a.name.localeCompare(b.name),
+      smallest: (a, b) => a.zipKB - b.zipKB,
+    };
+    list.sort(sorters[state.sort] || sorters.popular);
+
+    const titles = { popular: "Most popular", featured: "Featured", newest: "Newest places", playing: "Friends playing now", mine: "Your recent places", name: "A to Z", smallest: "Quickest to load" };
+    document.getElementById("ListTitle").textContent =
+      (titles[state.sort] || titles.popular) + (state.era !== "all" ? ` (${state.era})` : "") + (state.q ? ` matching "${state.q}"` : "");
+    document.getElementById("ListCount").textContent = `${list.length} game${list.length === 1 ? "" : "s"}`;
+
+    document.getElementById("GameList").innerHTML = list.length ? list.map((m) => {
+      const inventory = capabilityIndex.get(m.id);
+      const inventoryNote = inventory && inventory.status === "inventoried"
+        ? `<span title="Original objects found; execution unverified">${RB.num(inventory.toolCount)} tools · ${RB.num(inventory.scriptCount)} scripts</span>`
+        : "";
+      const meta = `<span>${RB.esc(m.era)}</span><span>${RB.compact(m.visits)} visits</span>` + inventoryNote +
+        (state.sort === "smallest" ? `<span>${RB.num(m.zipKB)} KB</span>` : m.mine ? `<span>You: ${m.mine}x</span>` : "");
+      return RB.gameCard(m, meta);
+    }).join("") : `<div class="Empty" style="grid-column:1/-1">${state.sort === "playing" ? "Nobody is playing right now. Be the first." : "No games found. Try a different search or era."}</div>`;
+
+    for (const a of document.querySelectorAll("[data-sort]")) a.classList.toggle("active", a.dataset.sort === state.sort);
+    for (const a of document.querySelectorAll("[data-era]")) a.classList.toggle("active", a.dataset.era === state.era);
+    const qs = new URLSearchParams();
+    if (state.sort !== "popular") qs.set("sort", state.sort);
+    if (state.era !== "all") qs.set("era", state.era);
+    if (state.q) qs.set("q", state.q);
+    history.replaceState(null, "", qs.toString() ? "?" + qs : location.pathname);
+  }
+
+  document.querySelector(".Browse").addEventListener("click", (e) => {
+    const a = e.target.closest("[data-sort],[data-era]");
+    if (!a) return;
+    if (a.dataset.sort) state.sort = a.dataset.sort;
+    if (a.dataset.era) state.era = a.dataset.era;
+    render();
+  });
+  document.getElementById("Search").addEventListener("input", (e) => { state.q = e.target.value.trim(); render(); });
+  render();
+})();
+</script>
+</body>
+</html>

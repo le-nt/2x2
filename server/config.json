@@ -1,0 +1,19 @@
+{
+  "accessToken": "itsfree",
+  "secret": "67740e7b06065483e2f7d5d76b7a36c8e66f2340d4833cbb2adb74667e4ad2d5",
+  "startingTix": 100,
+  "startingRobux": 100,
+  "dailyTix": 50,
+  "dailyRobux": 5,
+  "playTix": 10,
+  "playTixPerDay": 5,
+  "secureCookies": true,
+  "trustProxy": true,
+  "native": {
+    "accessKey": "e3ac7fbdbb7fae8be88bf740b9049ae3720b8ceac73481e52333c51da57a8b0f",
+    "signingKey": "98b1d84bf0e3f489acc921487760ada3cb1ac163cf88c8ad98e5146d71011a81",
+    "publicOrigin": "https://2x2.lentanyl.com",
+    "arbiterOrigin": "http://127.0.0.1:8081",
+    "maxJobs": 4
+  }
+}

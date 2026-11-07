@@ -1,0 +1,5 @@
+
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#111}
+#canvas{display:block;width:100%;height:100%;outline:none}
+#status{position:fixed;top:0;left:0;z-index:100;background:#222;
+color:white;padding:8px;font:14px monospace;max-width:95%;white-space:pre-wrap}

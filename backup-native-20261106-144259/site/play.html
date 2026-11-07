@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Play - 2x2</title>
+<link rel="stylesheet" href="css/site.css">
+<script defer src="js/effects.js"></script>
+<link rel="icon" href="img/logo-2x2.png" type="image/png">
+<style>
+  /* The game area fills whatever space is left under the top bar. */
+  html, body { height: 100%; }
+  #App { height: 100%; min-height: 0; grid-template-rows: var(--top-h) minmax(0, 1fr); }
+  #Page { min-height: 0; }
+</style>
+<script>
+  if (new URLSearchParams(location.search).get("embed") === "1") document.documentElement.classList.add("embed");
+</script>
+<link rel="stylesheet" href="css/retro.css">
+</head>
+<body>
+<div id="App">
+  <header id="Header"></header>
+  <aside id="Sidebar" aria-label="Site"></aside>
+  <div id="Page">
+    <div id="PlayContainer">
+      <div class="PlayBar">
+        <div class="PlayTitle"><a class="Button Small" href="#" id="BackLink">Back</a><b id="PlaceName"></b></div>
+        <div class="PlayTools">
+          <span class="ResizeNote" id="ResizeNote">Window resized. Restart to fit.</span>
+          <label>Screen
+            <select id="ResSelect">
+              <option value="fit">Fit window (sharpest)</option>
+              <option value="640x480">640&times;480</option>
+              <option value="800x600">800&times;600</option>
+              <option value="1024x768">1024&times;768</option>
+            </select>
+          </label>
+          <button class="Button Small" id="FullscreenBtn" type="button">Fullscreen</button>
+          <button class="Button Small" id="RestartBtn" type="button">Restart</button>
+        </div>
+      </div>
+      <div class="PlayerFrame" id="PlayerFrame">
+        <iframe id="Emu" title="ROBLOX player" allow="fullscreen; autoplay; cross-origin-isolated"></iframe>
+        <div class="LoadingOverlay" id="Loading">
+          <div class="Launcher" id="Launcher" role="status" aria-live="polite">
+            <img class="Spinner" src="img/logo-2x2.png" width="96" height="96" alt="">
+            <div class="Text" id="LauncherText">Starting&hellip;</div>
+            <div class="LauncherProgress" aria-hidden="true"></div>
+            <div class="LauncherStage" id="LauncherStage">Downloading the game</div>
+            <div class="LauncherButtons"><button type="button" class="Button" id="CancelBtn">Cancel</button></div>
+          </div>
+        </div>
+      </div>
+      <div class="PlayBar">
+        <span class="Hint">Click the game to give it the keyboard. WASD to move, Space to jump, right-drag to look around.</span>
+        <span class="Hint" id="Perf"></span>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="js/common.js"></script>
+<script>
+(async function () {
+  RB.mount("Games");
+  const cat = await RB.catalog();
+  const m = await RB.map(RB.param("id"));
+  if (!m) { location.href = "index.html"; return; }
+  document.title = m.name + " - 2x2";
+  document.getElementById("PlaceName").textContent = m.name;
+  const placeUrl = "game.html?id=" + encodeURIComponent(m.id);
+  document.getElementById("BackLink").href = placeUrl;
+
+  let me = null;
+  try { me = RB.me ? await RB.me() : null; } catch {}
+  const name = ((me && me.username) || RB.playerName()).replace(/[^A-Za-z0-9_]/g, "") || "Player";
+
+  // Screen size: "fit" makes the emulated screen exactly as many device pixels as the game area,
+  // so the canvas is shown 1:1 (no scaling blur, no black bars).
+  const resSelect = document.getElementById("ResSelect");
+  let choice = "fit";
+  try { choice = localStorage.getItem("rb.screen") || choice; } catch {}
+  resSelect.value = choice;
+  resSelect.addEventListener("change", () => {
+    try { localStorage.setItem("rb.screen", resSelect.value); } catch {}
+    location.reload();
+  });
+  const frameBox = document.getElementById("PlayerFrame");
+  const dpr = window.devicePixelRatio || 1;
+  const embed = document.documentElement.classList.contains("embed");
+  // Embedded: the desktop tells us the CSS size it will show the game at (cw × ch).
+  const cssW = embed ? Number(RB.param("cw")) || 800 : frameBox.clientWidth;
+  const cssH = embed ? Number(RB.param("ch")) || 600 : frameBox.clientHeight;
+  function fitSize(w = frameBox.clientWidth, h = frameBox.clientHeight) {
+    return [Math.min(2560, Math.max(320, Math.floor(w * dpr / 2) * 2)), Math.min(1600, Math.max(240, Math.floor(h * dpr / 2) * 2))];
+  }
+  const [fitW, fitH] = fitSize(cssW, cssH);
+  const res = embed || choice === "fit" ? `${fitW}x${fitH}` : choice;
+
+  // Progress for the desktop's launcher dialog.
+  const post = (msg) => { if (embed && window.parent !== window) window.parent.postMessage({ rb: "play", ...msg }, location.origin); };
+
+  // ===== LAUNCH CONFIG (owned by the game agent: which exe, args, overlay zips, working dir) =====
+  // Default: the server exe opens the place itself (fast, exact Lighting/services); it starts as a
+  // Studio-like window but switches to fullscreen once the game runs, which the hidden-until-spawned
+  // game window covers. ?exe=client uses the player exe + Lua InsertContent (solo.lua) instead.
+  const useClient = RB.param("exe") === "client";
+  const clientName = m.client || cat.client;
+  const clientZip = (cat.clientZips && cat.clientZips[clientName]) || `client-${clientName}.zip`;
+  // Avatar: /api/avatar/<name> gives the look; /data/avatar-<name>.zip (server/lib/game.mjs) holds the
+  // items at C:\\shareddata\\charcustom. Both are optional: a server without the route just skips them.
+  const overlays = [clientZip, `map-${m.id}.zip`];
+  let appLua = "";
+  try {
+    const safe = (f) => /^[A-Za-z0-9_.-]{1,80}$/.test(f || "") ? f : "";
+    const av = (await (await fetch("api/avatar/" + encodeURIComponent(name))).json()).avatar;
+    const zipOk = av && (await fetch(`data/avatar-${name}.zip`, { method: "HEAD" })).ok;
+    if (zipOk) {
+      const c = av.colors || {};
+      const colors = [c.head, c.torso, c.leftArm, c.rightArm, c.leftLeg, c.rightLeg].map((v) => Number(v) | 0).join(",");
+      const hats = (av.hats || []).map(safe).filter(Boolean).slice(0, 3).map((h) => `'${h}'`).join(",");
+      const slot = (k) => `${k}='${safe(av[k])}'`;
+      appLua = `_G.SoloAppearance={colors={${colors}},hats={${hats}},${["face", "head", "shirt", "pants", "tshirt", "extra"].map(slot).join(",")}}; `;
+      overlays.push(`avatar-${name}.zip`);
+    }
+  } catch { /* play with the default look */ }
+  const solo = `_G.SoloPlayerName='${name}'; ${appLua}`;
+  const launch = {
+    exe: useClient ? "RobloxApp_client.exe" : "RobloxApp_server.exe",
+    workDir: "/home/username/.wine/drive_c/roblox",
+    overlays,
+    args: useClient
+      ? `-script "${solo}dofile('rbxasset://scripts/solo.lua')"`
+      : `C:\\maps\\map.rbxl -script "${solo}_G.SoloMap=false; dofile('rbxasset://scripts/solo.lua')"`,
+  };
+  // ===== END LAUNCH CONFIG =====
+  const params = new URLSearchParams({
+    auto: "true",
+    storage: "memory",
+    rootBase: "../data/",
+    root: "root.zip",
+    overlayBase: "../data/",
+    w: launch.workDir,
+    p: launch.exe,
+    resolution: res,
+    pixelExact: "1",
+    disableHideCursor: "true",
+  });
+  // ?emu=mt / ?emu=prof select the multithreaded or profiling builds for testing.
+  const emuDir = { st: "emu", mt: "emu-mt", prof: "emu-prof" }[RB.param("emu")] || "emu";
+  // The shell splits overlays on ';' and decodes args itself, so append those unencoded/encoded by hand.
+  const src = `${emuDir}/player.html?${params}&overlay=${launch.overlays.join(";")}&args=${encodeURIComponent(launch.args)}`;
+  const frame = document.getElementById("Emu");
+  frame.src = src;
+
+  // Offer a restart when the window no longer matches the emulated screen.
+  if (choice === "fit" && !embed) {
+    let t;
+    new ResizeObserver(() => {
+      clearTimeout(t);
+      t = setTimeout(() => {
+        const [w, h] = fitSize();
+        document.getElementById("ResizeNote").classList.toggle("show", Math.abs(w - fitW) > 8 || Math.abs(h - fitH) > 8);
+      }, 300);
+    }).observe(frameBox);
+  }
+
+  const overlay = document.getElementById("Loading");
+  const launcher = document.getElementById("Launcher");
+  const textEl = document.getElementById("LauncherText");
+  const stageEl = document.getElementById("LauncherStage");
+  const perf = document.getElementById("Perf");
+  const cancel = () => { frame.src = "about:blank"; location.href = placeUrl; };
+  document.getElementById("CancelBtn").addEventListener("click", cancel);
+
+  const stages = [
+    ["Loaded root.zip", "Booting Windows..."],
+    ["Launching", "Starting the client..."],
+    ["D3D9 device", "Starting the 3D engine..."],
+    ["Creating viewport", "Loading the place..."],
+  ];
+  const logsDir = "/home/username/.wine/drive_c/users/username/AppData/Local/Roblox/logs";
+  let spawned = false, viewportSince = 0, failed = false;
+
+  // solo.lua reports progress as "SOLO: ..." lines in the client's log file, which BoxedWine
+  // writes into the emulator's in-memory filesystem under the shell's ROOT directory.
+  function soloStatus(win) {
+    try {
+      const FS = win.FS, root = win.eval("ROOT");
+      const dir = root + logsDir;
+      let text = "";
+      for (const f of FS.readdir(dir)) if (f.endsWith(".txt")) text += FS.readFile(dir + "/" + f, { encoding: "utf8" });
+      return text;
+    } catch { return ""; }
+  }
+
+  function finish() {
+    if (overlay.classList.contains("hidden")) return;
+    overlay.classList.add("hidden");
+    post({ kind: "ready", width: cssW, height: cssH });
+    frame.focus();
+  }
+  let lastPost = "";
+
+  setInterval(() => {
+    let doc, win;
+    try { doc = frame.contentDocument; win = frame.contentWindow; } catch { return; }
+    if (!doc) return;
+    const status = doc.getElementById("status");
+    const out = doc.getElementById("output");
+    const log = out ? out.value : "";
+    const s = status && status.textContent || "";
+    const dl = s.match(/\((\d+)\/(\d+)\)/);
+    let stage = dl ? `Downloading the game (${Math.round(100 * dl[1] / dl[2])}%)` : "";
+    let pct = dl ? Math.round(30 * dl[1] / dl[2]) : 2;
+    stages.forEach(([needle, text], i) => { if (log.includes(needle)) { stage = text; pct = 35 + i * 12; } });
+    if (log.includes("Creating viewport") && !viewportSince) viewportSince = Date.now();
+
+    const solo = viewportSince ? soloStatus(win) : "";
+    if (solo.includes("SOLO: map loaded")) { stage = "Spawning your character..."; pct = 92; }
+    if (solo.includes("SOLO: player spawned")) { spawned = true; pct = 100; }
+    if (!failed && /SOLO: map insert failed|Failed to open document|Graphics failed/i.test(solo + log)) {
+      failed = true;
+      launcher.classList.add("error");
+      textEl.textContent = "Something went wrong and the game had to close.";
+      stage = "Press Restart to try again.";
+      post({ kind: "error", text: "Something went wrong and the game had to close." });
+    }
+    if (stage) stageEl.textContent = stage;
+    if (!failed && stage && stage + pct !== lastPost) {
+      lastPost = stage + pct;
+      post({ kind: "progress", pct, text: stage });
+    }
+
+    // Give the first frames a moment to draw; big places take a while to parse, so the
+    // timer fallback (if the log can't be read) is generous.
+    if (spawned && !failed) setTimeout(finish, 1500);
+    else if (viewportSince && Date.now() - viewportSince > 180000) finish();
+
+    const fps = [...log.matchAll(/\[FPS\] ([\d.]+)/g)].pop();
+    perf.textContent = (fps ? `${Math.round(fps[1])} FPS · ` : "") + res;
+  }, 1000);
+
+  document.getElementById("FullscreenBtn").addEventListener("click", () => {
+    frameBox.requestFullscreen?.();
+    frame.focus();
+  });
+  document.getElementById("RestartBtn").addEventListener("click", () => location.reload());
+  frameBox.addEventListener("click", () => frame.focus());
+})();
+</script>
+</body>
+</html>

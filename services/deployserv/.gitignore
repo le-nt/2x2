@@ -1,0 +1,7 @@
+target/*
+*/target/*
+config.json
+.env
+.idea/
+.directory
+admin-ui/dist/*

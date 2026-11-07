@@ -1,0 +1,17 @@
+{
+  "server": {
+    "port": 8081,
+    "soap_port_range": {
+      "start": 64000,
+      "end": 64099
+    },
+    "network_server_port_range": {
+      "start": 65000,
+      "end": 65099
+    }
+  },
+  "access_key": "e3ac7fbdbb7fae8be88bf740b9049ae3720b8ceac73481e52333c51da57a8b0f",
+  "signing_key": "98b1d84bf0e3f489acc921487760ada3cb1ac163cf88c8ad98e5146d71011a81",
+  "base_url": "https://2x2.lentanyl.com/native",
+  "tls": null
+}

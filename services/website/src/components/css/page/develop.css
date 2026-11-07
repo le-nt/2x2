@@ -1,0 +1,73 @@
+.gear-button-wrapper {
+    top: 5px;
+    width: 38px;
+    background-color: #FFF;
+    border-left: 1px solid;
+    border-right: 1px solid;
+    border-color: white;
+    height: 37px;
+    position: relative;
+    margin-right: 5px;
+    margin-left: 9px;
+}
+
+.gear-button-wrapper.open {
+    background-color: rgb(239, 239, 239);
+    border-color: gray;
+    z-index: 999;
+}
+
+.gear-button {
+    background: url(/images/BuildPage/btn-gear_sprite_27px.png) no-repeat;
+    display: inline-block;
+    width: 40px;
+    height: 27px;
+    border: none;
+    position: relative;
+    margin-right: 10px;
+    cursor: pointer;
+    left: -1px;
+}
+
+.gear-button.open {
+    background-position: 0 -54px !important;
+    z-index: 100;
+}
+
+.gear-button:hover {
+    background-position: 0 -27px;
+}
+
+.configure-menu {
+    width: 125px;
+    background-color: #EFEFEF;
+    border: 1px solid #777;
+    font: 12px normal Arial,Helvetica,sans-serif;
+    position: absolute;
+    top: calc(100% - 1px);
+    right: -1px;
+    text-align: left;
+    z-index: 1000;
+}
+
+.configure-menu a {
+    display: block;
+    text-decoration: none;
+    color: black;
+    padding: 4px 8px;
+    margin: 0;
+}
+
+.configure-menu a:hover {
+    background-color: #f0f0f0;
+}
+
+.configure-menu a:hover {
+    background-color: #d8d8d8;
+}
+
+.separator {
+    background-color: #EFEFEF;
+    margin: 10px 0;
+    height: 1px;
+}

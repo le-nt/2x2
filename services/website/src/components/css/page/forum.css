@@ -1,0 +1,38 @@
+.text-small,
+.text-small-bold,
+.text-smaller {
+    color: #000000 !important;
+}
+
+.text-small {
+    font-size: 14px !important;
+    font-weight: 400 !important;
+}
+
+.text-smaller {
+    font-size: 12px;
+    font-weight: 400;
+}
+
+.text-small-bold {
+    font-size: 14px !important;
+    font-weight: bold !important;
+}
+
+.table-title {
+    color: white;
+    text-decoration: none;
+    font-size: 20px;
+    font-weight: normal;
+    margin: auto;
+}
+
+.search-input {
+    border: 1px solid #0058b1;
+    padding-left: 5px;
+    width: 172px;
+}
+
+.select-input {
+    border: 1px solid #0058b1;
+}

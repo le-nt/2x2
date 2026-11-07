@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Profile - 2x2</title>
+<link rel="stylesheet" href="css/site.css">
+<script defer src="js/effects.js"></script>
+<script defer src="js/motion.js"></script>
+<link rel="icon" href="img/logo-2x2.png" type="image/png">
+<link rel="stylesheet" href="css/retro.css">
+<link rel="stylesheet" href="css/modern.css">
+<link rel="stylesheet" href="css/r16.css">
+</head>
+<body>
+<div id="App">
+  <header id="Header"></header>
+  <aside id="Sidebar" aria-label="Site"></aside>
+  <div id="Page">
+    <main id="Main"><div class="Empty">Loading&hellip;</div></main>
+    <div id="FooterSlot"></div>
+  </div>
+</div>
+<script src="js/common.js"></script>
+<script src="js/avatar.js"></script>
+<script>
+(async function () {
+  const me = await RB.page("Profile");
+  if (!me) return;
+  const name = RB.param("u") || me.username;
+  const main = document.getElementById("Main");
+  let p;
+  try { p = (await RB.api("users/" + encodeURIComponent(name))).profile; } catch (e) { RB.fatal(e.message, "Profile"); return; }
+  const self = p.relation === "self";
+  document.title = (self ? "Your profile" : p.username) + " - 2x2";
+  const [items, cat] = await Promise.all([RB.items(), RB.catalog()]);
+  const mapById = new Map(cat.maps.map((m) => [m.id, m]));
+
+  const actions = {
+    self: `<a class="Button" href="avatar.html">Edit avatar</a><a class="Button" href="settings.html">Edit profile</a>`,
+    none: `<button type="button" class="Button Primary" data-act="request">Add friend</button>`,
+    requested: `<span class="Label">Friend request sent</span><button type="button" class="Button" data-act="remove">Cancel request</button>`,
+    incoming: `<button type="button" class="Button Primary" data-act="accept">Accept request</button><button type="button" class="Button" data-act="remove">Decline</button>`,
+    friends: `<span class="Success">Friends</span><button type="button" class="Button Ghost" data-act="remove">Remove friend</button>`,
+  };
+  const stat = (v, k) => `<div class="Stat"><div class="V">${v}</div><div class="K">${k}</div></div>`;
+
+  main.innerHTML = `
+    <section class="ProfileHero">
+      <div class="ProfileAvatar"><div id="Av"></div></div>
+      <div>
+        <h1>${RB.esc(p.username)} <span class="Pill${p.online ? " live" : ""}">${p.online ? "Online" : "Offline"}</span></h1>
+        <div class="ProfileStatus">${p.status ? "&ldquo;" + RB.esc(p.status) + "&rdquo;" : "No status yet."}</div>
+        ${p.lastPlace ? `<div class="DetailHighlighted">Playing <a href="game.html?id=${encodeURIComponent(p.lastPlace.placeId)}">${RB.esc(p.lastPlace.name)}</a> (${RB.ago(p.lastPlace.at)})</div>` : ""}
+        <div class="Blurb" style="margin-top:10px">${p.blurb ? RB.rich(p.blurb) : "This user hasn't written anything about themselves yet."}</div>
+        <div class="ProfileActions" id="Actions">${actions[p.relation] || ""}</div>
+        <div class="ProfileStats">
+          ${stat(RB.num(p.friendCount), "Friends")}${stat(RB.num(p.visited.length), "Places played")}${stat(RB.num(p.inventoryCount), "Items")}${stat(RB.num(p.postCount), "Forum posts")}
+        </div>
+        <p class="Label" style="margin:14px 0 0">Joined ${RB.date(p.joined)} &middot; ${p.online ? "online now" : "last seen " + RB.ago(p.lastSeen)}</p>
+      </div>
+    </section>
+
+    <section class="Shelf">
+      <div class="ShelfHead"><h2>${self ? "Your" : RB.esc(p.username) + "'s"} friends (${p.friendCount})</h2>${self ? '<a href="friends.html">See all</a>' : ""}</div>
+      ${p.friends.length ? `<div class="StandardBox"><div class="FriendGrid">${p.friends.map((f, i) => `
+        <div class="Friend"><a class="Thumb" href="profile.html?u=${encodeURIComponent(f.username)}" data-av="${i}" aria-label="${RB.esc(f.username)}"></a>
+          <span class="Dot${f.online ? " on" : ""}"></span>${RB.userLink(f.username)}</div>`).join("")}</div></div>`
+        : `<div class="StandardBox"><div class="Empty">${self ? 'No friends yet. <a href="friends.html">Find some</a>.' : "No friends yet."}</div></div>`}
+    </section>
+
+    <section class="Shelf">
+      <div class="ShelfHead"><h2>Places played (${p.visited.length})</h2>${self ? '<a href="games.html">Find more</a>' : ""}</div>
+      ${p.visited.length ? `<div class="GameList">${p.visited.map((v) => {
+        const m = { playing: [], ...(mapById.get(v.placeId) || { id: v.placeId, name: v.name, era: "", hue: 200, visits: 0 }) };
+        return RB.gameCard(m, `<span>${v.count} visit${v.count === 1 ? "" : "s"}</span><span>${RB.ago(v.last)}</span>`);
+      }).join("")}</div>`
+        : `<div class="StandardBox"><div class="Empty">${self ? 'You haven\'t played anything yet. <a href="games.html">Browse games</a>.' : "Hasn't played anything yet."}</div></div>`}
+    </section>`;
+
+  RBAvatar.render(document.getElementById("Av"), p.avatar, items, { scale: 40, angle: -20 });
+  for (const el of main.querySelectorAll("[data-av]")) {
+    const stage = document.createElement("div");
+    el.appendChild(stage);
+    RBAvatar.render(stage, p.friends[el.dataset.av].avatar, items, { scale: 15, angle: -18, still: true });
+  }
+
+  main.addEventListener("click", async (e) => {
+    const b = e.target.closest("[data-act]");
+    if (!b) return;
+    b.disabled = true;
+    try {
+      const r = await RB.api(`friends/${encodeURIComponent(p.username)}/${b.dataset.act}`, { method: "POST" });
+      document.getElementById("Actions").innerHTML = actions[r.relation] || "";
+    } catch (ex) { RB.alert(ex.message); b.disabled = false; }
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,21 @@
+{
+  "format": 1,
+  "entry": "UniversalClient.js",
+  "files": {
+    "UniversalClient.wasm": {
+      "path": "UniversalClient.wasm",
+      "bytes": 36801402,
+      "sha256": "b89c9a14eb82ec5228b6c02cd1a3bef0b53f2a935f75c2362437b3ba0a1e7916"
+    },
+    "UniversalClient.data": {
+      "path": "UniversalClient.data",
+      "bytes": 163644274,
+      "sha256": "df87a299c571d07f122971f924dba1d265ea4047e7207f47ab8c0e8e5dac7da9"
+    },
+    "UniversalClient.js": {
+      "path": "UniversalClient.js",
+      "bytes": 546372,
+      "sha256": "d4aad542cef215128a834f8c3772077e03ea638fc1c211dd182a3a0c27421551"
+    }
+  }
+}

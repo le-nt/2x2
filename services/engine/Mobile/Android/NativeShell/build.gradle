@@ -1,0 +1,153 @@
+plugins {
+    id 'com.android.application'
+}
+
+repositories {
+    google()
+    mavenCentral()
+}
+
+android {
+    namespace 'com.projectpizza.client'
+    flavorDimensions "default"
+    compileSdkVersion 34
+    useLibrary 'org.apache.http.legacy'
+
+    defaultConfig {
+        applicationId "com.projectpizza.client"
+        minSdk 19
+        targetSdk 21
+
+        versionCode project.hasProperty('versionCode') ? versionCode.toInteger() : 100
+        versionName project.hasProperty('versionName') ? versionName : "2.99.99"
+
+        multiDexEnabled true
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+        generatedDensities = []
+    }
+
+    signingConfigs {
+        packageRelease {
+            keyAlias 'seriously_do_not_delete_this_file'
+            keyPassword 'Sa4e63uCh4$robloxAndroid$'
+            storeFile file('../robloxAndroidPK_DO_NOT_DELETE')
+            storePassword 'Sa4e63uCh4$robloxAndroid$'
+        }
+    }
+
+    buildTypes {
+        debug {
+            // default debug
+        }
+        release {
+            signingConfig signingConfigs.packageRelease
+            minifyEnabled false
+        }
+    }
+
+    splits {
+        abi {
+            enable true
+            reset()
+            include 'armeabi-v7a'/*, 'arm64-v8a'*/
+            universalApk false
+        }
+    }
+
+    productFlavors {
+        dev {
+            dimension "default"
+            applicationId "com.projectpizza.client.dev"
+            buildConfigField "boolean", "USE_AMAZON_PURCHASING", "false"
+        }
+        pub {
+            dimension "default"
+            applicationId "com.projectpizza.client"
+            buildConfigField "boolean", "USE_AMAZON_PURCHASING", "false"
+        }
+    }
+
+    lintOptions {
+        abortOnError false
+        disable 'MissingDefaultResource'
+        checkReleaseBuilds false
+        disable 'ExpiredTargetSdkVersion'
+    }
+    
+    sourceSets {
+        main {
+            manifest.srcFile 'AndroidManifest.xml'
+            java.srcDirs = ['src']
+            aidl.srcDirs = ['src']
+            res.srcDirs = ['res']
+            assets.srcDirs = ['assets']
+            jniLibs.srcDirs = ['libs']
+        }
+        dev {
+            java.srcDirs = ['dev/src']
+            res.srcDirs = ['dev']
+        }
+        pub {
+            java.srcDirs = ['pub/src']
+            res.srcDirs = ['pub']
+        }
+        androidTest {
+            java.srcDirs = ['tests/androidTests/src']
+            res.srcDirs = ['tests/androidTests/res']
+        }
+        test {
+            java.srcDirs = ['tests/unitTests/src']
+            res.srcDirs = ['tests/unitTests/res']
+        }
+        debug {
+            java.srcDirs = ['build-types/debug/java']
+            res.srcDirs = ['build-types/debug/res']
+        }
+        release {
+            java.srcDirs = ['build-types/release/java']
+            res.srcDirs = ['build-types/release/res']
+        }
+    }
+
+    aaptOptions {
+        additionalParameters "--no-version-vectors"
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    buildFeatures {
+        viewBinding true
+    }
+
+    buildFeatures {
+        buildConfig true
+    }
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: '*.jar')
+    implementation project(':Hybrid')
+
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'com.google.android.material:material:1.9.0'
+    implementation 'androidx.multidex:multidex:2.0.1'
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.0.0'
+    implementation 'androidx.interpolator:interpolator:1.0.0'
+    implementation 'androidx.multidex:multidex:2.0.1'
+
+    implementation 'de.hdodenhof:circleimageview:3.1.0'
+    implementation files("${android.sdkDirectory}/platforms/android-34/optional/org.apache.http.legacy.jar")
+
+    testImplementation 'junit:junit:4.13.2'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.6'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}

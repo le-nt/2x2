@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Guestbook - 2x2</title>
+<link rel="stylesheet" href="css/site.css">
+<script defer src="js/effects.js"></script>
+<script defer src="js/motion.js"></script>
+<link rel="icon" href="img/logo-2x2.png" type="image/png">
+<link rel="stylesheet" href="css/retro.css">
+<link rel="stylesheet" href="css/modern.css">
+<link rel="stylesheet" href="css/r16.css">
+</head>
+<body>
+<div id="App">
+  <header id="Header"></header>
+  <aside id="Sidebar" aria-label="Site"></aside>
+  <div id="Page">
+    <main id="Main">
+      <div class="PageHead"><div><h1 class="PageTitle">Guestbook</h1><p class="PageSub"><span id="Hits">-</span> visits so far. Leave a note for everyone.</p></div></div>
+      <div class="Columns Flip">
+        <div>
+          <div id="Entries"><div class="Empty">Loading&hellip;</div></div>
+          <div id="GbPager"></div>
+        </div>
+        <form class="StandardBox GbForm Form" id="GbForm">
+          <div class="StandardBoxHeader">Sign the guestbook</div>
+          <div class="BoxBody">
+            <div class="Row"><label for="GbMsg">Message</label><textarea id="GbMsg" rows="4" maxlength="500" required></textarea></div>
+            <div class="Row"><label for="GbHome">Homepage <span class="Hint">(optional)</span></label><input type="text" id="GbHome" maxlength="100" placeholder="https://"></div>
+            <div class="Row"><label for="GbMood">Mood</label>
+              <select id="GbMood"><option value="">None</option><option>happy</option><option>cool</option><option>bored</option><option>silly</option>
+                <option>sad</option><option>angry</option><option>nostalgic</option><option>noob</option></select></div>
+            <div class="Error" id="GbErr" role="alert"></div>
+            <button class="Button Primary Block" type="submit">Sign</button>
+          </div>
+        </form>
+      </div>
+    </main>
+    <div id="FooterSlot"></div>
+  </div>
+</div>
+<script src="js/common.js"></script>
+<script src="js/avatar.js"></script>
+<script>
+(async function () {
+  const me = await RB.page("Guestbook");
+  if (!me) return;
+  const $ = (id) => document.getElementById(id);
+  const page = Number(RB.param("page")) || 1;
+  RB.api("hits").then((h) => { $("Hits").textContent = RB.num(h.hits); }).catch(() => {});
+
+  async function load() {
+    const d = await RB.api("guestbook?page=" + page);
+    const items = await RB.items();
+    $("Entries").innerHTML = d.entries.length ? d.entries.map((g, i) => `
+      <div class="GbEntry">
+        <div class="Who"><div class="Thumb" data-av="${i}"></div><span>${RB.userLink(g.username)}</span></div>
+        <div class="Msg">${RB.rich(g.message)}
+          ${g.mood ? `<div class="Label Mood">Feeling ${RB.esc(g.mood)}</div>` : ""}
+          ${g.homepage ? `<div style="margin-top:6px"><a href="${RB.esc(g.homepage)}" target="_blank" rel="noopener noreferrer nofollow">${RB.esc(g.homepage)}</a></div>` : ""}
+          <div class="When">${RB.datetime(g.created)}
+            ${g.username === me.username || me.admin ? ` &middot; <button type="button" class="LinkButton" data-del="${g.id}">Delete</button>` : ""}</div></div>
+      </div>`).join("") : `<div class="StandardBox"><div class="Empty">Nobody has signed yet. Be the first.</div></div>`;
+    $("Entries").querySelectorAll("[data-av]").forEach((el) =>
+      RBAvatar.headshot(el, d.entries[el.dataset.av].avatar, items, 80));
+    $("GbPager").innerHTML = RB.pager(d.page, d.pages, (p) => "guestbook.html?page=" + p);
+  }
+
+  $("GbForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    $("GbErr").textContent = "";
+    const btn = e.target.querySelector("button[type=submit]");
+    btn.disabled = true;
+    try {
+      const home = $("GbHome").value.trim();
+      await RB.api("guestbook", { method: "POST", body: { message: $("GbMsg").value, homepage: home === "https://" ? "" : home, mood: $("GbMood").value } });
+      $("GbMsg").value = "";
+      if (page !== 1) location.href = "guestbook.html"; else await load();
+    } catch (ex) { $("GbErr").textContent = ex.message; }
+    btn.disabled = false;
+  });
+  $("Entries").addEventListener("click", async (e) => {
+    const b = e.target.closest("[data-del]");
+    if (!b || !(await RB.confirm("Delete this guestbook entry?", { ok: "Delete", title: "Delete entry" }))) return;
+    try { await RB.api(`guestbook/${b.dataset.del}/delete`, { method: "POST" }); await load(); } catch (ex) { RB.alert(ex.message); }
+  });
+  await load();
+})();
+</script>
+</body>
+</html>

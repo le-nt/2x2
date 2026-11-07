@@ -1,0 +1,111 @@
+(() => {
+  'use strict';
+  const canvas = document.getElementById('canvas');
+  if (!canvas || window.__twoByTwoInputBridge) return;
+  window.__twoByTwoInputBridge = true;
+
+  let paused = false;
+  let wasLocked = document.pointerLockElement === canvas;
+  let lastEscape = -Infinity;
+  let lastProgrammaticUnlock = -Infinity;
+  const synthetic = new WeakSet();
+  const request = canvas.requestPointerLock?.bind(canvas);
+  const exit = document.exitPointerLock?.bind(document);
+
+  const bar = document.createElement('div');
+  bar.style.cssText = 'position:fixed;right:10px;bottom:10px;z-index:1000;display:flex;gap:6px;font:12px sans-serif';
+  const menu = document.createElement('button');
+  menu.type = 'button';
+  menu.textContent = 'Menu · F10';
+  const capture = document.createElement('button');
+  capture.type = 'button';
+  capture.textContent = 'Capture mouse';
+  capture.hidden = true;
+  for (const button of [menu, capture]) {
+    button.style.cssText = 'padding:6px 9px;border:1px solid #777;border-radius:4px;background:#202020;color:white;cursor:pointer';
+    bar.appendChild(button);
+  }
+  document.body.appendChild(bar);
+
+  function pauseCapture() {
+    paused = true;
+    capture.hidden = false;
+  }
+
+  // Record deliberate releases so camera-button releases do not open the menu.
+  if (exit) document.exitPointerLock = function () {
+    lastProgrammaticUnlock = performance.now();
+    return exit();
+  };
+
+  if (request) canvas.requestPointerLock = function (...args) {
+    if (paused) return;
+    try {
+      const pending = request(...args);
+      if (pending?.catch) return pending.catch(error => {
+        pauseCapture();
+        console.warn('[2x2 input] Click Capture mouse to retry:', error.message);
+      });
+      return pending;
+    } catch (error) {
+      pauseCapture();
+      console.warn('[2x2 input] Mouse capture failed:', error.message);
+    }
+  };
+
+  function sendEscape() {
+    lastEscape = performance.now();
+    canvas.focus({ preventScroll: true });
+    const client = window.Module;
+    if (typeof client?._requestGameMenu !== 'function') {
+      console.error('[2x2 input] Install the rebuilt client to enable the native menu bridge.');
+      return;
+    }
+    if (client._requestGameMenu())
+      console.info('[2x2 input] Native Escape queued');
+  }
+
+  function toggleMenu() {
+    pauseCapture();
+    if (document.pointerLockElement === canvas) document.exitPointerLock();
+    sendEscape();
+  }
+
+  document.addEventListener('keydown', event => {
+    if (synthetic.has(event)) return;
+    if (event.key === 'F10') {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      if (!event.repeat) toggleMenu();
+    } else if (event.key === 'Escape') {
+      lastEscape = performance.now();
+      pauseCapture();
+      if (document.pointerLockElement === canvas) document.exitPointerLock();
+      // Let the real Escape reach SDL; do not send a duplicate toggle.
+    }
+  }, true);
+
+  document.addEventListener('pointerlockchange', () => {
+    const locked = document.pointerLockElement === canvas;
+    const lost = wasLocked && !locked;
+    wasLocked = locked;
+    if (!lost) return;
+    const now = performance.now();
+    // A browser Escape unlock may consume keydown before SDL sees it.
+    // Ignore releases requested by the game, and releases while leaving the page.
+    if (now - lastProgrammaticUnlock > 500
+        && document.visibilityState === 'visible' && document.hasFocus()) {
+      pauseCapture();
+      if (now - lastEscape > 500) sendEscape();
+    }
+  });
+
+  menu.addEventListener('click', toggleMenu);
+  capture.addEventListener('click', () => {
+    paused = false;
+    capture.hidden = true;
+    canvas.focus({ preventScroll: true });
+    canvas.requestPointerLock?.();
+  });
+  console.info('[2x2 input] Escape bridge and F10 menu ready');
+})();

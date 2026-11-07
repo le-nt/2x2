@@ -1,0 +1,280 @@
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTOUIC ON)
+set(CMAKE_AUTORCC ON)
+add_compile_definitions(QT_ROBLOX_STUDIO)
+
+include(App)
+include(Base)
+include(Network)
+include(Rendering)
+
+include_directories(../ClientBase)
+include_directories(../App.BulletPhysics)
+include_directories(../ClientShared)
+include_directories(../QTitanRibbon/include)
+
+if(WIN32)
+    set(FILEWATCHER_SOURCES
+        filewatcher/FileWatcherWin32.cpp
+        filewatcher/FileWatcherWin32.h
+    )
+elseif(UNIX AND NOT APPLE)
+    set(FILEWATCHER_SOURCES
+        filewatcher/FileWatcherLinux.cpp
+        filewatcher/FileWatcherLinux.h
+    )
+endif()
+
+add_executable(RobloxStudio
+    ../ClientShared/SDLGameController.cpp
+    ../ClientShared/SDLGameController.h
+    ../App/script/LuaVMDummy.cpp
+    AddEmulationDeviceDialog.cpp
+    AddEmulationDeviceDialog.h
+    AuthenticationHelper.cpp
+    AuthenticationHelper.h
+    AuthoringSettings.cpp
+    AuthoringSettings.h
+    AutoSaveDialog.cpp
+    AutoSaveDialog.h
+    CloudEditAdornable.cpp
+    CloudEditAdornable.h
+    CommonInsertWidget.cpp
+    CommonInsertWidget.h
+    CSGOperations.cpp
+    CSGOperations.h
+    DebuggerClient.cpp
+    DebuggerClient.h
+    DebuggerWidgets.cpp
+    DebuggerWidgets.h
+    DocDockManager.cpp
+    DocDockManager.h
+    DocDockWidget.cpp
+    DocDockWidget.h
+    DocTabManager.cpp
+    DocTabManager.h
+    ExternalHandlers.cpp
+    ExternalHandlers.h
+    filewatcher/FileWatcher.cpp
+    filewatcher/FileWatcher.h
+    ${FILEWATCHER_SOURCES}
+    FindDialog.cpp
+    FindDialog.h
+    KeepSavedChangesDialog.cpp
+    KeepSavedChangesDialog.h
+    ManageEmulationDeviceDialog.cpp
+    ManageEmulationDeviceDialog.h
+    PlayersDataManager.cpp
+    PlayersDataManager.h
+    RobloxChatWidget.cpp
+    RobloxChatWidget.h
+    RobloxFindWidget.cpp
+    RobloxFindWidget.h
+    FunctionMarshaller.cpp
+    FunctionMarshaller.h
+    GalleryItemColor.cpp
+    GalleryItemColor.h
+    InsertObjectListWidget.cpp
+    InsertObjectListWidget.h
+    InsertObjectListWidgetItem.cpp
+    InsertObjectListWidgetItem.h
+    InsertServiceDialog.cpp
+    InsertServiceDialog.h
+    LuaSourceBuffer.cpp
+    LuaSourceBuffer.h
+    MachineConfig.cpp
+    MachineConfig.h
+    ../ClientBase/MachineConfiguration.cpp
+    ../ClientBase/MachineConfiguration.h
+    main.cpp
+    MobileDevelopmentDeployer.cpp
+    MobileDevelopmentDeployer.h
+    NameValueStoreManager.cpp
+    NameValueStoreManager.h
+    ogrewidget.cpp
+    ogrewidget.h
+    PairRbxDeviceDialog.cpp
+    PairRbxDeviceDialog.h
+    PropertyItems.cpp
+    PropertyItems.h
+    QtUtilities.cpp
+    QtUtilities.h
+    RbxContent.cpp
+    RbxContent.h
+    RbxWorkspace.cpp
+    RbxWorkspace.h
+    ../ClientBase/ReflectionMetadata.cpp
+    ../ClientBase/ReflectionMetadata.h
+    ../ClientBase/RenderSettingsItem.cpp
+    ../ClientBase/RenderSettingsItem.h
+    RenderStatsItem.cpp
+    RenderStatsItem.h
+    Roblox.cpp
+    Roblox.h
+    RobloxApplicationManager.cpp
+    RobloxApplicationManager.h
+    RobloxBasicDoc.cpp
+    RobloxBasicDoc.h
+    RobloxBrowser.cpp
+    RobloxBrowser.h
+    RobloxContextualHelp.cpp
+    RobloxContextualHelp.h
+    RobloxCookieJar.cpp
+    RobloxCookieJar.h
+    RobloxCustomWidgets.cpp
+    RobloxCustomWidgets.h
+    RobloxDiagnosticsView.cpp
+    RobloxDiagnosticsView.h
+    RobloxDocManager.cpp
+    RobloxDocManager.h
+    RobloxGameExplorer.cpp
+    RobloxGameExplorer.h
+    RobloxIDEDoc.cpp
+    RobloxIDEDoc.h
+    RobloxInputConfigDialog.cpp
+    RobloxInputConfigDialog.h
+    RobloxKeyboardConfig.cpp
+    RobloxKeyboardConfig.h
+    RobloxMainWindow.cpp
+    RobloxMainWindow.h
+    RobloxMouseConfig.cpp
+    RobloxMouseConfig.h
+    RobloxNetworkAccessManager.cpp
+    RobloxNetworkAccessManager.h
+    RobloxNetworkReply.cpp
+    RobloxNetworkReply.h
+    RobloxObjectBrowserDoc.cpp
+    RobloxObjectBrowserDoc.h
+    RobloxPrizeAwarder.cpp
+    RobloxPrizeAwarder.h
+    RobloxPropertyWidget.cpp
+    RobloxPropertyWidget.h
+    RobloxQuickAccessConfig.cpp
+    RobloxQuickAccessConfig.h
+    RobloxReportView.cpp
+    RobloxReportView.h
+    RobloxRibbonMainWindow.cpp
+    RobloxRibbonMainWindow.h
+    RobloxSavingStateDialog.cpp
+    RobloxSavingStateDialog.h
+    RobloxScriptDoc.cpp
+    RobloxScriptDoc.h
+    RobloxScriptReview.cpp
+    RobloxScriptReview.h
+    RobloxSettings.cpp
+    RobloxSettings.h
+    RobloxSettingsDialog.cpp
+    RobloxSettingsDialog.h
+    RobloxStudioVerbs.cpp
+    RobloxStudioVerbs.h
+    RobloxTaskScheduler.cpp
+    RobloxTaskScheduler.h
+    RobloxTeamCreateWidget.cpp
+    RobloxTeamCreateWidget.h
+    RobloxTextOutputWidget.cpp
+    RobloxTextOutputWidget.h
+    RobloxToolBox.cpp
+    RobloxToolBox.h
+    RobloxTreeWidget.cpp
+    RobloxTreeWidget.h
+    RobloxTutorials.cpp
+    RobloxTutorials.h
+    RobloxUser.cpp
+    RobloxUser.h
+    RobloxView.cpp
+    RobloxView.h
+    RobloxWebDoc.cpp
+    RobloxWebDoc.h
+    RobloxWebPage.cpp
+    RobloxWebPage.h
+    ScriptAnalysisWidget.cpp
+    ScriptAnalysisWidget.h
+    ScriptComboBox.cpp
+    ScriptComboBox.h
+    ScriptPickerDialog.cpp
+    ScriptPickerDialog.h
+    ScriptSideWidget.cpp
+    ScriptSideWidget.h
+    ScriptSyntaxHighlighter.cpp
+    ScriptSyntaxHighlighter.h
+    ScriptTextEditor.cpp
+    ScriptTextEditor.h
+    SelectionHighlightAdornable.cpp
+    SelectionHighlightAdornable.h
+    ShortcutHelpDialog.cpp
+    ShortcutHelpDialog.h
+    SplineEditor.cpp
+    SplineEditor.h
+    StudioAnalytics.cpp
+    StudioAnalytics.h
+    StudioDeviceEmulator.cpp
+    StudioDeviceEmulator.h
+    StudioIntellesense.cpp
+    StudioIntellesense.h
+    StudioSerializerHelper.cpp
+    StudioSerializerHelper.h
+    StudioUtilities.cpp
+    StudioUtilities.h
+    UserInput.cpp
+    UserInputUtil.cpp
+    WebDialog.cpp
+    WebDialog.h
+    RobloxPluginHost.cpp
+    RobloxPluginHost.h
+    UpdateUIManager.cpp
+    LogProvider.cpp
+    LogProvider.h
+    UpdateUIManager.h
+    RobloxSettings.h
+    "../ClientShared/StringConv.h"
+	"../ClientShared/StringConv.cpp"
+    RobloxStudio.qrc
+)
+
+target_link_libraries(RobloxStudio
+    PRIVATE
+    Qt6::Core
+    Qt6::Widgets
+    Qt6::Gui
+    Qt6::Network
+    Qt6::WebEngineCore
+    Qt6::WebEngineWidgets
+    Qt6::Xml
+    Qt6::Core5Compat
+    Qt6::Concurrent
+    Qt6::OpenGLWidgets
+    $<TARGET_OBJECTS:Base>
+	$<TARGET_OBJECTS:Log>
+	$<TARGET_OBJECTS:App>
+	$<TARGET_OBJECTS:Network>
+	$<TARGET_OBJECTS:G3D>
+	$<TARGET_OBJECTS:AppDraw>
+	$<TARGET_OBJECTS:RbxG3D>
+	$<TARGET_OBJECTS:GfxBase>
+	$<TARGET_OBJECTS:GfxCore>
+	$<TARGET_OBJECTS:GfxRender>
+	$<TARGET_OBJECTS:App.BulletPhysics>
+    $<TARGET_OBJECTS:QTitanRibbon>
+    $<TARGET_OBJECTS:sgCore>
+	ZLIB::ZLIB
+	Boost::filesystem
+	Boost::iostreams
+	Boost::program_options
+	Boost::system
+	Boost::thread
+	Boost::exception
+	Boost::pool
+	CURL::libcurl
+    OpenSSL::Crypto
+    OpenGL::GL
+    SDL2::SDL2
+    Freetype::Freetype
+    PNG::PNG
+)
+
+if(WIN32)
+    target_link_libraries(RobloxStudio PRIVATE fmod_vc "${CMAKE_SOURCE_DIR}/Rendering/GfxCore/glew/glew32s.lib")
+else()
+    find_package(X11 REQUIRED)
+    target_link_libraries(RobloxStudio PRIVATE fmod -lGLEW ${X11_LIBRARIES} -lEGL -lwayland-client -lwayland-egl)
+endif()

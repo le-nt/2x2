@@ -1,0 +1,37 @@
+{
+  "compilers": {
+    "CC": {
+      "command": [
+        "emcc"
+      ],
+      "path": "/home/llent/emsdk/upstream/emscripten/emcc",
+      "version": "emcc (Emscripten gcc/clang-like replacement + linker emulating GNU ld) 6.0.13 (e13ee988ce3d87a738dd8f3661d02223308c412a)\nCopyright (C) 2026 the Emscripten authors (see AUTHORS.txt)\nThis is free and open source software under the MIT license.\nThere is NO warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE."
+    },
+    "CXX": {
+      "command": [
+        "em++"
+      ],
+      "path": "/home/llent/emsdk/upstream/emscripten/em++",
+      "version": "emcc (Emscripten gcc/clang-like replacement + linker emulating GNU ld) 6.0.13 (e13ee988ce3d87a738dd8f3661d02223308c412a)\nCopyright (C) 2026 the Emscripten authors (see AUTHORS.txt)\nThis is free and open source software under the MIT license.\nThere is NO warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE."
+    }
+  },
+  "environment": {
+    "EMCC_CFLAGS": null,
+    "SOURCE_DATE_EPOCH": null
+  },
+  "helper_sha256": "77892db1f49d8b499d7ba0545b360e1590cfb5565cfc5e8ac37a1da0899d68eb",
+  "kind": "compile",
+  "schema_version": 1,
+  "settings": {
+    "AS": "as",
+    "ASFLAGS": "",
+    "CC": "emcc",
+    "CFLAGS": "",
+    "COMMON_INCLUDES": "-I../../lib/asmjit -I../../include -I../../lib/simde -I../../lib/zlib -I../../lib/zlib/contrib/minizip",
+    "CPPFLAGS": "-O2 -mtail-call -fwasm-exceptions -sWASM_LEGACY_EXCEPTIONS=0 -sSUPPORT_LONGJMP=0  -s USE_SDL=2 -s USE_ZLIB=1 -DBOXEDWINE_ZLIB -DSDL2=1 -DBOXEDWINE_DISABLE_UI -DBOXEDWINE_OPENGL_SDL -D'GLH=<GL/gl.h>' -DSIMDE_SSE2_NO_NATIVE  -Wall -Wno-deprecated-pragma -Wno-format-security -Wno-unused-private-field -Wno-invalid-offsetof -Wno-delete-incomplete -Wno-unused-result -Wno-unknown-pragmas -Wno-unused-local-typedefs -Wno-unused-variable -Wno-unused-function -Wno-unused-but-set-variable -I../../lib/asmjit -I../../include -I../../lib/simde -I../../lib/zlib -I../../lib/zlib/contrib/minizip -DBOXEDWINE_WASM_JIT -msimd128",
+    "CXX": "em++",
+    "CXXFLAGS": "-std=c++20",
+    "SOFTFLOAT_INCLUDES": "-I../../lib/softfloat/source/include -I../../lib/softfloat/source -I../../lib/softfloat/source/8086-SSE",
+    "WASM_EXCEPTION_CPPFLAGS": "-O2 -mtail-call -s USE_SDL=2 -s USE_ZLIB=1 -DBOXEDWINE_ZLIB -DSDL2=1 -DBOXEDWINE_DISABLE_UI -DBOXEDWINE_OPENGL_SDL -D'GLH=<GL/gl.h>' -DSIMDE_SSE2_NO_NATIVE -Wall -Wno-deprecated-pragma -Wno-format-security -Wno-unused-private-field -Wno-invalid-offsetof -Wno-delete-incomplete -Wno-unused-result -Wno-unknown-pragmas -Wno-unused-local-typedefs -Wno-unused-variable -Wno-unused-function -Wno-unused-but-set-variable -I../../lib/asmjit -I../../include -I../../lib/simde -I../../lib/zlib -I../../lib/zlib/contrib/minizip -DBOXEDWINE_WASM_JIT -msimd128 -fwasm-exceptions -sWASM_LEGACY_EXCEPTIONS=0 -sSUPPORT_LONGJMP=wasm"
+  }
+}

@@ -1,0 +1,79 @@
+name: Build Apps (Windows)
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: [self-hosted, windows]
+
+    env:
+      USERNAME: MoonicTeam
+      VCPKG_EXE: ${{ github.workspace }}/vcpkg/vcpkg
+      FEED_URL: https://nuget.pkg.github.com/MoonicTeam/index.json
+      VCPKG_BINARY_SOURCES: "clear;nuget,https://nuget.pkg.github.com/MoonicTeam/index.json,readwrite"
+      VCPKG_ROOT: C:\vcpkg
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          clean: false
+
+      - name: Setup MSVC 14.3 and Win11 SDK
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+          vs-version: '17.5.5'
+          windows-sdk: '11.0'
+
+      # --- Player ---
+      - name: Configure CMake (Player)
+        run: cmake -S . -B build/player --preset windows-release
+
+      - name: Build (Player)
+        run: cmake --build build/player --config Release
+
+      - name: Package Player
+        shell: powershell
+        run: |
+          $temp = "build\player\temp_release"
+          $dist = "build\player\dist"
+          New-Item -ItemType Directory -Force -Path $temp, $dist
+          Copy-Item build\player\UniversalClient\UniversalClient.exe $temp
+          Copy-Item build\player\UniversalClient\*.dll $temp
+          Compress-Archive -Path "$temp\*" -DestinationPath "$dist\UniversalClient.zip" -Force
+          Remove-Item -Recurse -Force $temp
+
+      - name: Upload Player
+        uses: actions/upload-artifact@v4
+        with:
+          name: UniversalClient
+          path: build/player/dist/UniversalClient.zip
+
+      # --- Studio ---
+      - name: Configure CMake (Studio)
+        run: cmake -S . -B build/studio --preset windows-studio-release
+
+      - name: Build (Studio)
+        run: cmake --build build/studio --config Release
+
+      - name: Package Studio
+        shell: powershell
+        run: |
+          $temp = "build\studio\temp_release"
+          $dist = "build\studio\dist"
+          New-Item -ItemType Directory -Force -Path $temp, $dist
+          Copy-Item build\studio\RobloxStudio\RobloxStudio.exe $temp
+          Copy-Item build\studio\RobloxStudio\*.dll $temp
+          Compress-Archive -Path "$temp\*" -DestinationPath "$dist\RobloxStudio.zip" -Force
+          Remove-Item -Recurse -Force $temp
+
+      - name: Upload Studio
+        uses: actions/upload-artifact@v4
+        with:
+          name: RobloxStudio
+          path: build/studio/dist/RobloxStudio.zip

@@ -1,0 +1,58 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Linux Studio",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/clang-studio-debug/RobloxStudio/RobloxStudio",
+            "args": [],
+            "cwd": "${workspaceFolder}/build/clang-studio-debug/RobloxStudio",
+            "environment": [{ "name": "QT_QPA_PLATFORM", "value": "xcb" }]
+        },
+        {
+            "name": "Windows Studio",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/clangcl-studio-debug/RobloxStudio/RobloxStudio.exe",
+            "args": [],
+            "cwd": "${workspaceFolder}/build/clangcl-studio-debug/RobloxStudio",
+            "environment": [
+                {
+                    "name": "QT_QPA_PLATFORM",
+                    "value": "windows"
+                }
+            ],
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Windows Player",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/windows-debug/UniversalClient/UniversalClient.exe",
+            "args": ["--authenticationUrl=https://assetgame.roblox.loc/Login/Negotiate.ashx", "--authenticationTicket=11", "--joinScriptUrl=https://www.roblox.loc/api/game/join?placeId=1818", "--baseUrl=https://www.roblox.loc/api/"],
+            "cwd": "${workspaceFolder}/build/windows-debug/UniversalClient",
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Linux Player",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/clang-debug/UniversalClient/UniversalClient",
+            "args": ["--authenticationUrl=https://assetgame.roblox.loc/Login/Negotiate.ashx", "--authenticationTicket=11", "--joinScriptUrl=https://www.roblox.loc/api/game/join?placeId=1818", "--baseUrl=https://www.roblox.loc/api/"],
+            "cwd": "${workspaceFolder}/build/clang-debug/UniversalClient",
+            "externalConsole": false,
+            "MIMode": "gdb"
+        },
+        {
+            "name": "GameServer",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/clang-rcc-debug/RCCService/RCCService",
+            "args": ["-Console"],
+            "cwd": "${workspaceFolder}/build/clang-rcc-debug/RCCService",
+            "externalConsole": false,
+            "MIMode": "gdb"
+        }
+    ]
+}

@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Place - 2x2</title>
+<link rel="stylesheet" href="css/site.css">
+<script defer src="js/effects.js"></script>
+<script defer src="js/motion.js"></script>
+<link rel="icon" href="img/logo-2x2.png" type="image/png">
+<link rel="stylesheet" href="css/retro.css">
+<link rel="stylesheet" href="css/modern.css">
+<link rel="stylesheet" href="css/r16.css">
+</head>
+<body>
+<div id="App">
+  <header id="Header"></header>
+  <aside id="Sidebar" aria-label="Site"></aside>
+  <div id="Page">
+    <main id="Main">
+      <div class="Breadcrumbs"><a href="games.html">Games</a><span class="sep">/</span><span id="Crumb">Loading&hellip;</span></div>
+      <div class="Place">
+        <div class="PlaceCol">
+          <div class="PlaceMedia" id="PlaceMedia">
+            <div id="PlaceThumb"></div>
+            <iframe id="MapViewer" title="Map explorer" hidden></iframe>
+            <button class="Button" type="button" id="ViewerButton"></button>
+          </div>
+          <div class="StandardBox" style="margin-top:20px">
+            <div class="StandardBoxHeader">About this place</div>
+            <p class="Description" id="PlaceDescription"></p>
+          </div>
+          <div class="StandardBox" id="CapabilityPanel">
+            <div class="StandardBoxHeader">Original place contents</div>
+            <div class="BoxBody Prose" id="CapabilityDetails" aria-live="polite">Checking the local inventory…</div>
+          </div>
+          <div class="StandardBox">
+            <div class="StandardBoxHeader">Before you play</div>
+            <div class="BoxBody Prose">
+              <p>The first launch downloads about 180 MB (Wine and the ROBLOX client) and takes a minute or two to boot. After that your browser keeps a copy.</p>
+              <p><b>Controls:</b> WASD or arrow keys to walk, Space to jump, right-drag to turn the camera, mouse wheel or I and O to zoom.</p>
+              <p>You earn Tix for playing, a few times a day.</p>
+            </div>
+          </div>
+        </div>
+
+        <aside class="PlaceInfo">
+          <h1 id="PlaceName">Loading&hellip;</h1>
+          <div class="Era" id="PlaceEra"></div>
+          <a class="PlayButton" id="PlayButton" href="#">Play</a>
+          <p class="PlayHint">Runs the original client in your browser</p>
+          <div class="StatGrid">
+            <div class="Stat"><div class="V" id="StatVisits">-</div><div class="K">Visits</div></div>
+            <div class="Stat"><div class="V" id="StatPlaying">0</div><div class="K">Playing now</div></div>
+            <div class="Stat"><div class="V" id="StatMine">0</div><div class="K">Your visits</div></div>
+          </div>
+          <div class="StandardBox" id="PlayingBox" hidden>
+            <div class="StandardBoxHeader">Playing now</div>
+            <div class="BoxBody" id="PlayingList"></div>
+          </div>
+          <div class="StandardBox">
+            <div class="StandardBoxHeader">Details</div>
+            <div class="BoxBody">
+              <dl class="KV">
+                <dt>Era</dt><dd id="StatEra"></dd>
+                <dt>Client</dt><dd id="StatClient"></dd>
+                <dt>Played on 2x2</dt><dd id="StatRbx"></dd>
+                <dt>Place size</dt><dd id="StatSize"></dd>
+                <dt>Download</dt><dd id="StatDownload"></dd>
+              </dl>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </main>
+    <div id="FooterSlot"></div>
+  </div>
+</div>
+
+<script src="js/common.js"></script>
+<script>
+(async function () {
+  RB.mount("Games");
+  const $ = (id) => document.getElementById(id);
+  $("PlayButton").innerHTML = RB.icon("play", 26) + "<span>Play</span>";
+  const cat = await RB.catalog();
+  const maps = await RB.places();
+  const m = maps.find((x) => x.id === RB.param("id"));
+  if (!m) {
+    $("Crumb").textContent = "Not found";
+    $("PlaceName").textContent = "Place not found";
+    $("PlaceEra").textContent = "This place doesn't exist or was removed.";
+    $("PlayButton").style.display = "none";
+    document.querySelector(".PlayHint").remove();
+    $("PlaceMedia").remove();
+    return;
+  }
+  document.title = m.name + " - 2x2";
+  $("Crumb").textContent = m.name;
+  $("PlaceName").textContent = m.name;
+  $("PlaceEra").innerHTML = `<span class="Pill blue">${RB.esc(m.era)}</span><span>A place from ${m.year}</span>`;
+  $("PlaceThumb").innerHTML = RB.thumb(m, 420, 262);
+  $("PlaceThumb").style.cssText = "position:absolute;inset:0";
+
+  const viewerBtn = $("ViewerButton");
+  const setViewer = (open) => {
+    $("MapViewer").hidden = !open;
+    $("PlaceThumb").hidden = open;
+    if (open && !$("MapViewer").src) $("MapViewer").src = "map-viewer.html?id=" + encodeURIComponent(m.id);
+    viewerBtn.innerHTML = open ? RB.icon("close", 18) + "Close map" : RB.icon("cube", 18) + "Explore map";
+    // The viewer has its own controls in its corners; park our button top-left while it's open.
+    viewerBtn.style.cssText = open ? "right:auto;left:12px;bottom:auto;top:12px" : "";
+  };
+  viewerBtn.addEventListener("click", () => setViewer($("MapViewer").hidden));
+  setViewer(false);
+
+  $("PlaceDescription").textContent = m.description || "No description.";
+  $("StatEra").textContent = m.era;
+  $("StatClient").textContent = cat.client;
+  const showVisits = () => {
+    $("StatVisits").textContent = RB.compact(m.visits);
+    $("StatVisits").title = RB.num(m.visits);
+    $("StatRbx").textContent = RB.num(m.rbxVisits);
+    $("StatMine").textContent = RB.num(m.mine);
+  };
+  showVisits();
+  $("StatPlaying").textContent = RB.num(m.playing.length);
+  $("StatSize").textContent = RB.num(m.sizeKB) + " KB";
+  $("StatDownload").textContent = RB.num(m.zipKB) + " KB";
+  // The scanner inventories embedded original objects; it does not provide a Lua runtime.
+  const caps = (await RB.capabilities()).get(m.id);
+  const detail = $("CapabilityDetails");
+  if (!caps) {
+    detail.textContent = "Not inventoried yet. Run the local place-manifest scanner to check original scripts and tools.";
+  } else {
+    const countable = caps.status === "inventoried";
+    const statusMessages = {
+      binary_needs_decoder: "Binary place detected; script and tool counts require a binary decoder.",
+      missing_file: "Original place file is not available to the scanner.",
+      hash_mismatch: "Original place file differs from its registered hash; contents were not inspected.",
+      xml_parse_error: "The place XML could not be parsed; contents are not verified.",
+      invalid_filename: "Native registry has an invalid map filename.",
+      too_large: "Place exceeded the scanner's size limit."
+    };
+    if (countable) {
+      detail.textContent = `${RB.num(caps.scriptCount)} embedded script(s), ${RB.num(caps.toolCount)} tool(s), ${RB.num(caps.assetReferenceCount)} asset reference(s).`;
+    } else {
+      detail.textContent = statusMessages[caps.status] || `Inventory incomplete (${caps.status || "unknown"}).`;
+    }
+    const note = document.createElement("p");
+    note.textContent = "These are original map contents, not proof they function in the browser client. Script execution has not been verified.";
+    detail.appendChild(note);
+  }
+
+  if (m.playing.length) {
+    $("PlayingBox").hidden = false;
+    $("PlayingList").innerHTML = m.playing.map((n) => RB.userLink(n)).join(", ");
+  }
+  const play = $("PlayButton");
+  play.href = "play.html?id=" + encodeURIComponent(m.id);
+  play.addEventListener("click", async (e) => {
+    e.preventDefault();
+    const res = await RB.play(m);
+    if (res && res.visits !== m.rbxVisits) {
+      m.visits += res.visits - m.rbxVisits;
+      m.rbxVisits = res.visits;
+      m.mine += 1;
+      showVisits();
+    }
+    if (res?.reward) RB.toast(`You earned ${res.reward} Tix for playing. Spend them in the Catalog.`, { title: "Tix earned" });
+  });
+})();
+</script>
+</body>
+</html>

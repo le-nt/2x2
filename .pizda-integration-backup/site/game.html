@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Place - 2x2</title>
+<link rel="stylesheet" href="css/site.css">
+<link rel="stylesheet" href="css/fx.css">
+<link rel="icon" href="img/favicon.png" type="image/png">
+</head>
+<body>
+<div id="Container">
+  <header id="Header"></header>
+
+  <div id="ItemContainer">
+    <div class="Main">
+      <div class="Breadcrumbs"><a href="games.html">Games</a> &raquo; <span id="Crumb"></span></div>
+      <h2 class="PageTitle" id="PlaceName">Loading&hellip;</h2>
+      <div class="Label" id="PlaceEra"></div>
+      <p></p>
+      <div class="PlaceThumb" id="PlaceThumb"></div>
+      <p><a class="PlayButton" id="ViewerButton" href="#">Explore map <small>Drag to spin; WASD/Q/E freecam</small></a></p>
+      <div id="MapViewerSlot" hidden style="width:420px;height:230px;border:1px solid #555;margin:0 0 12px;background:#111">
+        <iframe id="MapViewer" title="Map explorer" style="width:100%;height:100%;border:0"></iframe>
+      </div>
+      <a class="PlayButton" id="PlayButton" href="#">Play<small>Opens the 2x2 Windows launcher (installation required)</small></a>
+
+      <!-- 2x2 Aya compatibility start -->
+      <p><a class="PlayButton" id="AyaPlayButton" href="aya.html">Performance mode (Aya)
+        <small>Export this place and open it in the external Aya browser host</small></a></p>
+      <!-- 2x2 Aya compatibility end -->
+      <div class="StandardBox">
+        <div class="StandardBoxHeader">Description</div>
+        <p class="Description" id="PlaceDescription"></p>
+      </div>
+    </div>
+
+    <aside class="Side">
+      <div class="StandardBox">
+        <div class="StandardBoxHeader">Statistics</div>
+        <div class="BoxBody">
+          <div class="Stats"><span class="Label">Era:</span> <span id="StatEra"></span></div>
+          <div class="Stats"><span class="Label">Client:</span> <span id="StatClient"></span></div>
+          <div class="Stats"><span class="Label">Visited:</span> <span id="StatVisits"></span></div>
+          <div class="Stats"><span class="Label">2x2 visits:</span> <span id="StatRbx"></span></div>
+          <div class="Stats"><span class="Label">Your visits:</span> <span id="StatMine"></span></div>
+          <div class="Stats"><span class="Label">Place size:</span> <span id="StatSize"></span></div>
+          <div class="Stats"><span class="Label">Download:</span> <span id="StatDownload"></span></div>
+        </div>
+      </div>
+      <div class="StandardBox" id="PlayingBox" hidden>
+        <div class="StandardBoxHeader">Playing now</div>
+        <div class="BoxBody" id="PlayingList"></div>
+      </div>
+      <div class="StandardBox">
+        <div class="StandardBoxHeader">Before you play</div>
+        <p class="Description">Install the 2x2 Windows Launcher once, and configure your supported native Kanvas client. Game files are transferred to your PC when you play. <a href="native-play.html">Launcher setup</a>.
+
+Controls: WASD or arrow keys to walk, Space to jump, right-drag to turn the camera, mouse wheel or I/O to zoom.
+
+You earn Tix for playing (a few times a day)!</p>
+      </div>
+    </aside>
+  </div>
+
+  <div id="FooterSlot"></div>
+</div>
+
+<script src="js/common.js"></script>
+<script src="js/fx.js"></script>
+<script>
+(async function () {
+  RB.mount("Discover");
+  const cat = await RB.catalog();
+  const maps = await RB.places();
+  const m = maps.find((x) => x.id === RB.param("id"));
+  if (!m) {
+    document.getElementById("PlaceName").textContent = "Place not found";
+    document.getElementById("PlayButton").style.display = "none";
+    return;
+  }
+  const $ = (id) => document.getElementById(id);
+  document.title = m.name + " - 2x2";
+  $("Crumb").textContent = m.name;
+  $("PlaceName").textContent = m.name;
+  $("PlaceEra").textContent = "A place from " + m.era;
+  $("PlaceThumb").innerHTML = RB.thumb(m, 420, 230);
+  $("ViewerButton").addEventListener("click", (e) => {
+    e.preventDefault();
+    const slot = $("MapViewerSlot");
+    if (slot.hidden) {
+      $("MapViewer").src = "map-viewer.html?id=" + encodeURIComponent(m.id);
+      slot.hidden = false;
+      $("ViewerButton").firstChild.textContent = "Hide map ";
+    } else {
+      slot.hidden = true;
+      $("ViewerButton").firstChild.textContent = "Explore map ";
+    }
+  });
+  $("PlaceDescription").textContent = m.description || "No description.";
+  $("StatEra").textContent = m.era;
+  $("StatClient").textContent = m.client || cat.client;
+  const showVisits = () => {
+    $("StatVisits").textContent = RB.num(m.visits);
+    $("StatRbx").textContent = RB.num(m.rbxVisits);
+    $("StatMine").textContent = RB.num(m.mine);
+  };
+  showVisits();
+  $("StatSize").textContent = RB.num(m.sizeKB) + " KB";
+  $("StatDownload").textContent = RB.num(m.zipKB) + " KB";
+  if (m.playing.length) {
+    $("PlayingBox").hidden = false;
+    $("PlayingList").innerHTML = m.playing.map((n) => RB.userLink(n)).join(", ");
+  }
+
+  // 2x2 Aya URL start
+  $("AyaPlayButton").href = "aya.html?id=" + encodeURIComponent(m.id);
+  // 2x2 Aya URL end
+  const play = $("PlayButton");
+  play.href = "play.html?id=" + encodeURIComponent(m.id);
+  play.addEventListener("click", async (e) => {
+    e.preventDefault();
+    const res = await RB.play(m);
+    if (res && res.visits !== m.rbxVisits) {
+      m.visits += res.visits - m.rbxVisits;
+      m.rbxVisits = res.visits;
+      m.mine += 1;
+      showVisits();
+    }
+    if (res?.reward) RB.alert(`You earned ${res.reward} Tix for playing! Spend them in the Catalog.`, { title: "Tix!" });
+  });
+})();
+</script>
+</body>
+</html>

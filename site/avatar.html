@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Avatar - 2x2</title>
+<link rel="stylesheet" href="css/site.css">
+<script defer src="js/effects.js"></script>
+<script defer src="js/motion.js"></script>
+<link rel="icon" href="img/logo-2x2.png" type="image/png">
+<link rel="stylesheet" href="css/retro.css">
+<link rel="stylesheet" href="css/modern.css">
+<link rel="stylesheet" href="css/r16.css">
+</head>
+<body>
+<div id="App">
+  <header id="Header"></header>
+  <aside id="Sidebar" aria-label="Site"></aside>
+  <div id="Page">
+    <main id="Main">
+      <div class="PageHead"><div><h1 class="PageTitle">Avatar</h1><p class="PageSub">Changes save automatically.</p></div><span id="SaveState" class="Label" role="status"></span></div>
+      <div class="Columns">
+        <div class="StickyCol">
+          <div class="StandardBox">
+            <div class="BoxBody">
+              <div class="ProfileAvatar"><div id="Preview"></div></div>
+              <div style="display:flex;gap:8px;justify-content:center;margin-top:14px;flex-wrap:wrap">
+                <button type="button" class="Button Small" data-rot="-45">Rotate left</button>
+                <button type="button" class="Button Small" data-rot="45">Rotate right</button>
+                <button type="button" class="Button Small Ghost" id="Reset">Reset</button>
+              </div>
+            </div>
+          </div>
+          <div class="StandardBox">
+            <div class="StandardBoxHeader">Body colors</div>
+            <div class="BoxBody">
+              <p class="Hint" style="text-align:center;margin:0">Pick a body part, then a color.</p>
+              <div class="BodyPicker" id="BodyPicker">
+                <button type="button" class="bp-head" data-part="head" title="Head" aria-label="Head"></button>
+                <button type="button" class="bp-rightArm" data-part="rightArm" title="Right arm" aria-label="Right arm"></button>
+                <button type="button" class="bp-torso" data-part="torso" title="Torso" aria-label="Torso"></button>
+                <button type="button" class="bp-leftArm" data-part="leftArm" title="Left arm" aria-label="Left arm"></button>
+                <div class="bp-legs"><button type="button" data-part="rightLeg" title="Right leg" aria-label="Right leg"></button><button type="button" data-part="leftLeg" title="Left leg" aria-label="Left leg"></button></div>
+              </div>
+              <label class="Label" style="display:flex;gap:8px;align-items:center;justify-content:center;margin-bottom:12px"><input type="checkbox" id="AllParts"> Color the whole body</label>
+              <div class="Palette" id="Palette"></div>
+              <p class="Label" id="ColorName" style="text-align:center;min-height:1.4em;margin:10px 0 0"></p>
+              <details><summary>More colors (2009 and later)</summary><div class="Palette" id="Palette2" style="margin-top:8px"></div></details>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="StandardBox">
+            <div class="StandardBoxHeader">Currently wearing</div>
+            <div class="Wearing" id="Wearing"></div>
+          </div>
+          <div class="StandardBox">
+            <div class="StandardBoxHeader"><span>Wardrobe</span><a href="catalog.html">Get more items</a></div>
+            <div class="BoxBody">
+              <div class="Tabs" id="Tabs" role="tablist"></div>
+              <div class="ItemGrid" id="Wardrobe"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+    <div id="FooterSlot"></div>
+  </div>
+</div>
+<script src="js/common.js"></script>
+<script src="js/avatar.js"></script>
+<script>
+(async function () {
+  const me = await RB.page("Avatar");
+  if (!me) return;
+  const data = await RB.items();
+  const $ = (id) => document.getElementById(id);
+  const DEFAULT = { colors: { head: 24, torso: 23, leftArm: 24, rightArm: 24, leftLeg: 119, rightLeg: 119 }, hats: [],
+    face: "DefaultFace.rbxm", head: "DefaultHead.rbxm", shirt: "NoShirt.rbxm", pants: "NoPants.rbxm", tshirt: "NoTShirt.rbxm", extra: "NoExtra.rbxm" };
+  const NONE = { face: "DefaultFace.rbxm", head: "DefaultHead.rbxm", shirt: "NoShirt.rbxm", pants: "NoPants.rbxm", tshirt: "NoTShirt.rbxm", extra: "NoExtra.rbxm" };
+  const TYPES = [["hat", "Hats"], ["face", "Faces"], ["head", "Heads"], ["tshirt", "T-Shirts"], ["shirt", "Shirts"], ["pants", "Pants"], ["extra", "Extras"]];
+  let av = structuredClone((await RB.api("avatar")).avatar);
+  let part = "torso", tab = "hat";
+  const preview = RBAvatar.render($("Preview"), av, data, { scale: 42, angle: -20 });
+
+  // ---- Saving (debounced; the server checks ownership) ----
+  let saveTimer = null, lastGood = structuredClone(av);
+  function changed() {
+    preview.update(av);
+    renderColors();
+    renderWearing();
+    renderWardrobe();
+    $("SaveState").textContent = "Saving…";
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(save, 500);
+  }
+  async function save() {
+    try {
+      const r = await RB.api("avatar", { method: "PUT", body: { avatar: av } });
+      av = r.avatar; lastGood = structuredClone(av);
+      $("SaveState").textContent = "Saved";
+      RB.refreshMe();
+    } catch (e) {
+      av = structuredClone(lastGood);
+      preview.update(av); renderColors(); renderWearing(); renderWardrobe();
+      $("SaveState").textContent = "";
+      RB.alert(e.message);
+    }
+  }
+
+  // ---- Body colors ----
+  const swatch = (c) => `<button style="background:${c.hex}" data-color="${c.id}" title="${RB.esc(c.name)} (${c.id})" aria-label="${RB.esc(c.name)}"></button>`;
+  $("Palette").innerHTML = data.colors.filter((c) => c.group === "Classic Colors").map(swatch).join("");
+  $("Palette2").innerHTML = data.colors.filter((c) => c.group === "2009+ Colors").map(swatch).join("");
+  function renderColors() {
+    for (const b of document.querySelectorAll("[data-part]")) {
+      b.style.background = data.color.get(av.colors[b.dataset.part])?.hex || "#ccc";
+      b.classList.toggle("sel", !$("AllParts").checked && b.dataset.part === part);
+    }
+    for (const b of document.querySelectorAll("[data-color]")) b.classList.toggle("sel", Number(b.dataset.color) === av.colors[part]);
+    const c = data.color.get(av.colors[part]);
+    $("ColorName").textContent = c ? `${c.name} (${c.id})` : "";
+  }
+  $("BodyPicker").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-part]");
+    if (!b) return;
+    part = b.dataset.part;
+    $("AllParts").checked = false;
+    renderColors();
+  });
+  $("AllParts").addEventListener("change", renderColors);
+  document.addEventListener("click", (e) => {
+    const b = e.target.closest("[data-color]");
+    if (!b) return;
+    const id = Number(b.dataset.color);
+    if ($("AllParts").checked) for (const k of Object.keys(av.colors)) av.colors[k] = id; else av.colors[part] = id;
+    changed();
+  });
+
+  // ---- Wardrobe ----
+  $("Tabs").innerHTML = TYPES.map(([t, l]) => `<button type="button" data-tab="${t}">${l}</button>`).join("");
+  const isWorn = (i) => i.type === "hat" ? av.hats.includes(i.file) : av[i.type] === i.file;
+  function renderWardrobe() {
+    for (const a of document.querySelectorAll("[data-tab]")) a.classList.toggle("active", a.dataset.tab === tab);
+    const owned = data.items.filter((i) => i.type === tab && i.owned && !i.builtin)
+      .sort((a, b) => isWorn(b) - isWorn(a) || a.name.localeCompare(b.name));
+    $("Wardrobe").innerHTML = owned.length ? owned.map((i) => `
+      <div class="Item${isWorn(i) ? " Equipped" : ""}" data-id="${RB.esc(i.id)}">
+        <div class="Pic" data-wear role="button" tabindex="0">${i.icon ? `<img src="${i.icon}" alt="" loading="lazy">` : ""}</div>
+        <div class="Name">${RB.esc(i.name)}</div>
+        <button type="button" class="Button Small Block${isWorn(i) ? "" : " Green"}" data-wear>${isWorn(i) ? "Remove" : "Wear"}</button>
+      </div>`).join("") : `<div class="Empty">You don't own any ${TYPES.find((t) => t[0] === tab)[1].toLowerCase()} yet. <a href="catalog.html?type=${tab}">Visit the Catalog</a></div>`;
+  }
+  function renderWearing() {
+    const worn = [...av.hats.map((h) => data.byFile.hat?.[h]),
+      ...["face", "head", "tshirt", "shirt", "pants", "extra"].map((t) => av[t] !== NONE[t] ? data.byFile[t]?.[av[t]] : null)].filter(Boolean);
+    $("Wearing").innerHTML = worn.length ? worn.map((i) => `<div class="Chip2" title="${RB.esc(i.name)}">${i.icon ? `<img src="${i.icon}" alt="">` : ""}${RB.esc(i.name.slice(0, 16))}</div>`).join("")
+      : `<span class="Label">Nothing but the classic look. Pick something from your wardrobe.</span>`;
+  }
+  $("Tabs").addEventListener("click", (e) => {
+    const a = e.target.closest("[data-tab]");
+    if (!a) return;
+    e.preventDefault();
+    tab = a.dataset.tab;
+    renderWardrobe();
+  });
+  $("Wardrobe").addEventListener("click", (e) => {
+    if (!e.target.closest("[data-wear]")) return;
+    const i = data.byId.get(e.target.closest(".Item").dataset.id);
+    if (i.type === "hat") {
+      if (av.hats.includes(i.file)) av.hats = av.hats.filter((h) => h !== i.file);
+      else {
+        if (av.hats.length >= 3) { RB.alert("You can only wear 3 hats at once. Take one off first."); return; }
+        av.hats.push(i.file);
+      }
+    } else av[i.type] = av[i.type] === i.file ? NONE[i.type] : i.file;
+    changed();
+  });
+
+  document.addEventListener("click", (e) => {
+    const r = e.target.closest("[data-rot]");
+    if (r) preview.setAngle(preview.angle + Number(r.dataset.rot));
+  });
+  $("Reset").addEventListener("click", async () => {
+    if (!(await RB.confirm("Reset your character to the default look?", { ok: "Reset" }))) return;
+    av = structuredClone(DEFAULT);
+    changed();
+  });
+
+  renderColors(); renderWearing(); renderWardrobe();
+})();
+</script>
+</body>
+</html>

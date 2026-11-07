@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Performance mode — 2x2</title><link rel="stylesheet" href="css/site.css"><link rel="icon" href="img/favicon.svg" type="image/svg+xml">
+<style>.AyaPanel{max-width:720px;margin:20px auto;padding:20px;background:#fff;color:#222;border:1px solid #999;line-height:1.6}.AyaActions{display:flex;gap:12px;flex-wrap:wrap;margin:18px 0}.AyaActions a{display:inline-block;padding:10px 16px;background:#215b9b;color:#fff;text-decoration:none}.AyaActions a[aria-disabled="true"]{background:#777;pointer-events:none}.AyaNote{border-left:3px solid #b89d52;padding:8px 12px;background:#f6f3e8}.AyaPanel a:not(.PlayButton){overflow-wrap:anywhere}</style>
+</head><body><div id="Container"><header id="Header"></header><main class="AyaPanel">
+<h2 id="AyaTitle">Performance mode — Aya</h2><p id="AyaDesc">Checking place file…</p>
+<p class="AyaNote"><strong>Experimental external-host workflow.</strong> Aya runs on a separate website. 2x2 does not bundle or control the Aya engine, and this page does not automatically start your selected map inside Aya.</p>
+<div class="AyaActions"><a id="AyaDownload" href="#" aria-disabled="true">Download original .rbxl</a><a href="https://aya.nodium.lol/#/host" target="_blank" rel="noopener noreferrer">Open Aya host</a><a id="AyaLegacy" href="games.html">Use original Roblox client</a></div>
+<p><strong>How to play:</strong> Download the place file, open Aya Host in another tab, then select the downloaded <code>.rbxl</code> in Aya's place picker. Aya may not support every historical script or asset.</p>
+<p id="AyaStatus" role="status"></p>
+<p><a id="AyaBack" href="games.html">Return to game details</a></p>
+</main><div id="FooterSlot"></div></div><script src="js/common.js"></script>
+<script>(async()=>{
+  RB.mount('Games'); const mid=RB.param('id');
+  const back=document.getElementById('AyaBack'),legacy=document.getElementById('AyaLegacy');
+  if(!/^[A-Za-z0-9_-]+$/.test(mid)){document.getElementById('AyaStatus').textContent='Invalid map identifier';return;}
+  back.href='game.html?id='+encodeURIComponent(mid);legacy.href='play.html?id='+encodeURIComponent(mid);
+  let m;try{const cat=await RB.catalog();m=(cat.maps||[]).find(x=>x.id===mid);}catch(e){}
+  if(!m){document.getElementById('AyaStatus').textContent='This game was not found in the public catalog.';return;}
+  document.getElementById('AyaTitle').textContent=m.name+' — Performance mode';
+  document.title=m.name+' — Aya import — 2x2';
+  const url='data/aya-maps/'+encodeURIComponent(mid)+'.rbxl';
+  const download=document.getElementById('AyaDownload');
+  document.getElementById('AyaDesc').textContent='Exported original place for '+(m.era||'classic Roblox')+'.';
+  try{
+    const res=await fetch(url,{method:'HEAD',cache:'no-store'});
+    if(!res.ok)throw Error('Not deployed ('+res.status+')');
+    download.href=url;download.download=mid+'.rbxl';download.removeAttribute('aria-disabled');
+    document.getElementById('AyaStatus').textContent='Place file available. Import it in Aya Host to play.';
+  }catch(e){document.getElementById('AyaStatus').textContent='Place export not available: '+e.message+'. Run the exporter and deploy site/data/aya-maps/.';}
+})();</script></body></html>

@@ -1,0 +1,2800 @@
+{
+  "repository": "Novetus/Novetus-Map-Pack",
+  "commit": "6d7c962e3afe81d61a868b301771767d06471426",
+  "entries": 348,
+  "uniqueContents": 322,
+  "catalogEntries": 348,
+  "formats": {
+    "xml": 344,
+    "binary": 4
+  },
+  "compressedBytes": 42021704,
+  "rawBytesIncludingVariants": 2474634119,
+  "unavailableCatalogIds": [],
+  "maps": [
+    {
+      "id": "legacy-2006-angel-of-truth",
+      "nativeId": 15,
+      "path": "legacy/Maps released by year/2006/2006 - Angel Of Truth.rbxl.bz2",
+      "sha256": "b5580987b523f4e6fa3bcda3360981439d3dc0a518a0d177b3d50f6048438aa1",
+      "format": "xml",
+      "bytes": 20889808
+    },
+    {
+      "id": "legacy-2006-lava-rush",
+      "nativeId": 16,
+      "path": "legacy/Maps released by year/2006/2006 - Lava Rush.rbxl.bz2",
+      "sha256": "365a56f2976c77c67c5608ca8cab2f709f59c67fc61cc21ac6f03a280aa9624d",
+      "format": "xml",
+      "bytes": 342772
+    },
+    {
+      "id": "legacy-2006-mountain",
+      "nativeId": 17,
+      "path": "legacy/Maps released by year/2006/2006 - Mountain.rbxl.bz2",
+      "sha256": "725de66f58eb89d0fcd7e8e8fb7ad73d34ce936a4be3622a79f4210ec4b32a0a",
+      "format": "xml",
+      "bytes": 1693706
+    },
+    {
+      "id": "legacy-2006-pirate-ship",
+      "nativeId": 18,
+      "path": "legacy/Maps released by year/2006/2006 - Pirate Ship.rbxl.bz2",
+      "sha256": "b9263fce4092e6964dcda9ec71067a53be33306d43cc20c771b6e267fda6ea4a",
+      "format": "xml",
+      "bytes": 2334662
+    },
+    {
+      "id": "legacy-2006-rocket-mayhem",
+      "nativeId": 19,
+      "path": "legacy/Maps released by year/2006/2006 - Rocket Mayhem.rbxl.bz2",
+      "sha256": "10fa88f35bf5066a2ba5ba603a90dca95635cccce44e0c1d7955322f61dc8abe",
+      "format": "xml",
+      "bytes": 4454598
+    },
+    {
+      "id": "legacy-2006-sharkrock-island",
+      "nativeId": 20,
+      "path": "legacy/Maps released by year/2006/2006 - SharkRock Island.rbxl.bz2",
+      "sha256": "7956a2fbe41f5476242f461a15eb5b53d0017d322fbfc60f1e88f3b106434d2d",
+      "format": "xml",
+      "bytes": 2120612
+    },
+    {
+      "id": "legacy-2006-sunset-plains",
+      "nativeId": 21,
+      "path": "legacy/Maps released by year/2006/2006 - Sunset Plains.rbxl.bz2",
+      "sha256": "fe7bef35112ffd5fa7ea005d9dfecde9680f3b0812d4d83b760f9cd00d472f52",
+      "format": "xml",
+      "bytes": 3913862
+    },
+    {
+      "id": "legacy-2007-bastion-of-horsey",
+      "nativeId": 22,
+      "path": "legacy/Maps released by year/2007/2007 - Bastion of Horsey.rbxl.bz2",
+      "sha256": "47c7c1454b0ba674e5cdefcd57b2deb67762986b7761369baf110d77e022fd82",
+      "format": "xml",
+      "bytes": 1102777
+    },
+    {
+      "id": "legacy-2007-climb-the-tallest-ladder-in-the-roblox-world",
+      "nativeId": 23,
+      "path": "legacy/Maps released by year/2007/2007 - Climb The Tallest Ladder In The Roblox World.rbxl.bz2",
+      "sha256": "534bb5d6c0247b4e9c10bab619006c0898354c98772e61baf6234de7e7097053",
+      "format": "xml",
+      "bytes": 5129180
+    },
+    {
+      "id": "legacy-2007-climb-the-tallest-ladder-in-roblox",
+      "nativeId": 24,
+      "path": "legacy/Maps released by year/2007/2007 - Climb the Tallest Ladder in Roblox.rbxl.bz2",
+      "sha256": "17e663ae1d9563c657ef210cc269251f722ba3bd36aef8724294178f7541d0b9",
+      "format": "xml",
+      "bytes": 4527240
+    },
+    {
+      "id": "legacy-2007-destroy-the-giant-marios",
+      "nativeId": 25,
+      "path": "legacy/Maps released by year/2007/2007 - Destroy The Giant Marios.rbxl.bz2",
+      "sha256": "e209a918b633da400c1b2dcf3b21bd87dd38a53d081de579253429f08f8fe944",
+      "format": "xml",
+      "bytes": 13331614
+    },
+    {
+      "id": "legacy-2007-elemental-lake",
+      "nativeId": 26,
+      "path": "legacy/Maps released by year/2007/2007 - Elemental Lake.rbxl.bz2",
+      "sha256": "57d810900513aaa72a772f7af63a048c088258d5a4307df6160a5393beca90bd",
+      "format": "xml",
+      "bytes": 13016962
+    },
+    {
+      "id": "legacy-2007-emerald-forest",
+      "nativeId": 27,
+      "path": "legacy/Maps released by year/2007/2007 - Emerald Forest.rbxl.bz2",
+      "sha256": "9f82cc718b86b09929e2ebf0985613a7bc454b4b8ba4abdf46f627e698a9d219",
+      "format": "xml",
+      "bytes": 3898882
+    },
+    {
+      "id": "legacy-2007-flaming-jad",
+      "nativeId": 28,
+      "path": "legacy/Maps released by year/2007/2007 - Flaming JAD.rbxl.bz2",
+      "sha256": "5b4df4e683b8540ca06a372167acd03d08fcd61e42c7ac97e6098af9fb4e0bd8",
+      "format": "xml",
+      "bytes": 9323489
+    },
+    {
+      "id": "legacy-2007-haunted-hill",
+      "nativeId": 29,
+      "path": "legacy/Maps released by year/2007/2007 - Haunted Hill.rbxl.bz2",
+      "sha256": "6cfba327ebfa1d2f9ad3a6d60c444fb9df70935a6671a4dcb67669d7b4f86a65",
+      "format": "xml",
+      "bytes": 6841187
+    },
+    {
+      "id": "legacy-2007-haunted-mansion",
+      "nativeId": 30,
+      "path": "legacy/Maps released by year/2007/2007 - Haunted Mansion.rbxl.bz2",
+      "sha256": "0449f918567abefa7e372d5ee60f79974528377bf4f3d442408de76a7770bf7f",
+      "format": "xml",
+      "bytes": 6375544
+    },
+    {
+      "id": "legacy-2007-humanoid-harvester-horror",
+      "nativeId": 31,
+      "path": "legacy/Maps released by year/2007/2007 - Humanoid Harvester Horror.rbxl.bz2",
+      "sha256": "ea6d366ffb961bf825d7379ac9a252a491d07bcf8c3fa638dd9f0fca2a16f25b",
+      "format": "xml",
+      "bytes": 163092
+    },
+    {
+      "id": "legacy-2007-i-has-a-camera-testgrounds",
+      "nativeId": 32,
+      "path": "legacy/Maps released by year/2007/2007 - I has a camera testgrounds.rbxl.bz2",
+      "sha256": "9d9bed81d464203a71ada31d41dd05b44f6fe1b8d1a878bdaba1add11163f891",
+      "format": "xml",
+      "bytes": 1225205
+    },
+    {
+      "id": "legacy-2007-king-of-the-hill",
+      "nativeId": 33,
+      "path": "legacy/Maps released by year/2007/2007 - King of the Hill.rbxl.bz2",
+      "sha256": "858f11b94e297054a4b879c5768a464a140b35df68cac350df9ba45fd85ad7fe",
+      "format": "xml",
+      "bytes": 24473870
+    },
+    {
+      "id": "legacy-2007-nevermoors-blight",
+      "nativeId": 34,
+      "path": "legacy/Maps released by year/2007/2007 - Nevermoors Blight.rbxl.bz2",
+      "sha256": "6ef5049fe9fa15b3d6cd35b8adb44f168f9b6cf1d99978b28fedfba47518f0c4",
+      "format": "xml",
+      "bytes": 3125187
+    },
+    {
+      "id": "legacy-2007-oh-noes-the-moon-is-falling",
+      "nativeId": 35,
+      "path": "legacy/Maps released by year/2007/2007 - OH NOES! The moon is falling!.rbxl.bz2",
+      "sha256": "93f96f5a89284812b0e08c97b5645f87f08762fee06abd8a6d7d43334346e53c",
+      "format": "xml",
+      "bytes": 1746790
+    },
+    {
+      "id": "legacy-2007-pong",
+      "nativeId": 36,
+      "path": "legacy/Maps released by year/2007/2007 - PONG.rbxl.bz2",
+      "sha256": "5d61b4c2313b6d2242c63a915c2dc9fa6fad80963d41e2c59017f4036af82e8b",
+      "format": "xml",
+      "bytes": 7721064
+    },
+    {
+      "id": "legacy-2007-pinball-wizards",
+      "nativeId": 37,
+      "path": "legacy/Maps released by year/2007/2007 - Pinball Wizards!.rbxl.bz2",
+      "sha256": "76b9d3c375d37b20fa91957e0aa46232c668bb118eb48731f1cd5401a1894791",
+      "format": "xml",
+      "bytes": 790171
+    },
+    {
+      "id": "legacy-2007-rocket-car-rally",
+      "nativeId": 38,
+      "path": "legacy/Maps released by year/2007/2007 - Rocket Car Rally.rbxl.bz2",
+      "sha256": "fdd107264b215e10c6ab8c5c91746be23471c40e7d79b3975b65b549bf275ccc",
+      "format": "xml",
+      "bytes": 1607846
+    },
+    {
+      "id": "legacy-2007-the-front-lines",
+      "nativeId": 39,
+      "path": "legacy/Maps released by year/2007/2007 - The Front Lines.rbxl.bz2",
+      "sha256": "27663ac1292a3e2a132d78186aae060eeeda38e4c5e0aeace51cd1408df813e3",
+      "format": "xml",
+      "bytes": 7863519
+    },
+    {
+      "id": "legacy-2007-the-pit",
+      "nativeId": 40,
+      "path": "legacy/Maps released by year/2007/2007 - The Pit.rbxl.bz2",
+      "sha256": "b12b2df31e54d595a67584eaae3226725734deb67c9da2a9373eaad485a1d657",
+      "format": "xml",
+      "bytes": 1252314
+    },
+    {
+      "id": "legacy-2007-train2",
+      "nativeId": 41,
+      "path": "legacy/Maps released by year/2007/2007 - Train2.rbxl.bz2",
+      "sha256": "6abca1396bd65b95d3f7e151299767b052e08790226409bd9a4accbf4e9c28c4",
+      "format": "xml",
+      "bytes": 254610
+    },
+    {
+      "id": "legacy-2007-trampoline-sword-fight",
+      "nativeId": 42,
+      "path": "legacy/Maps released by year/2007/2007 - Trampoline Sword Fight.rbxl.bz2",
+      "sha256": "44a8e5d43225248c480644e3eacb843b58cf677e2b94f7347e26815bdb779b29",
+      "format": "xml",
+      "bytes": 54080
+    },
+    {
+      "id": "legacy-2007-travelers-tale",
+      "nativeId": 43,
+      "path": "legacy/Maps released by year/2007/2007 - Travelers Tale.rbxl.bz2",
+      "sha256": "8242a75a7d65f00493528d89b70ad3ff74819be727c98071244f8da3bc70bf24",
+      "format": "xml",
+      "bytes": 7526328
+    },
+    {
+      "id": "legacy-2007-bboy",
+      "nativeId": 44,
+      "path": "legacy/Maps released by year/2007/2007 - bboy.rbxl.bz2",
+      "sha256": "8b0ce22e264bf4dc9dc6644a169a7f201f766e8dd22ce02aa3af86047d2bfd9b",
+      "format": "xml",
+      "bytes": 275019
+    },
+    {
+      "id": "legacy-2007-extreme-four-corners",
+      "nativeId": 45,
+      "path": "legacy/Maps released by year/2007/2007 - extreme four corners.rbxl.bz2",
+      "sha256": "1db99ecd20000890396b7c99d555ad02f757b4d5dc03570347a2a13a626cebbf",
+      "format": "xml",
+      "bytes": 286048
+    },
+    {
+      "id": "legacy-2007-leo-s-place",
+      "nativeId": 46,
+      "path": "legacy/Maps released by year/2007/2007 - leo's place.rbxl.bz2",
+      "sha256": "9e554caf9f2dbe41cdae090f8f7c7870d17d39e8457a90e11bc98bfe592b3581",
+      "format": "xml",
+      "bytes": 12341644
+    },
+    {
+      "id": "legacy-2007-millons-of-roblox-kill-them",
+      "nativeId": 47,
+      "path": "legacy/Maps released by year/2007/2007 - millons of Roblox. Kill them.rbxl.bz2",
+      "sha256": "d1d406ed39a88ed810f17a93dee9e2296dc79df2a9cba527633e62dc94222ad5",
+      "format": "xml",
+      "bytes": 9240300
+    },
+    {
+      "id": "legacy-2008-bread-factory-tycoon",
+      "nativeId": 48,
+      "path": "legacy/Maps released by year/2008/2008 - Bread Factory Tycoon.rbxl.bz2",
+      "sha256": "fc0da44909956e4ca690bdb8faeea17595149469e431057e889ca2bc243531dc",
+      "format": "xml",
+      "bytes": 6831109
+    },
+    {
+      "id": "legacy-2008-camping-simulator-by-are92",
+      "nativeId": 49,
+      "path": "legacy/Maps released by year/2008/2008 - Camping Simulator by Are92.rbxl.bz2",
+      "sha256": "0a8b0fb0ae24cf4e91dbc2b59f279d9befd5d664f7e287977fc85d754754e336",
+      "format": "binary",
+      "bytes": 111018
+    },
+    {
+      "id": "legacy-2008-castle-warfare",
+      "nativeId": 50,
+      "path": "legacy/Maps released by year/2008/2008 - Castle Warfare.rbxl.bz2",
+      "sha256": "975e955bfb788e23485053182582fd325d90b1e25920024ac0c143eb87773012",
+      "format": "xml",
+      "bytes": 10393064
+    },
+    {
+      "id": "legacy-2008-chess-tournament",
+      "nativeId": 51,
+      "path": "legacy/Maps released by year/2008/2008 - Chess Tournament.rbxl.bz2",
+      "sha256": "a61a619017b91a0b3a169c07fb5d9a145925ead11dc02e67d99a4a24424b0683",
+      "format": "xml",
+      "bytes": 996345
+    },
+    {
+      "id": "legacy-2008-city-fight-classes",
+      "nativeId": 52,
+      "path": "legacy/Maps released by year/2008/2008 - City Fight Classes.rbxl.bz2",
+      "sha256": "402acad26bce42cd5842bcf995e02fd098f31cc04ac80800f520298aaaee2a50",
+      "format": "xml",
+      "bytes": 1238274
+    },
+    {
+      "id": "legacy-2008-dead-space",
+      "nativeId": 53,
+      "path": "legacy/Maps released by year/2008/2008 - Dead Space.rbxl.bz2",
+      "sha256": "c6326b2378071315fe29f12ba6cf434c77a4d8ef1dc3d030bae4657cac818233",
+      "format": "xml",
+      "bytes": 16313177
+    },
+    {
+      "id": "legacy-2008-elemental-lake",
+      "nativeId": 54,
+      "path": "legacy/Maps released by year/2008/2008 - Elemental Lake.rbxl.bz2",
+      "sha256": "230234d46e0538b1282d01cdcbe2bd9d703ab497bbbd35043dd4bc2305989d3c",
+      "format": "xml",
+      "bytes": 12106184
+    },
+    {
+      "id": "legacy-2008-emerald-forest",
+      "nativeId": 55,
+      "path": "legacy/Maps released by year/2008/2008 - Emerald Forest.rbxl.bz2",
+      "sha256": "58801c6540be18ba53514972b3362f3ba85ddf2a6dc22db67d0b8074a6402940",
+      "format": "xml",
+      "bytes": 3716939
+    },
+    {
+      "id": "legacy-2008-enjoy-a-sinking-ships-last-voyage",
+      "nativeId": 56,
+      "path": "legacy/Maps released by year/2008/2008 - Enjoy A Sinking Ships last voyage.rbxl.bz2",
+      "sha256": "a0a1a787b303182e05dc44572f53cf669c5aa46c8b71c689316b61444865cb4a",
+      "format": "xml",
+      "bytes": 5714369
+    },
+    {
+      "id": "legacy-2008-farm-tycoon",
+      "nativeId": 57,
+      "path": "legacy/Maps released by year/2008/2008 - Farm Tycoon.rbxl.bz2",
+      "sha256": "0a3dcfff577929943a829ddcd67e55e3f32582b7363d7741ef663a40bb48346f",
+      "format": "xml",
+      "bytes": 14513675
+    },
+    {
+      "id": "legacy-2008-four-towers-bridge-battle",
+      "nativeId": 58,
+      "path": "legacy/Maps released by year/2008/2008 - Four Towers Bridge Battle.rbxl.bz2",
+      "sha256": "aa7af40dcefc5cc323bc170f32c00e9f7249a9234146da4aa93d9c5c442bd22f",
+      "format": "xml",
+      "bytes": 22640116
+    },
+    {
+      "id": "legacy-2008-frozen-peak",
+      "nativeId": 59,
+      "path": "legacy/Maps released by year/2008/2008 - Frozen Peak.rbxl.bz2",
+      "sha256": "29980c28c533de4e5568163479a54880d1a923f0614f099cb5ed986da8dde4de",
+      "format": "xml",
+      "bytes": 11225064
+    },
+    {
+      "id": "legacy-2008-fun-with-mjolnir",
+      "nativeId": 60,
+      "path": "legacy/Maps released by year/2008/2008 - Fun with Mjolnir.rbxl.bz2",
+      "sha256": "f77329d3b1fac0c7f5192a70aeb70a72f893645fd5972a2ed2ceb73f09aecf54",
+      "format": "xml",
+      "bytes": 15490821
+    },
+    {
+      "id": "legacy-2008-grow-a-brick",
+      "nativeId": 61,
+      "path": "legacy/Maps released by year/2008/2008 - Grow a Brick.rbxl.bz2",
+      "sha256": "35fee1e25ca3fe0a410dbcfa4e2f5768ff305e3a621c7c174e9edd4ad3526e86",
+      "format": "xml",
+      "bytes": 707486
+    },
+    {
+      "id": "legacy-2008-heli-wars-desert-attack",
+      "nativeId": 62,
+      "path": "legacy/Maps released by year/2008/2008 - Heli-Wars Desert Attack.rbxl.bz2",
+      "sha256": "d8b7b4e251a577c67fe14e8ec5d5ddafa4449eb23b7e42d9c7c25d43f33fbf29",
+      "format": "xml",
+      "bytes": 2403321
+    },
+    {
+      "id": "legacy-2008-how-long-can-you-survive-minigames",
+      "nativeId": 63,
+      "path": "legacy/Maps released by year/2008/2008 - How Long Can You Survive Minigames.rbxl.bz2",
+      "sha256": "9dda131efdc7a03ed537476b06513282d1a1e077e9891b9b0b1fc9f9d96989e6",
+      "format": "xml",
+      "bytes": 987056
+    },
+    {
+      "id": "legacy-2008-how-long-can-you-survive",
+      "nativeId": 64,
+      "path": "legacy/Maps released by year/2008/2008 - How Long Can You Survive.rbxl.bz2",
+      "sha256": "41f1d599809caac8139de3fea0d5294c76d4cfca319a5933befc3c1056b7a9bf",
+      "format": "xml",
+      "bytes": 1624687
+    },
+    {
+      "id": "legacy-2008-liminal-message",
+      "nativeId": 65,
+      "path": "legacy/Maps released by year/2008/2008 - Liminal Message.rbxl.bz2",
+      "sha256": "a64b248599df48dae7c1b5bed635489c69cb4ea10f353efee4377cf698b9a493",
+      "format": "xml",
+      "bytes": 2115263
+    },
+    {
+      "id": "legacy-2008-martain-invasion",
+      "nativeId": 66,
+      "path": "legacy/Maps released by year/2008/2008 - Martain Invasion.rbxl.bz2",
+      "sha256": "3b62fcc33e4200fd694377aa945ae9c98edcb3b003962ff8abf82070c3a16034",
+      "format": "xml",
+      "bytes": 14227240
+    },
+    {
+      "id": "legacy-2008-minigame-world",
+      "nativeId": 67,
+      "path": "legacy/Maps released by year/2008/2008 - Minigame World.rbxl.bz2",
+      "sha256": "17e530d320d6092235f234cc83ded5ce71253508e1073bf3aa6b006a20db7438",
+      "format": "xml",
+      "bytes": 1894001
+    },
+    {
+      "id": "legacy-2008-new-server-physics-benchmark",
+      "nativeId": 68,
+      "path": "legacy/Maps released by year/2008/2008 - New Server Physics Benchmark.rbxl.bz2",
+      "sha256": "e2924dc7cce3a450fb7eeac0f0b6eb1bf537c13f615e3979c0bcf652563c4f7c",
+      "format": "xml",
+      "bytes": 2031436
+    },
+    {
+      "id": "legacy-2008-ninjas-vs-samuri-pagoda-battle",
+      "nativeId": 69,
+      "path": "legacy/Maps released by year/2008/2008 - Ninjas VS Samuri Pagoda Battle.rbxl.bz2",
+      "sha256": "10ab46c8057799093acdf9612e5d6102c88e4445c36b3653763404c7976cd15d",
+      "format": "xml",
+      "bytes": 19739239
+    },
+    {
+      "id": "legacy-2008-ninjas-vs-samruai-pagoda-battle",
+      "nativeId": 70,
+      "path": "legacy/Maps released by year/2008/2008 - Ninjas vs. Samruai Pagoda Battle.rbxl.bz2",
+      "sha256": "caaa3f84449e666e23036a3b4dccf4c1239b067bbfaf17af7c9a5643cb4e7dbf",
+      "format": "xml",
+      "bytes": 19739095
+    },
+    {
+      "id": "legacy-2008-nuke-the-whales",
+      "nativeId": 71,
+      "path": "legacy/Maps released by year/2008/2008 - Nuke the Whales!.rbxl.bz2",
+      "sha256": "c7e86e9d818618950c91836e76a0466e6556551a320710e4e665fd1d9dbea23c",
+      "format": "xml",
+      "bytes": 1246444
+    },
+    {
+      "id": "legacy-2008-nuke-the-whales-d05e6b0f",
+      "nativeId": 72,
+      "path": "legacy/Maps released by year/2008/2008 - Nuke the Whales.rbxl.bz2",
+      "sha256": "c7e86e9d818618950c91836e76a0466e6556551a320710e4e665fd1d9dbea23c",
+      "format": "xml",
+      "bytes": 1246444
+    },
+    {
+      "id": "legacy-2008-obstakle-course",
+      "nativeId": 73,
+      "path": "legacy/Maps released by year/2008/2008 - Obstakle course!!!.rbxl.bz2",
+      "sha256": "0402eb09c3ebfb5e97f162bf3ecb0313ae977bfc160c50eebfa983c9e6f152a4",
+      "format": "xml",
+      "bytes": 20801212
+    },
+    {
+      "id": "legacy-2008-olympics",
+      "nativeId": 74,
+      "path": "legacy/Maps released by year/2008/2008 - Olympics.rbxl.bz2",
+      "sha256": "1e1d0ef7f9f84d61d539c32351e3da920f8438ece21ffc0fe816e890cb672c1d",
+      "format": "xml",
+      "bytes": 6154506
+    },
+    {
+      "id": "legacy-2008-pinball-wizards",
+      "nativeId": 75,
+      "path": "legacy/Maps released by year/2008/2008 - Pinball Wizards!.rbxl.bz2",
+      "sha256": "d6741022bbf01d3f0ae1f19c8dd6eb8b86d2c30f44c4c99898be843a1cf56769",
+      "format": "xml",
+      "bytes": 842927
+    },
+    {
+      "id": "legacy-2008-pirate-army-hq",
+      "nativeId": 76,
+      "path": "legacy/Maps released by year/2008/2008 - Pirate Army HQ.rbxl.bz2",
+      "sha256": "f252782fac0b019d0ae7125ec5780099dff4b8647e048f09d52b855cb7cda5fb",
+      "format": "xml",
+      "bytes": 7192465
+    },
+    {
+      "id": "legacy-2008-plane-crash",
+      "nativeId": 77,
+      "path": "legacy/Maps released by year/2008/2008 - Plane Crash.rbxl.bz2",
+      "sha256": "01a71716699226876aaeddfd51b44cd1300d4fb342d2cee721df31cecf07fc3f",
+      "format": "xml",
+      "bytes": 4043699
+    },
+    {
+      "id": "legacy-2008-rotris",
+      "nativeId": 78,
+      "path": "legacy/Maps released by year/2008/2008 - ROtris.rbxl.bz2",
+      "sha256": "fd67fc9f1b18ef3eeb9ad722ac5595029467bff8215eab6c9dde0ab124e6a721",
+      "format": "xml",
+      "bytes": 201852
+    },
+    {
+      "id": "legacy-2008-rowar-planetprotection",
+      "nativeId": 79,
+      "path": "legacy/Maps released by year/2008/2008 - RoWar PlanetProtection.rbxl.bz2",
+      "sha256": "260b01943f845d7db40d095f166a2a4f7f458dc48b7a8ad2c6c546f7f7cfc635",
+      "format": "xml",
+      "bytes": 2176454
+    },
+    {
+      "id": "legacy-2008-rowar-space-cruise-v3-cruise-life-is-back-by-are92",
+      "nativeId": 80,
+      "path": "legacy/Maps released by year/2008/2008 - RoWar Space Cruise V3 Cruise Life is back by Are92.rbxl.bz2",
+      "sha256": "cf742d10bf26135b6dd987fc94f29bc4bc061a9cc04dc53b4382ef4d99fc8eba",
+      "format": "binary",
+      "bytes": 167257
+    },
+    {
+      "id": "legacy-2008-roblox-hq-2-0",
+      "nativeId": 81,
+      "path": "legacy/Maps released by year/2008/2008 - Roblox HQ 2.0.rbxl.bz2",
+      "sha256": "b1d605deb456404bb29331b7697e048aa262ad07ce82efe31e1ff942d9802a7a",
+      "format": "xml",
+      "bytes": 14434280
+    },
+    {
+      "id": "legacy-2008-rockpaperscissors",
+      "nativeId": 82,
+      "path": "legacy/Maps released by year/2008/2008 - RockPaperScissors.rbxl.bz2",
+      "sha256": "ad9f9ca6bd8de696192c1501368278a41921a1443a47f8592b8aa2c21201afac",
+      "format": "xml",
+      "bytes": 11740
+    },
+    {
+      "id": "legacy-2008-rocket-fight-advanced",
+      "nativeId": 83,
+      "path": "legacy/Maps released by year/2008/2008 - Rocket Fight Advanced.rbxl.bz2",
+      "sha256": "60f109fb927a2387c4e75955d5767ad70618aac686bd03d15045f947d4d878ea",
+      "format": "xml",
+      "bytes": 352361
+    },
+    {
+      "id": "legacy-2008-survive-the-galactic-storm",
+      "nativeId": 84,
+      "path": "legacy/Maps released by year/2008/2008 - SURVIVE THE GALACTIC STORM.rbxl.bz2",
+      "sha256": "2fae22f522f005fa337b84185f0f014333c1fcac6909692f22a391db24924b9f",
+      "format": "xml",
+      "bytes": 4501633
+    },
+    {
+      "id": "legacy-2008-space-i",
+      "nativeId": 85,
+      "path": "legacy/Maps released by year/2008/2008 - Space I.rbxl.bz2",
+      "sha256": "89c69ae25e77bcb722628c2effb400aaab89f98584333c39af5c695983974c7d",
+      "format": "xml",
+      "bytes": 211033
+    },
+    {
+      "id": "legacy-2008-sparkle-and-clickdetector-demo",
+      "nativeId": 86,
+      "path": "legacy/Maps released by year/2008/2008 - Sparkle and ClickDetector Demo.rbxl.bz2",
+      "sha256": "3827c01d332f7af71040eccda1fe4d45eba905819be270bb45d25df0b3345d54",
+      "format": "xml",
+      "bytes": 68831
+    },
+    {
+      "id": "legacy-2008-sword-training",
+      "nativeId": 87,
+      "path": "legacy/Maps released by year/2008/2008 - Sword Training.rbxl.bz2",
+      "sha256": "186e05efdea16b75e626a5858420dbbfb56b63bd3c620c3e3c4e477e993575d7",
+      "format": "xml",
+      "bytes": 7442208
+    },
+    {
+      "id": "legacy-2008-telamons-big-world",
+      "nativeId": 88,
+      "path": "legacy/Maps released by year/2008/2008 - Telamons Big World.rbxl.bz2",
+      "sha256": "14ee59eba92de1baa8ae96280e9a4468f59f30a6cb0cabea3c0c0becf6749c33",
+      "format": "xml",
+      "bytes": 3615406
+    },
+    {
+      "id": "legacy-2008-testing-thing",
+      "nativeId": 89,
+      "path": "legacy/Maps released by year/2008/2008 - Testing Thing.rbxl.bz2",
+      "sha256": "61843f396f96e83aeb6a7d240789697609279f1b6a7505dad15c5a1a337d7b2e",
+      "format": "xml",
+      "bytes": 140915
+    },
+    {
+      "id": "legacy-2008-the-undead-coming-v1-2",
+      "nativeId": 90,
+      "path": "legacy/Maps released by year/2008/2008 - The Undead Coming v1.2.rbxl.bz2",
+      "sha256": "0edf92acaf5379fbf479337d017eb839d9bf6d9ffac0a26d276a6080753bc8e9",
+      "format": "xml",
+      "bytes": 737187
+    },
+    {
+      "id": "legacy-2008-timereversalupgraded",
+      "nativeId": 91,
+      "path": "legacy/Maps released by year/2008/2008 - TimeReversalUpgraded.rbxl.bz2",
+      "sha256": "a9d17c20888e5f59347fdba0bdacc3ad6c2eba141498c3a715188cc8fad7be8e",
+      "format": "xml",
+      "bytes": 493356
+    },
+    {
+      "id": "legacy-2008-transformers-obby-1",
+      "nativeId": 92,
+      "path": "legacy/Maps released by year/2008/2008 - Transformers Obby 1.rbxl.bz2",
+      "sha256": "f410f52224730e2b2e9d1606feddd79f1be97af4e6f7a60d7eb34a30bd41ec7e",
+      "format": "xml",
+      "bytes": 1817768
+    },
+    {
+      "id": "legacy-2008-transformers-obby-2",
+      "nativeId": 93,
+      "path": "legacy/Maps released by year/2008/2008 - Transformers Obby 2.rbxl.bz2",
+      "sha256": "6c232d316d399fc15e92b543cd747b23b3455e27ab48ae7d95f5f7eaf14d1297",
+      "format": "xml",
+      "bytes": 2967816
+    },
+    {
+      "id": "legacy-2008-undergroundwars",
+      "nativeId": 94,
+      "path": "legacy/Maps released by year/2008/2008 - UnderGroundWars.rbxl.bz2",
+      "sha256": "fe622f0d7e90eae4a9b7e2062535345d138a970047a178306d56e6fc2adacfda",
+      "format": "xml",
+      "bytes": 2855581
+    },
+    {
+      "id": "legacy-2008-wafflerunners",
+      "nativeId": 95,
+      "path": "legacy/Maps released by year/2008/2008 - WaffleRunners.rbxl.bz2",
+      "sha256": "0247c28859c2d9cd01bd4255cece9d67e2bc9c5970d3fd939565a3930a544dc7",
+      "format": "xml",
+      "bytes": 4338817
+    },
+    {
+      "id": "legacy-2008-war-place",
+      "nativeId": 96,
+      "path": "legacy/Maps released by year/2008/2008 - War Place.rbxl.bz2",
+      "sha256": "37c8ea8c7d3ae55064d906c7339d0522f53ad5a8a95c2ad523686e61d94183bc",
+      "format": "xml",
+      "bytes": 7647798
+    },
+    {
+      "id": "legacy-2008-wizard-wars",
+      "nativeId": 97,
+      "path": "legacy/Maps released by year/2008/2008 - Wizard Wars.rbxl.bz2",
+      "sha256": "8c9b101109f1326f79e4fd24a9e8d33aadd8701dda98ebeff9e59e0ac462cf9f",
+      "format": "xml",
+      "bytes": 4487624
+    },
+    {
+      "id": "legacy-2008-build-your-city",
+      "nativeId": 98,
+      "path": "legacy/Maps released by year/2008/2008 - build your city.rbxl.bz2",
+      "sha256": "c4a2222d309d914ebdc2c6c0a177dfc557fd4f7b4f65ed13e535c0af183bbe10",
+      "format": "xml",
+      "bytes": 8877146
+    },
+    {
+      "id": "legacy-2008-canyon",
+      "nativeId": 99,
+      "path": "legacy/Maps released by year/2008/2008 - canyon.rbxl.bz2",
+      "sha256": "9f6b62f865ea041de5b0c9b47f426609a97d653efbebd6c373bc032bd1b23332",
+      "format": "binary",
+      "bytes": 23753
+    },
+    {
+      "id": "legacy-2008-cart-ride-into-the-epic-duck",
+      "nativeId": 100,
+      "path": "legacy/Maps released by year/2008/2008 - cart ride into the epic duck.rbxl.bz2",
+      "sha256": "533fbc5818f8b92e2fd7a5a20a9f5fc0685c0859672cc7a15ce40cf4cdb2b50d",
+      "format": "xml",
+      "bytes": 8557440
+    },
+    {
+      "id": "legacy-2008-escape-school",
+      "nativeId": 101,
+      "path": "legacy/Maps released by year/2008/2008 - escape school.rbxl.bz2",
+      "sha256": "27f6c92476b74d511e592016535a1a4ca605a6a9d750ba61800e292eb71d7610",
+      "format": "xml",
+      "bytes": 4533571
+    },
+    {
+      "id": "legacy-2008-minigames5",
+      "nativeId": 102,
+      "path": "legacy/Maps released by year/2008/2008 - minigames5.rbxl.bz2",
+      "sha256": "992cbe32b04ebf75def7837436ee62e9886226d0287d4d202b0f9cad862386fd",
+      "format": "xml",
+      "bytes": 5021572
+    },
+    {
+      "id": "legacy-2008-paint-ball-war",
+      "nativeId": 103,
+      "path": "legacy/Maps released by year/2008/2008 - paint ball war.rbxl.bz2",
+      "sha256": "d031aa873e7d1ca0937ddd44c484d4f9c16318f970fffcc4fc45d4040d82d0c7",
+      "format": "xml",
+      "bytes": 46040
+    },
+    {
+      "id": "legacy-2009-deep-digz-2-d",
+      "nativeId": 104,
+      "path": "legacy/Maps released by year/2009/2009 - Deep Digz 2-D.rbxl.bz2",
+      "sha256": "b3e3f7b2015f5ae578ca76c6ac56eb98e46c44e1d0ee73aae43f169a5c7ba93c",
+      "format": "xml",
+      "bytes": 20921805
+    },
+    {
+      "id": "legacy-2009-desert-warzone-classic",
+      "nativeId": 105,
+      "path": "legacy/Maps released by year/2009/2009 - Desert Warzone Classic.rbxl.bz2",
+      "sha256": "14bfcaf4daefe69a83b62a971d6cca9c4cadc9a33008ba0a7aef69e8f6818267",
+      "format": "xml",
+      "bytes": 6214639
+    },
+    {
+      "id": "legacy-2009-fall-down-the-stairs-xmas-version",
+      "nativeId": 106,
+      "path": "legacy/Maps released by year/2009/2009 - Fall Down the Stairs XMAS VERSION.rbxl.bz2",
+      "sha256": "41b9ae7be15bf5a7f2759f8ff574a0e9b1c2202b55475a28044bf0b840489c9d",
+      "format": "xml",
+      "bytes": 3047333
+    },
+    {
+      "id": "legacy-2009-futuristic-dog-fight",
+      "nativeId": 107,
+      "path": "legacy/Maps released by year/2009/2009 - Futuristic Dog-Fight.rbxl.bz2",
+      "sha256": "d372776aab14500fe2aaaa37a40b02129d05b0aef1d8892aa90c228455888c55",
+      "format": "xml",
+      "bytes": 1142717
+    },
+    {
+      "id": "legacy-2009-glass-houses-2",
+      "nativeId": 108,
+      "path": "legacy/Maps released by year/2009/2009 - Glass Houses 2.rbxl.bz2",
+      "sha256": "9d796bf518aef3422579bfa5b85cc6d1b4c92cfba5395bba12f00de8f0b6379b",
+      "format": "xml",
+      "bytes": 14035774
+    },
+    {
+      "id": "legacy-2009-high-speed-train",
+      "nativeId": 109,
+      "path": "legacy/Maps released by year/2009/2009 - HIGH SPEED TRAIN!.rbxl.bz2",
+      "sha256": "ddcf9e0f522591d4758e2070c9a5224a853506f7772012900138d64aa9a5c1a6",
+      "format": "xml",
+      "bytes": 12119870
+    },
+    {
+      "id": "legacy-2009-hide-and-seek-lance7",
+      "nativeId": 110,
+      "path": "legacy/Maps released by year/2009/2009 - Hide and Seek Lance7.rbxl.bz2",
+      "sha256": "a62f64a739dbd78a0d913716a04b8a0cef6e8a6f6d83f4fa03d7c7129f27c863",
+      "format": "xml",
+      "bytes": 3706013
+    },
+    {
+      "id": "legacy-2009-iron-cafe",
+      "nativeId": 111,
+      "path": "legacy/Maps released by year/2009/2009 - Iron Cafe.rbxl.bz2",
+      "sha256": "958dce02303725180d95126c6631f3278dbc2ed8ad8f484650c2cc3149403756",
+      "format": "xml",
+      "bytes": 4965995
+    },
+    {
+      "id": "legacy-2009-noobtrap",
+      "nativeId": 112,
+      "path": "legacy/Maps released by year/2009/2009 - NoobTrap.rbxl.bz2",
+      "sha256": "a3baea163bd905f43c7974b4fc4676aa49f7cd9f24e32ba6dd132a6572c7b15e",
+      "format": "xml",
+      "bytes": 19585684
+    },
+    {
+      "id": "legacy-2009-paint-tycoon",
+      "nativeId": 113,
+      "path": "legacy/Maps released by year/2009/2009 - Paint tycoon.rbxl.bz2",
+      "sha256": "51245d30a910ed1bc9fc17e51380f7d6bb74936286d6e337d91ae1a0be7402b8",
+      "format": "xml",
+      "bytes": 13478643
+    },
+    {
+      "id": "legacy-2009-pipe-riding",
+      "nativeId": 114,
+      "path": "legacy/Maps released by year/2009/2009 - Pipe Riding.rbxl.bz2",
+      "sha256": "83f436d1f56e34206eefc40feae2cf8a600a7552f006ebe14d0fe3ed04539c1b",
+      "format": "xml",
+      "bytes": 15952416
+    },
+    {
+      "id": "legacy-2009-studiomario-s-crystal-world-fight-v1-00",
+      "nativeId": 115,
+      "path": "legacy/Maps released by year/2009/2009 - StudioMARIO's Crystal World Fight V1.00.rbxl.bz2",
+      "sha256": "8405d4c7ca39144014ad14ce367de894c1e47d87d63c3b204f8351e739c48dca",
+      "format": "xml",
+      "bytes": 717037
+    },
+    {
+      "id": "legacy-2009-studiomario-s-dj-arena-1-00",
+      "nativeId": 116,
+      "path": "legacy/Maps released by year/2009/2009 - StudioMARIO's DJ Arena 1.00.rbxl.bz2",
+      "sha256": "4690f8c8d1c6c52599526da00bcad461a3099c2ef2bb2cc2c249554dc1dae171",
+      "format": "xml",
+      "bytes": 937535
+    },
+    {
+      "id": "legacy-2009-studiomario-s-ebr-entry-v1-00",
+      "nativeId": 117,
+      "path": "legacy/Maps released by year/2009/2009 - StudioMARIO's EBR Entry V1.00.rbxl.bz2",
+      "sha256": "6cdfbcccaabcaa0e77c23601a77bb24183531277de7f35da6e93375b7b9ec9fd",
+      "format": "xml",
+      "bytes": 232507
+    },
+    {
+      "id": "legacy-2009-studiomario-s-hostiletakedown-v1-00",
+      "nativeId": 118,
+      "path": "legacy/Maps released by year/2009/2009 - StudioMARIO's HostileTakedown V1.00.rbxl.bz2",
+      "sha256": "6822350d6bdd5a8b143ad2ecd94333442bc820c8fc8b8b1edd9174eb77bf4252",
+      "format": "xml",
+      "bytes": 2381938
+    },
+    {
+      "id": "legacy-2009-studiomario-s-starblox-v1-00",
+      "nativeId": 119,
+      "path": "legacy/Maps released by year/2009/2009 - StudioMARIO's StarBlox V1.00.rbxl.bz2",
+      "sha256": "2e0ff52e991691304b1d00f56096c57f9bba307d99dd2ce3bb4f89e120afdf2c",
+      "format": "xml",
+      "bytes": 2089292
+    },
+    {
+      "id": "legacy-2009-survive-the-end-of-robloxia",
+      "nativeId": 120,
+      "path": "legacy/Maps released by year/2009/2009 - Survive the End of Robloxia.rbxl.bz2",
+      "sha256": "69698d4f67b55cf459c0d6ac3db193425188e0d3525ff1a24b0f111ae676898e",
+      "format": "xml",
+      "bytes": 12133413
+    },
+    {
+      "id": "legacy-2009-survive-the-spheres-original",
+      "nativeId": 121,
+      "path": "legacy/Maps released by year/2009/2009 - Survive the Spheres ORIGINAL.rbxl.bz2",
+      "sha256": "6ded332b49059380daff4b976986cdad943672d5574f989b80f119584d29b623",
+      "format": "xml",
+      "bytes": 16895250
+    },
+    {
+      "id": "legacy-2009-tropical-obby",
+      "nativeId": 122,
+      "path": "legacy/Maps released by year/2009/2009 - Tropical Obby.rbxl.bz2",
+      "sha256": "56d45564f71a9696bed910a333b6c2162b0fb048cdf1c264fca8a5f8f7c64598",
+      "format": "xml",
+      "bytes": 2437513
+    },
+    {
+      "id": "legacy-2009-truss-and-slate-and-badges-demo",
+      "nativeId": 123,
+      "path": "legacy/Maps released by year/2009/2009 - Truss and Slate and Badges Demo.rbxl.bz2",
+      "sha256": "b7cd5f3e88f8f2ce6467770cfd5abb6326bd301689fe38858b114cc831aad160",
+      "format": "xml",
+      "bytes": 5241518
+    },
+    {
+      "id": "legacy-2009-twoshues-hide-n-seek",
+      "nativeId": 124,
+      "path": "legacy/Maps released by year/2009/2009 - Twoshues Hide n' Seek.rbxl.bz2",
+      "sha256": "d2339e028ada1df7f93ecb4bbd3ddde3497c8cbb3a849b40312377bb9e84e4a7",
+      "format": "xml",
+      "bytes": 30136757
+    },
+    {
+      "id": "legacy-2009-pacman-ctf",
+      "nativeId": 125,
+      "path": "legacy/Maps released by year/2009/2009 - pacman ctf.rbxl.bz2",
+      "sha256": "0344875538bc19bf5cf63139659cc28d8046d34690b66ddc72dee7f5ecd77eab",
+      "format": "xml",
+      "bytes": 3054104
+    },
+    {
+      "id": "legacy-2010-calc",
+      "nativeId": 126,
+      "path": "legacy/Maps released by year/2010/2010 - Calc.rbxl.bz2",
+      "sha256": "3dd4f7a52262053f175be8fe67df8f65ec8e5c9bdcd1a29cae62b04220283178",
+      "format": "xml",
+      "bytes": 63230
+    },
+    {
+      "id": "legacy-2010-disaster-hotel",
+      "nativeId": 127,
+      "path": "legacy/Maps released by year/2010/2010 - Disaster Hotel.rbxl.bz2",
+      "sha256": "b64e854033ee564a80894fe11a2eebc1fa8efd37f1fea968391c614e5b7f993e",
+      "format": "xml",
+      "bytes": 12110764
+    },
+    {
+      "id": "legacy-2010-flood-escape",
+      "nativeId": 128,
+      "path": "legacy/Maps released by year/2010/2010 - Flood Escape.rbxl.bz2",
+      "sha256": "c75da66af97cb7dd12d635cbad69d8386fa912a39f74186ddc5a34ea1c8df142",
+      "format": "xml",
+      "bytes": 934705
+    },
+    {
+      "id": "legacy-2010-freeze-tag",
+      "nativeId": 129,
+      "path": "legacy/Maps released by year/2010/2010 - Freeze tag.rbxl.bz2",
+      "sha256": "d0f3e3976160817a84df510a484f3cba89acdd170e3e1b70401b4288818123de",
+      "format": "xml",
+      "bytes": 14724123
+    },
+    {
+      "id": "legacy-2010-frost-nova",
+      "nativeId": 130,
+      "path": "legacy/Maps released by year/2010/2010 - Frost Nova.rbxl.bz2",
+      "sha256": "fe42524c865c0ac28a0ff7c10c8a2f783f90c1a4d2bad9f196adb09f4133d673",
+      "format": "xml",
+      "bytes": 2033918
+    },
+    {
+      "id": "legacy-2010-grow-and-raise-epik-duck",
+      "nativeId": 131,
+      "path": "legacy/Maps released by year/2010/2010 - Grow And Raise EPIK DUCK!.rbxl.bz2",
+      "sha256": "e556814fe07d99e667d2e8c9753137ea87c59fb95534669aa90fea963ad118c4",
+      "format": "xml",
+      "bytes": 169276
+    },
+    {
+      "id": "legacy-2010-haunted-hotel",
+      "nativeId": 132,
+      "path": "legacy/Maps released by year/2010/2010 - Haunted Hotel.rbxl.bz2",
+      "sha256": "b5f94606e03376ff76c35fd5711aca6faa5959e4971ac13fc9dfa44313a819f5",
+      "format": "xml",
+      "bytes": 13674165
+    },
+    {
+      "id": "legacy-2010-lando-s-apartment",
+      "nativeId": 133,
+      "path": "legacy/Maps released by year/2010/2010 - Lando's Apartment.rbxl.bz2",
+      "sha256": "e2c63d6ff927a0553a142d1b932ac4d5154e60ced92990f29906aab24341062f",
+      "format": "xml",
+      "bytes": 9512754
+    },
+    {
+      "id": "legacy-2010-mcdonalds-vs-kfc",
+      "nativeId": 134,
+      "path": "legacy/Maps released by year/2010/2010 - McDonalds Vs KFC.rbxl.bz2",
+      "sha256": "db21c16f817563115056a7a59b4442fc1b965433561296e840724cd8c1e58f28",
+      "format": "xml",
+      "bytes": 2905481
+    },
+    {
+      "id": "legacy-2010-nintendo-minigames",
+      "nativeId": 135,
+      "path": "legacy/Maps released by year/2010/2010 - Nintendo Minigames.rbxl.bz2",
+      "sha256": "5af246e2b80dc7dbaea07fb3faa2c86a808695e7d2035eed104a9cd333792687",
+      "format": "xml",
+      "bytes": 13452546
+    },
+    {
+      "id": "legacy-2010-noob-test-obby",
+      "nativeId": 136,
+      "path": "legacy/Maps released by year/2010/2010 - Noob Test Obby.rbxl.bz2",
+      "sha256": "ef63c075af522bf0884776492534f2a408c7d86bd0e6ed776950700d2c8ae0c8",
+      "format": "xml",
+      "bytes": 1458524
+    },
+    {
+      "id": "legacy-2010-noobtrap2",
+      "nativeId": 137,
+      "path": "legacy/Maps released by year/2010/2010 - NoobTrap2.rbxl.bz2",
+      "sha256": "5833fd25225a8e53afa0e80f536acd5fa07414a2fc5ca65e4a74cb5502cd412a",
+      "format": "xml",
+      "bytes": 6594228
+    },
+    {
+      "id": "legacy-2010-r-u-n",
+      "nativeId": 138,
+      "path": "legacy/Maps released by year/2010/2010 - R.U.N.rbxl.bz2",
+      "sha256": "c4e9ee6429c13472cda7072e8197b298e7f678facfac2be197ecff65efb3f471",
+      "format": "xml",
+      "bytes": 42560426
+    },
+    {
+      "id": "legacy-2010-roblox-arcade",
+      "nativeId": 139,
+      "path": "legacy/Maps released by year/2010/2010 - ROBLOX Arcade.rbxl.bz2",
+      "sha256": "5372bd677215e53572e4e33f09cf2fa000e8c53f90dfe8a3b204b8e2a3b2db94",
+      "format": "xml",
+      "bytes": 16967198
+    },
+    {
+      "id": "legacy-2010-roblox-mall-tycoon",
+      "nativeId": 140,
+      "path": "legacy/Maps released by year/2010/2010 - ROBLOX Mall Tycoon.rbxl.bz2",
+      "sha256": "7c5cee83aff6a50468f93eda0c5db862160b173b8619fa3ce353acbcd1074eb5",
+      "format": "xml",
+      "bytes": 16050128
+    },
+    {
+      "id": "legacy-2010-raviable-s-devil-s-lair",
+      "nativeId": 141,
+      "path": "legacy/Maps released by year/2010/2010 - Raviable's Devil's Lair.rbxl.bz2",
+      "sha256": "62880dad5dfccf6d0a2f222892bd3c3974dfd7ccbcc98b71cb6695102fa5d21f",
+      "format": "xml",
+      "bytes": 628142
+    },
+    {
+      "id": "legacy-2010-reason-2-die",
+      "nativeId": 142,
+      "path": "legacy/Maps released by year/2010/2010 - Reason 2 Die.rbxl.bz2",
+      "sha256": "1aefeedafb648f9e627bb84d3eb4046c33a1a08e101eff86fd87e8761a589ca6",
+      "format": "xml",
+      "bytes": 15341869
+    },
+    {
+      "id": "legacy-2010-ride-a-rocket-to-the-space-station-and-moon",
+      "nativeId": 143,
+      "path": "legacy/Maps released by year/2010/2010 - Ride a rocket to the space station and moon!.rbxl.bz2",
+      "sha256": "56e539116881ba595a870d5d449425ac42d49085a6726068c59cfa8eb217744e",
+      "format": "xml",
+      "bytes": 22700951
+    },
+    {
+      "id": "legacy-2010-ro-pictionary",
+      "nativeId": 144,
+      "path": "legacy/Maps released by year/2010/2010 - Ro-Pictionary.rbxl.bz2",
+      "sha256": "7bb7de1e76cbcac35ac5356a544812b789b983f9b5bef6c8b41cbe0e2af1c2b0",
+      "format": "xml",
+      "bytes": 637794
+    },
+    {
+      "id": "legacy-2010-rocket-builder",
+      "nativeId": 145,
+      "path": "legacy/Maps released by year/2010/2010 - Rocket Builder.rbxl.bz2",
+      "sha256": "d6e5cdefdcc20399076d3eba7f69e2dcbb4170195d747aab3f96795e46b468f5",
+      "format": "xml",
+      "bytes": 830259
+    },
+    {
+      "id": "legacy-2010-town-of-robloxia",
+      "nativeId": 146,
+      "path": "legacy/Maps released by year/2010/2010 - Town of Robloxia.rbxl.bz2",
+      "sha256": "c5c53a5e5f639a16a7a228591f34d7b068e67f1ef077fa6f5206366c7b94bd99",
+      "format": "xml",
+      "bytes": 24762664
+    },
+    {
+      "id": "legacy-2010-zombie-tower",
+      "nativeId": 147,
+      "path": "legacy/Maps released by year/2010/2010 - Zombie Tower.rbxl.bz2",
+      "sha256": "20699b111e34bde3fbb224199614c77668c29c3f2f4a0465e767a43615447624",
+      "format": "xml",
+      "bytes": 30235917
+    },
+    {
+      "id": "legacy-2011-cart-ride-into-an-epic-duck",
+      "nativeId": 148,
+      "path": "legacy/Maps released by year/2011/2011 - Cart Ride into an Epic Duck!.rbxl.bz2",
+      "sha256": "06ca6c92335beb4a3e5273d231ca7ad2390e7289c36aea9e4ac5e1e53592da54",
+      "format": "xml",
+      "bytes": 8309521
+    },
+    {
+      "id": "legacy-2011-chaos-canyon",
+      "nativeId": 149,
+      "path": "legacy/Maps released by year/2011/2011 - Chaos Canyon.rbxl.bz2",
+      "sha256": "fb8e022715f991c311ac211da36911f02548cfc835c5936cec0a120ebabbf29d",
+      "format": "xml",
+      "bytes": 5704901
+    },
+    {
+      "id": "legacy-2011-disaster-hotel",
+      "nativeId": 150,
+      "path": "legacy/Maps released by year/2011/2011 - Disaster Hotel.rbxl.bz2",
+      "sha256": "7a86e25c9388b4a8e4edf8a280bb2b51e37e4021ce3cdf5ad2f1fad8c0359e77",
+      "format": "xml",
+      "bytes": 11913845
+    },
+    {
+      "id": "legacy-2011-domo-island-obby-tycoon",
+      "nativeId": 151,
+      "path": "legacy/Maps released by year/2011/2011 - Domo Island Obby Tycoon.rbxl.bz2",
+      "sha256": "c4f2031c4ea232f40700df32217355ad2b686bfae65e6bdacab1b8adf330d827",
+      "format": "xml",
+      "bytes": 25519039
+    },
+    {
+      "id": "legacy-2011-escape-the-flood-obby",
+      "nativeId": 152,
+      "path": "legacy/Maps released by year/2011/2011 - Escape the Flood Obby.rbxl.bz2",
+      "sha256": "c9458b044b29b536b6dca5998a59f0a626ff2aefaf825734128b5595a3dad48c",
+      "format": "xml",
+      "bytes": 8313527
+    },
+    {
+      "id": "legacy-2011-natural-disasters-survival",
+      "nativeId": 153,
+      "path": "legacy/Maps released by year/2011/2011 - Natural disasters survival.rbxl.bz2",
+      "sha256": "3c7aba0816d9c1ac61a6fd78828821f944b51085dfa0ed3b01ac3987949db396",
+      "format": "xml",
+      "bytes": 22062291
+    },
+    {
+      "id": "legacy-2011-r-u-n",
+      "nativeId": 154,
+      "path": "legacy/Maps released by year/2011/2011 - R.U.N.rbxl.bz2",
+      "sha256": "8477ff3fa81eef126f69dcbdea911e69529ce4f8395b8b9ec5c14f53d11093b1",
+      "format": "xml",
+      "bytes": 38232871
+    },
+    {
+      "id": "legacy-2011-ride-a-rocket-to-the-iss-or-moon",
+      "nativeId": 155,
+      "path": "legacy/Maps released by year/2011/2011 - Ride a rocket to the ISS or MOON!.rbxl.bz2",
+      "sha256": "e1809d2d991ea6fc709dcd75fdab07599e35496f1fa45e593b0bab06a935fcb8",
+      "format": "xml",
+      "bytes": 35171226
+    },
+    {
+      "id": "legacy-2011-storm-chasers",
+      "nativeId": 156,
+      "path": "legacy/Maps released by year/2011/2011 - Storm Chasers.rbxl.bz2",
+      "sha256": "600e76372f40cce32348c2c9c304081d7e9322dc032723783215bd89b5b1aaf3",
+      "format": "xml",
+      "bytes": 3716597
+    },
+    {
+      "id": "legacy-2011-survive-the-end-of-the-world-survive-the-end-of-roblox",
+      "nativeId": 157,
+      "path": "legacy/Maps released by year/2011/2011 - Survive The End Of The World (Survive The End Of Roblox).rbxl.bz2",
+      "sha256": "1e8a48277ca62911f1ac311427fb7acd1966ca2a3f98b629c4ceb2c5fef0c1ad",
+      "format": "xml",
+      "bytes": 12114158
+    },
+    {
+      "id": "legacy-2011-survive-the-disasters",
+      "nativeId": 158,
+      "path": "legacy/Maps released by year/2011/2011 - Survive the Disasters.rbxl.bz2",
+      "sha256": "7ab885da3f02c5ba07032529cf40d1b2512c90deffa869587e9fd99522ac07c5",
+      "format": "xml",
+      "bytes": 42283566
+    },
+    {
+      "id": "legacy-2011-sword-fight-in-the-dark",
+      "nativeId": 159,
+      "path": "legacy/Maps released by year/2011/2011 - Sword Fight in the DARK.rbxl.bz2",
+      "sha256": "d237c57b8713e20fe0f3ddf381e3faf97137a01b991dca99ed37c93b9e83ec60",
+      "format": "xml",
+      "bytes": 519113
+    },
+    {
+      "id": "legacy-2011-the-mega-fun-and-colorful-obby",
+      "nativeId": 160,
+      "path": "legacy/Maps released by year/2011/2011 - The Mega Fun and Colorful Obby!.rbxl.bz2",
+      "sha256": "47d0be150ad77c4dd8931e659185891f789dd2ddb61506aa9118958258c52390",
+      "format": "xml",
+      "bytes": 14208082
+    },
+    {
+      "id": "legacy-2012-build-to-survive-zombies",
+      "nativeId": 161,
+      "path": "legacy/Maps released by year/2012/2012 - Build To Survive Zombies.rbxl.bz2",
+      "sha256": "8384d6eca3580be7e350f5005d3586711499aec749385414dc5666811267fac6",
+      "format": "xml",
+      "bytes": 2728455
+    },
+    {
+      "id": "legacy-2012-happy-home-in-robloxia",
+      "nativeId": 162,
+      "path": "legacy/Maps released by year/2012/2012 - Happy Home In Robloxia.rbxl.bz2",
+      "sha256": "b15765915c12f6bd6c65e07c195f9aa63d9da84f5552a677ae9c68d2d0b85c4a",
+      "format": "xml",
+      "bytes": 22713113
+    },
+    {
+      "id": "legacy-2012-iron-cafe",
+      "nativeId": 163,
+      "path": "legacy/Maps released by year/2012/2012 - Iron Cafe.rbxl.bz2",
+      "sha256": "b247953673da3266eeda52fcc4e302dd3093da30966f0b0db19657f2f3cab5ab",
+      "format": "xml",
+      "bytes": 10217315
+    },
+    {
+      "id": "legacy-2012-mario-kart-roblox-dash",
+      "nativeId": 164,
+      "path": "legacy/Maps released by year/2012/2012 - Mario Kart ROBLOX Dash.rbxl.bz2",
+      "sha256": "bf83fcf67dcad6b1741006b6845185b1c99dd9fd28464c5cda706cfb1a03417d",
+      "format": "xml",
+      "bytes": 10569347
+    },
+    {
+      "id": "legacy-2012-pokemon-elemental-brawlers",
+      "nativeId": 165,
+      "path": "legacy/Maps released by year/2012/2012 - Pokemon Elemental Brawlers.rbxl.bz2",
+      "sha256": "984849304acce417e7c887b3a39234653f5b2c4690d626ef7beee0c3d16945e1",
+      "format": "xml",
+      "bytes": 39924288
+    },
+    {
+      "id": "legacy-2012-script-builder",
+      "nativeId": 166,
+      "path": "legacy/Maps released by year/2012/2012 - Script Builder.rbxl.bz2",
+      "sha256": "88fb6c961eb3c9bcb38c2196603123b68e0ef87d33fd7f9a079c7c17aef3be5b",
+      "format": "xml",
+      "bytes": 44182
+    },
+    {
+      "id": "legacy-2012-sword-fights-on-the-heights-iv",
+      "nativeId": 167,
+      "path": "legacy/Maps released by year/2012/2012 - Sword Fights on the Heights IV.rbxl.bz2",
+      "sha256": "da12064d5eeb511a1d9acd3623a384536d7b2e797f95da737a83434cc3c86e86",
+      "format": "xml",
+      "bytes": 2599919
+    },
+    {
+      "id": "legacy-2013-protect-telemon-from-zombies",
+      "nativeId": 168,
+      "path": "legacy/Maps released by year/2013/2013 - Protect Telemon from zombies.rbxl.bz2",
+      "sha256": "71c9e0fe0467cd71c5c6bfa110bb89d62d9c7887e67a338b94263feebcc9de7c",
+      "format": "xml",
+      "bytes": 12023327
+    },
+    {
+      "id": "legacy-2013-zombies-are-attacking-kfc",
+      "nativeId": 169,
+      "path": "legacy/Maps released by year/2013/2013 - Zombies Are Attacking KFC!.rbxl.bz2",
+      "sha256": "b9aa1b296d659337e9df76d1061c3c0d045fb621531f8826123917c8e23dd77d",
+      "format": "xml",
+      "bytes": 9623083
+    },
+    {
+      "id": "legacy-2014-old-cars-v1",
+      "nativeId": 170,
+      "path": "legacy/Maps released by year/2014/2014 - Old Cars v1.rbxl.bz2",
+      "sha256": "9e6a6f216c9d554faacf04fb6e012b42673b8c723bf7e664f0766fe3d7cae4b9",
+      "format": "xml",
+      "bytes": 872884
+    },
+    {
+      "id": "legacy-2015-urban-terror-brickbattle",
+      "nativeId": 171,
+      "path": "legacy/Maps released by year/2015/2015 - Urban Terror Brickbattle.rbxl.bz2",
+      "sha256": "b77bfd34ac9d87d212d753c26dee433c79bc0b99b560d317e326aca2767bdbd1",
+      "format": "xml",
+      "bytes": 16768754
+    },
+    {
+      "id": "legacy-2016-demolition-derby",
+      "nativeId": 172,
+      "path": "legacy/Maps released by year/2016/2016 - Demolition Derby.rbxl.bz2",
+      "sha256": "c85f62dc8e5ace4814f6ad7818b1c106769257e2fabd5c57aa837e977ef4833d",
+      "format": "xml",
+      "bytes": 4078811
+    },
+    {
+      "id": "legacy-2016-nobelium-town-v2",
+      "nativeId": 173,
+      "path": "legacy/Maps released by year/2016/2016 - Nobelium Town V2.rbxl.bz2",
+      "sha256": "f456c910c1759fd90ae3d5244e6adaa5c754409570aacc47cd5de29ca3c4583d",
+      "format": "xml",
+      "bytes": 18556349
+    },
+    {
+      "id": "legacy-2016-old-cars-v2",
+      "nativeId": 174,
+      "path": "legacy/Maps released by year/2016/2016 - Old Cars v2.rbxl.bz2",
+      "sha256": "cdf474d7d7715bb5a5e32e5f7c16a32323bc379bcbac202746c1cf53d9581e4b",
+      "format": "xml",
+      "bytes": 1059288
+    },
+    {
+      "id": "legacy-2016-public-graffiti",
+      "nativeId": 175,
+      "path": "legacy/Maps released by year/2016/2016 - Public Graffiti.rbxl.bz2",
+      "sha256": "4094f8b1294c8217e7e8cafd95e3838ff579c1ce09855c7f40167523aeb6936a",
+      "format": "binary",
+      "bytes": 229171
+    },
+    {
+      "id": "legacy-2017-hot-knief-fight",
+      "nativeId": 176,
+      "path": "legacy/Maps released by year/2017/2017 - Hot Knief Fight.rbxl.bz2",
+      "sha256": "ece435e7a4a1c3027b6e87649933eeff95e9b7a0c8377ccb93e124ce98132a5f",
+      "format": "xml",
+      "bytes": 4136373
+    },
+    {
+      "id": "legacy-2017-lego-s-obby",
+      "nativeId": 177,
+      "path": "legacy/Maps released by year/2017/2017 - Lego's Obby.rbxl.bz2",
+      "sha256": "2293b074563c11a2488c7479eab97552bb6ba6352898f827acf0cc01e972d2cd",
+      "format": "xml",
+      "bytes": 1894382
+    },
+    {
+      "id": "legacy-2017-lego-s-plane-wars",
+      "nativeId": 178,
+      "path": "legacy/Maps released by year/2017/2017 - Lego's Plane Wars.rbxl.bz2",
+      "sha256": "da9b23629e50a4344fd0d78cc9c2b1b60cbac2c1eb54b483437f9a1e39817c90",
+      "format": "xml",
+      "bytes": 4619211
+    },
+    {
+      "id": "legacy-2017-lego-s-tower-climb-2",
+      "nativeId": 179,
+      "path": "legacy/Maps released by year/2017/2017 - Lego's Tower Climb 2.rbxl.bz2",
+      "sha256": "ff385c0644368464e6b2bfe6af55ed8953059abac31d15d013551aac8e1c460a",
+      "format": "xml",
+      "bytes": 14541828
+    },
+    {
+      "id": "legacy-2017-old-cars-v3",
+      "nativeId": 180,
+      "path": "legacy/Maps released by year/2017/2017 - Old Cars v3.rbxl.bz2",
+      "sha256": "46ff2fd47e2e1304b05c8c5c29bf4a9f3e8eb7fd90231744b1687e5f57127bff",
+      "format": "xml",
+      "bytes": 2025292
+    },
+    {
+      "id": "legacy-2017-old-cars-v4",
+      "nativeId": 181,
+      "path": "legacy/Maps released by year/2017/2017 - Old Cars v4.rbxl.bz2",
+      "sha256": "f55e3c91a0690ae46ecc5932b4cd90bbfdfbbc1330a2daa5055ee7f75be794e7",
+      "format": "xml",
+      "bytes": 2667010
+    },
+    {
+      "id": "legacy-bitl-build-a-guy-and-more-2011",
+      "nativeId": 182,
+      "path": "legacy/Novetus Exclusives/Bitls Places/Bitl - Build a guy and more 2011.rbxl.bz2",
+      "sha256": "fb60ab4d8446cb10e043625db7ba63db995c37aeaed35c4c4e202a1d7618ae2a",
+      "format": "xml",
+      "bytes": 2118510
+    },
+    {
+      "id": "legacy-bitl-everything-obby",
+      "nativeId": 183,
+      "path": "legacy/Novetus Exclusives/Bitls Places/Bitl - Everything Obby.rbxl.bz2",
+      "sha256": "ef2937b80aa2a985058d0c0a07e2e0a711aa5e5f7ff96b2e74ddb90954d83e11",
+      "format": "xml",
+      "bytes": 13472665
+    },
+    {
+      "id": "legacy-bitl-portal-playground",
+      "nativeId": 184,
+      "path": "legacy/Novetus Exclusives/Bitls Places/Bitl - Portal Playground.rbxl.bz2",
+      "sha256": "b1d3070535fac17a5e9ff9566d0a1e861c0d5853208739ba03a89dfb5206ec8d",
+      "format": "xml",
+      "bytes": 983241
+    },
+    {
+      "id": "legacy-bitl-rise-of-the-zombies-2010",
+      "nativeId": 185,
+      "path": "legacy/Novetus Exclusives/Bitls Places/Bitl - Rise of the zombies 2010.rbxl.bz2",
+      "sha256": "502e0a505c0b9ecf66470395f7a22d3eeaa318cc1e0a4a64a5caac03e8171011",
+      "format": "xml",
+      "bytes": 3203044
+    },
+    {
+      "id": "legacy-bitl-rise-of-the-zombies-2011",
+      "nativeId": 186,
+      "path": "legacy/Novetus Exclusives/Bitls Places/Bitl - Rise of the zombies 2011.rbxl.bz2",
+      "sha256": "d5dcc82d9575a1f42dd24fd70c407ad13f32e7bb6cd1ce5b91c724debfa8c275",
+      "format": "xml",
+      "bytes": 4094860
+    },
+    {
+      "id": "legacy-bitl-spore-galactic-adventures",
+      "nativeId": 187,
+      "path": "legacy/Novetus Exclusives/Bitls Places/Bitl - SPORE Galactic Adventures.rbxl.bz2",
+      "sha256": "783f15571ac6dd87ef6030cb2fb8185a60d500da367d9f6cd15d59c45f25e151",
+      "format": "xml",
+      "bytes": 10885140
+    },
+    {
+      "id": "legacy-ironman-45-mw2",
+      "nativeId": 188,
+      "path": "legacy/Novetus Exclusives/Community Place Contests/August 2022/Ironman_45 - MW2.rbxl.bz2",
+      "sha256": "a58ed7d2f916d8b3cc1cad7d7aa7d795ec18b7e5c5e4fd53e6c703cd97105b71",
+      "format": "xml",
+      "bytes": 8886584
+    },
+    {
+      "id": "legacy-lachrymogenic-lachrys-disorderly-deathmatch",
+      "nativeId": 189,
+      "path": "legacy/Novetus Exclusives/Community Place Contests/August 2022/Lachrymogenic - Lachrys Disorderly Deathmatch.rbxl.bz2",
+      "sha256": "bc5daed00e085c15952817afe68ed33db4e8dab1d3b50ee548c2de3281afba25",
+      "format": "xml",
+      "bytes": 3676983
+    },
+    {
+      "id": "legacy-zork-and-lachrymogenic-bowlarama",
+      "nativeId": 190,
+      "path": "legacy/Novetus Exclusives/Community Place Contests/August 2022/Zork and Lachrymogenic - Bowlarama.rbxl.bz2",
+      "sha256": "925840977b444df148334ccb2a83e33f0fc9382bd12548f6062753ea6ce70fcb",
+      "format": "xml",
+      "bytes": 9220403
+    },
+    {
+      "id": "legacy-atomic-and-tobu-fi-spooking-out",
+      "nativeId": 191,
+      "path": "legacy/Novetus Exclusives/Community Place Contests/Halloween 2022/Atomic and tobu.fi - Spooking Out.rbxl.bz2",
+      "sha256": "389a2a3011d80a31570409324471b5c1b54650d1d67a6d0ab721afa44b1e7ee5",
+      "format": "xml",
+      "bytes": 9287415
+    },
+    {
+      "id": "legacy-zork-and-tobu-fi-explosive-xmas",
+      "nativeId": 192,
+      "path": "legacy/Novetus Exclusives/Community Place Contests/Holiday 2022/Zork and tobu.fi - Explosive Xmas.rbxl.bz2",
+      "sha256": "e16a3350c715dd25ad6c3d7d6578641dc1816c471abd27498c5fcc9657b3aac9",
+      "format": "xml",
+      "bytes": 14521459
+    },
+    {
+      "id": "legacy-crossroads-evolved",
+      "nativeId": 193,
+      "path": "legacy/Novetus Exclusives/Crossroads Evolved/Crossroads Evolved.rbxl.bz2",
+      "sha256": "92ee8ac49192ff14703fe1d803d7b232ee064c173885b7666a30888c6833c6ef",
+      "format": "xml",
+      "bytes": 8232121
+    },
+    {
+      "id": "legacy-bitl-s-roblox-shootout-2-ffa",
+      "nativeId": 194,
+      "path": "legacy/Novetus Exclusives/ROBLOX Shootout 2/Bitl's ROBLOX Shootout 2 FFA.rbxl.bz2",
+      "sha256": "225e3ade3e0480de02d9b6608e7f0aa79c736388bd5d22a05bf33cd54ffebbf6",
+      "format": "xml",
+      "bytes": 13572826
+    },
+    {
+      "id": "legacy-bitl-s-roblox-shootout-2",
+      "nativeId": 195,
+      "path": "legacy/Novetus Exclusives/ROBLOX Shootout 2/Bitl's ROBLOX Shootout 2.rbxl.bz2",
+      "sha256": "1ae108254f73dd6ac70270549791a58684df684d5f28342fa12fb9a395647b10",
+      "format": "xml",
+      "bytes": 13567527
+    },
+    {
+      "id": "legacy-dev-rise-of-the-killbots-template-level",
+      "nativeId": 196,
+      "path": "legacy/Novetus Exclusives/Rise of the Killbots/Dev/Dev - Rise of the Killbots Template Level.rbxl.bz2",
+      "sha256": "ac892e8709dc894614487227755b830b7bce86ac5628f1eee4a1deb0419f7e4b",
+      "format": "xml",
+      "bytes": 98597
+    },
+    {
+      "id": "legacy-rise-of-the-killbots-baseplate",
+      "nativeId": 197,
+      "path": "legacy/Novetus Exclusives/Rise of the Killbots/Rise of the Killbots - Baseplate.rbxl.bz2",
+      "sha256": "bcdfb2f2d7a012cc9e45fdb561944ff87b187e0003b54ae0e32ff4eaf5b97b02",
+      "format": "xml",
+      "bytes": 100636
+    },
+    {
+      "id": "legacy-rise-of-the-killbots-bitl-s-roblox-shootout-2",
+      "nativeId": 198,
+      "path": "legacy/Novetus Exclusives/Rise of the Killbots/Rise of the Killbots - Bitl's ROBLOX Shootout 2.rbxl.bz2",
+      "sha256": "b1b8f056af97671cfc845a387ca8b63d2a4c8853be9aa378f389481f7c225ab7",
+      "format": "xml",
+      "bytes": 13050049
+    },
+    {
+      "id": "legacy-rise-of-the-killbots-chaos-canyon",
+      "nativeId": 199,
+      "path": "legacy/Novetus Exclusives/Rise of the Killbots/Rise of the Killbots - Chaos Canyon.rbxl.bz2",
+      "sha256": "c79064306edc07d665c50c07ca5beeeafb8e745b12cd125040f2832a397f4513",
+      "format": "xml",
+      "bytes": 4448378
+    },
+    {
+      "id": "legacy-rise-of-the-killbots-crossroads",
+      "nativeId": 200,
+      "path": "legacy/Novetus Exclusives/Rise of the Killbots/Rise of the Killbots - Crossroads.rbxl.bz2",
+      "sha256": "0b3832cc3607d0a071a424f7a09fbdac9f98bd85ffb5e30dea57ca04c676daec",
+      "format": "xml",
+      "bytes": 4417839
+    },
+    {
+      "id": "legacy-rise-of-the-killbots-glass-houses",
+      "nativeId": 201,
+      "path": "legacy/Novetus Exclusives/Rise of the Killbots/Rise of the Killbots - Glass Houses.rbxl.bz2",
+      "sha256": "30fb163ad3b9e5a5eb1b4646eef9cc751bc5d7bd3beaa29430d255af3d242178",
+      "format": "xml",
+      "bytes": 6755264
+    },
+    {
+      "id": "legacy-rise-of-the-killbots-haunted-mansion",
+      "nativeId": 202,
+      "path": "legacy/Novetus Exclusives/Rise of the Killbots/Rise of the Killbots - Haunted Mansion.rbxl.bz2",
+      "sha256": "90f1e3aa38c9601514dfb71973760ba95a9d545c041b089d483c1b736c42637e",
+      "format": "xml",
+      "bytes": 6674994
+    },
+    {
+      "id": "legacy-rise-of-the-killbots-roblox-hq-2007",
+      "nativeId": 203,
+      "path": "legacy/Novetus Exclusives/Rise of the Killbots/Rise of the Killbots - ROBLOX HQ 2007.rbxl.bz2",
+      "sha256": "7dd4a8ee63946063c251e97c1ac9c0f1d04a33ce7dbb77e79ca3e9d8f20ad77c",
+      "format": "xml",
+      "bytes": 11853623
+    },
+    {
+      "id": "legacy-rise-of-the-killbots-rocket-arena",
+      "nativeId": 204,
+      "path": "legacy/Novetus Exclusives/Rise of the Killbots/Rise of the Killbots - Rocket Arena.rbxl.bz2",
+      "sha256": "5f897c8641297a1e8f003f5586a563a553a7d4cff18021cb9d464cd96d1dc875",
+      "format": "xml",
+      "bytes": 4444431
+    },
+    {
+      "id": "legacy-rise-of-the-killbots-sword-fights-on-the-heights-iv",
+      "nativeId": 205,
+      "path": "legacy/Novetus Exclusives/Rise of the Killbots/Rise of the Killbots - Sword Fights On The Heights IV.rbxl.bz2",
+      "sha256": "2fcf2d12d13c3dd805650393587d85126424daa4f74d3f9c0703accef00e8bfa",
+      "format": "xml",
+      "bytes": 2841080
+    },
+    {
+      "id": "legacy-rise-of-the-killbots-timmy-and-the-killbots",
+      "nativeId": 206,
+      "path": "legacy/Novetus Exclusives/Rise of the Killbots/Rise of the Killbots - Timmy and the Killbots.rbxl.bz2",
+      "sha256": "23f98f2d871db71f7e0a8705ac85ef8748fdc375fc39b5fa765f7c5fa57ccc7f",
+      "format": "xml",
+      "bytes": 2524649
+    },
+    {
+      "id": "legacy-universal-2006-crossroads",
+      "nativeId": 207,
+      "path": "legacy/Universal/Optimized for 2006/Universal - 2006 Crossroads.rbxl.bz2",
+      "sha256": "7d5ea4ec3adb4e844bae9b81c46aa2bb2b1f1bbd587270ff130d5075859d5399",
+      "format": "xml",
+      "bytes": 4519189
+    },
+    {
+      "id": "legacy-universal-2006-pirate-ship",
+      "nativeId": 208,
+      "path": "legacy/Universal/Optimized for 2006/Universal - 2006 Pirate Ship.rbxl.bz2",
+      "sha256": "76dcbe30789614fa33247adf650024c1be9a5e5b40ed1b3e9c4bb09fde8ab02e",
+      "format": "xml",
+      "bytes": 2283141
+    },
+    {
+      "id": "legacy-universal-2006-roblox-hq-replica",
+      "nativeId": 209,
+      "path": "legacy/Universal/Optimized for 2006/Universal - 2006 ROBLOX HQ Replica.rbxl.bz2",
+      "sha256": "f3aa31f0a7ae89427e51b5f5a1c83fbbcd62621d38c0d47d93ad2ac382fb1627",
+      "format": "xml",
+      "bytes": 12359453
+    },
+    {
+      "id": "legacy-universal-2006-santa-s-winter-stronghold",
+      "nativeId": 210,
+      "path": "legacy/Universal/Optimized for 2006/Universal - 2006 Santa's Winter Stronghold.rbxl.bz2",
+      "sha256": "fe3d9c67eff72c7960f9d5a21ac962ba9bf1ada1bc10b172c4517039f6c8822f",
+      "format": "xml",
+      "bytes": 8670643
+    },
+    {
+      "id": "legacy-universal-2006-starter-place-2",
+      "nativeId": 211,
+      "path": "legacy/Universal/Optimized for 2006/Universal - 2006 Starter Place 2.rbxl.bz2",
+      "sha256": "8d2746e3eafa281323fe81ab52a19bd60b6ca1abe51087733c3669d11e83c14e",
+      "format": "xml",
+      "bytes": 396165
+    },
+    {
+      "id": "legacy-universal-2006-starter-place",
+      "nativeId": 212,
+      "path": "legacy/Universal/Optimized for 2006/Universal - 2006 Starter Place.rbxl.bz2",
+      "sha256": "74056d3a1fa8d099b892eb653307bd71161801002dd25e46e88623a24868822a",
+      "format": "xml",
+      "bytes": 136166
+    },
+    {
+      "id": "legacy-universal-2007-roblox-hq",
+      "nativeId": 213,
+      "path": "legacy/Universal/Optimized for 2007/Universal - 2007 ROBLOX HQ.rbxl.bz2",
+      "sha256": "0ff361151fb4a617106c2d2bf1640ccf34c72f173e6a5f4ece904fb88fa1bb6f",
+      "format": "xml",
+      "bytes": 12782229
+    },
+    {
+      "id": "legacy-universal-doomspire-and-towers-2007",
+      "nativeId": 214,
+      "path": "legacy/Universal/Optimized for 2007/Universal - DoomSpire and Towers 2007.rbxl.bz2",
+      "sha256": "f263230ce55f942aede560f61f57029e24e12a8f5ab729a2efd7d3f126e45c76",
+      "format": "xml",
+      "bytes": 2913430
+    },
+    {
+      "id": "legacy-universal-roblox-bowling-2007",
+      "nativeId": 215,
+      "path": "legacy/Universal/Optimized for 2007/Universal - ROBLOX Bowling 2007.rbxl.bz2",
+      "sha256": "e09e367ffb2d142f0946cee2efd6f80c4f03e4bf44f49f1385512fb0754f5451",
+      "format": "xml",
+      "bytes": 8814241
+    },
+    {
+      "id": "legacy-universal-script-builder-2007",
+      "nativeId": 216,
+      "path": "legacy/Universal/Optimized for 2007/Universal - Script Builder 2007.rbxl.bz2",
+      "sha256": "745165ff8037a3f230452fbdde3dfc78349f8bfc862fa40a73d7c5a101bdfe09",
+      "format": "xml",
+      "bytes": 95000
+    },
+    {
+      "id": "legacy-universal-2008-grow-a-brick",
+      "nativeId": 217,
+      "path": "legacy/Universal/Optimized for 2008/Universal - 2008 Grow a Brick.rbxl.bz2",
+      "sha256": "7fa44ec1b7820faf1724e87ae4668f7544d6ea2070bd55ecc15ea09a3f87f4f9",
+      "format": "xml",
+      "bytes": 726312
+    },
+    {
+      "id": "legacy-universal-2008-rotris",
+      "nativeId": 218,
+      "path": "legacy/Universal/Optimized for 2008/Universal - 2008 ROtris.rbxl.bz2",
+      "sha256": "e37c48adae6133d813f253804cbcdcd3b6f405698f4b12b1307774e66fa997b8",
+      "format": "xml",
+      "bytes": 194722
+    },
+    {
+      "id": "legacy-universal-2008-roblox-hq-2-0",
+      "nativeId": 219,
+      "path": "legacy/Universal/Optimized for 2008/Universal - 2008 Roblox HQ 2.0.rbxl.bz2",
+      "sha256": "9deb23d287b663654980ad084428fa506b3ff59f74c07623ac091afc4837a8ed",
+      "format": "xml",
+      "bytes": 14892275
+    },
+    {
+      "id": "legacy-universal-2008-the-undead-coming-v1-2",
+      "nativeId": 220,
+      "path": "legacy/Universal/Optimized for 2008/Universal - 2008 The Undead Coming v1.2.rbxl.bz2",
+      "sha256": "328109d67e06159a28cb05ed1df00ea26f6ed1d8ca8b59760e842bd9ed1c0143",
+      "format": "xml",
+      "bytes": 757645
+    },
+    {
+      "id": "legacy-universal-roblox-bowling-2008",
+      "nativeId": 221,
+      "path": "legacy/Universal/Optimized for 2008/Universal - ROBLOX Bowling 2008.rbxl.bz2",
+      "sha256": "391a272b1e9c3cb503acc15e82c73c9527516a03e6deb0b025268cd85be75010",
+      "format": "xml",
+      "bytes": 11011529
+    },
+    {
+      "id": "legacy-universal-work-at-a-pizza-place-2008",
+      "nativeId": 222,
+      "path": "legacy/Universal/Optimized for 2008/Universal - Work At a Pizza Place 2008.rbxl.bz2",
+      "sha256": "9b54a757283295be73c1ab4c57e520b29ca143118ea3d430b441105b02a4227d",
+      "format": "xml",
+      "bytes": 20359998
+    },
+    {
+      "id": "legacy-universal-2009-fall-down-the-stairs-xmas-version",
+      "nativeId": 223,
+      "path": "legacy/Universal/Optimized for 2009/Universal - 2009 Fall Down the Stairs XMAS VERSION.rbxl.bz2",
+      "sha256": "ffe39dde02198360a7690d7298de51959bb4ccfc27735b42ea07e7882b167035",
+      "format": "xml",
+      "bytes": 2531186
+    },
+    {
+      "id": "legacy-universal-2009-iron-cafe",
+      "nativeId": 224,
+      "path": "legacy/Universal/Optimized for 2009/Universal - 2009 Iron Cafe.rbxl.bz2",
+      "sha256": "9a09a6b008a7d0074af873ccf0f611d8b7bdeacab5d7d7aed79392848ac6b255",
+      "format": "xml",
+      "bytes": 5116021
+    },
+    {
+      "id": "legacy-universal-2010-roblox-arcade",
+      "nativeId": 225,
+      "path": "legacy/Universal/Optimized for 2010/Universal - 2010 ROBLOX Arcade.rbxl.bz2",
+      "sha256": "21080aa0793f3e0286e37449b02bf5205bf16e698cca853ae7fd253644637b14",
+      "format": "xml",
+      "bytes": 17435404
+    },
+    {
+      "id": "legacy-universal-2010-robloxs-skate-park",
+      "nativeId": 226,
+      "path": "legacy/Universal/Optimized for 2010/Universal - 2010 ROBLOXs Skate Park.rbxl.bz2",
+      "sha256": "06553df9824d83f12023d0f35f1508adb7db8aab1c7c04f531c9ef348789cf68",
+      "format": "xml",
+      "bytes": 11976615
+    },
+    {
+      "id": "legacy-universal-doomspire-and-towers-2010",
+      "nativeId": 227,
+      "path": "legacy/Universal/Optimized for 2010/Universal - DoomSpire and Towers 2010.rbxl.bz2",
+      "sha256": "2f90c3b0dec941ab0571793b68d5329adec26bd318741ee0f8591e79bf6fc8b7",
+      "format": "xml",
+      "bytes": 11165567
+    },
+    {
+      "id": "legacy-universal-roblox-test-place-2010",
+      "nativeId": 228,
+      "path": "legacy/Universal/Optimized for 2010/Universal - ROBLOX Test Place 2010.rbxl.bz2",
+      "sha256": "1e82c91710e3009c1c85cfad852edd2a34099c001c003b37f59db04fe7615c18",
+      "format": "xml",
+      "bytes": 105726
+    },
+    {
+      "id": "legacy-universal-script-builder-2010",
+      "nativeId": 229,
+      "path": "legacy/Universal/Optimized for 2010/Universal - Script Builder 2010.rbxl.bz2",
+      "sha256": "80bda66ff7d5e5938c720ee91fe95a424e5a37211701780fd8fcde84828f3235",
+      "format": "xml",
+      "bytes": 24627
+    },
+    {
+      "id": "legacy-universal-work-at-a-pizza-place-2010",
+      "nativeId": 230,
+      "path": "legacy/Universal/Optimized for 2010/Universal - Work at a Pizza Place 2010.rbxl.bz2",
+      "sha256": "77fe63916e1663e42c23712694b50149367861e07fbbc6ac496305229851e5f6",
+      "format": "xml",
+      "bytes": 20278007
+    },
+    {
+      "id": "legacy-universal-2012-script-builder",
+      "nativeId": 231,
+      "path": "legacy/Universal/Optimized for 2011 and above/Universal - 2012 Script Builder.rbxl.bz2",
+      "sha256": "ac877a5c5223f8e6f0307cc283e8e49d002d1d234b12bd178d487a9bf7c85ddd",
+      "format": "xml",
+      "bytes": 41109
+    },
+    {
+      "id": "legacy-universal-build-your-own-game",
+      "nativeId": 232,
+      "path": "legacy/Universal/Optimized for most clients/Universal - Build Your Own Game.rbxl.bz2",
+      "sha256": "45ef03a4afd897357034d71b63c09a17932a2fffe25f05a3f719144a75b11507",
+      "format": "xml",
+      "bytes": 1372273
+    },
+    {
+      "id": "legacy-universal-chaos-canyon",
+      "nativeId": 233,
+      "path": "legacy/Universal/Optimized for most clients/Universal - Chaos Canyon.rbxl.bz2",
+      "sha256": "4c650c195d4754d5e272350498026326e73f4a13b87a8e9affcd47772f3fea75",
+      "format": "xml",
+      "bytes": 4523134
+    },
+    {
+      "id": "legacy-universal-community-construction-extended",
+      "nativeId": 234,
+      "path": "legacy/Universal/Optimized for most clients/Universal - Community Construction Extended.rbxl.bz2",
+      "sha256": "4e0d603aeb20eff1676d5e8e04286b1f59da8ee8eb41d5e432713ddc87d7f50b",
+      "format": "xml",
+      "bytes": 6187360
+    },
+    {
+      "id": "legacy-universal-community-construction",
+      "nativeId": 235,
+      "path": "legacy/Universal/Optimized for most clients/Universal - Community Construction.rbxl.bz2",
+      "sha256": "abcae5bfec1be0baaf1f40e4ba9f2d315f4d3603ad10cd5808a74e18692b8b85",
+      "format": "xml",
+      "bytes": 5978498
+    },
+    {
+      "id": "legacy-universal-crossroads",
+      "nativeId": 236,
+      "path": "legacy/Universal/Optimized for most clients/Universal - Crossroads.rbxl.bz2",
+      "sha256": "88932021d91e90ee2d56674fc30e41807e8ac12a357304e4e26a0b0b881f63b8",
+      "format": "xml",
+      "bytes": 4295579
+    },
+    {
+      "id": "legacy-universal-dodge-the-teapots-of-doom",
+      "nativeId": 237,
+      "path": "legacy/Universal/Optimized for most clients/Universal - Dodge the Teapots of Doom.rbxl.bz2",
+      "sha256": "a23dee3768cc476137571e3542bf6a736316b1489138f87a09db78af0c75efbf",
+      "format": "xml",
+      "bytes": 125749
+    },
+    {
+      "id": "legacy-universal-get-crushed-by-a-speeding-wall-2013",
+      "nativeId": 238,
+      "path": "legacy/Universal/Optimized for most clients/Universal - Get Crushed by a Speeding Wall 2013!.rbxl.bz2",
+      "sha256": "3fe86a000a23cd78fcdeb5b9304bcc6654f85686f2040357b19eff2358921fd7",
+      "format": "xml",
+      "bytes": 562744
+    },
+    {
+      "id": "legacy-universal-glass-houses",
+      "nativeId": 239,
+      "path": "legacy/Universal/Optimized for most clients/Universal - Glass Houses.rbxl.bz2",
+      "sha256": "f51b0c59a23009cc7c46a7e68c142e0e47854420bd36dedc3f7a260bb3280a68",
+      "format": "xml",
+      "bytes": 8486168
+    },
+    {
+      "id": "legacy-universal-happy-home-in-robloxia",
+      "nativeId": 240,
+      "path": "legacy/Universal/Optimized for most clients/Universal - Happy Home In Robloxia.rbxl.bz2",
+      "sha256": "c42ebc34548f0173871869e6732ba39e842052d61f17658c9b10fdfe14fbf628",
+      "format": "xml",
+      "bytes": 3731643
+    },
+    {
+      "id": "legacy-universal-haunted-mansion",
+      "nativeId": 241,
+      "path": "legacy/Universal/Optimized for most clients/Universal - Haunted Mansion.rbxl.bz2",
+      "sha256": "6fb9af0ab35b2547a9fa52bba2186aa6b4e7239880411c0b7fd3cbad68ffb815",
+      "format": "xml",
+      "bytes": 6770523
+    },
+    {
+      "id": "legacy-universal-mustafar",
+      "nativeId": 242,
+      "path": "legacy/Universal/Optimized for most clients/Universal - Mustafar.rbxl.bz2",
+      "sha256": "52de13408b910ad4fab074c541fa1786e075538059b2d0db92066d2e17a5908d",
+      "format": "xml",
+      "bytes": 1304572
+    },
+    {
+      "id": "legacy-universal-nuke-the-whales",
+      "nativeId": 243,
+      "path": "legacy/Universal/Optimized for most clients/Universal - Nuke the Whales!.rbxl.bz2",
+      "sha256": "e35963481bbc2687ce27de3e53d1e50e3a758a5719bf92e456022d969c67ab6c",
+      "format": "xml",
+      "bytes": 1294485
+    },
+    {
+      "id": "legacy-universal-person299s-minigames",
+      "nativeId": 244,
+      "path": "legacy/Universal/Optimized for most clients/Universal - Person299s Minigames.rbxl.bz2",
+      "sha256": "6f16dbfd528e3110ab309b88274846564e2754319da377d6c5a106fa820a87ce",
+      "format": "xml",
+      "bytes": 6515192
+    },
+    {
+      "id": "legacy-universal-roblox-hq",
+      "nativeId": 245,
+      "path": "legacy/Universal/Optimized for most clients/Universal - ROBLOX HQ.rbxl.bz2",
+      "sha256": "7e99ab8aa7e5fe60cf65c0728801251c905ce72df6da9ba1d37c888848f3181e",
+      "format": "xml",
+      "bytes": 11592436
+    },
+    {
+      "id": "legacy-universal-rocket-arena",
+      "nativeId": 246,
+      "path": "legacy/Universal/Optimized for most clients/Universal - Rocket Arena.rbxl.bz2",
+      "sha256": "393f593be7eaf98ff4582087a405ba4d6628eda1d6b4ebf1e455d99d94ba00f7",
+      "format": "xml",
+      "bytes": 4651856
+    },
+    {
+      "id": "legacy-universal-stairway-to-heaven",
+      "nativeId": 247,
+      "path": "legacy/Universal/Optimized for most clients/Universal - Stairway to Heaven.rbxl.bz2",
+      "sha256": "49c3a86660a7989533b0206a9b05c48b8545609dcf7a74389c05a4e94f3d8ee7",
+      "format": "xml",
+      "bytes": 11557844
+    },
+    {
+      "id": "legacy-universal-stealth-pilots-crane-trouble",
+      "nativeId": 248,
+      "path": "legacy/Universal/Optimized for most clients/Universal - Stealth Pilots Crane Trouble.rbxl.bz2",
+      "sha256": "4f20d51de286e491db1a4ec216f81b1acba8b736c1dc62431e6adb230b32a078",
+      "format": "xml",
+      "bytes": 546244
+    },
+    {
+      "id": "legacy-universal-stealth-pilots-hovertank-arena-2-0",
+      "nativeId": 249,
+      "path": "legacy/Universal/Optimized for most clients/Universal - Stealth Pilots HoverTank Arena 2.0.rbxl.bz2",
+      "sha256": "76e550fbe4da76e626a7c37c8401fd9a28c4d401aa20623d73722c30a146c461",
+      "format": "xml",
+      "bytes": 1873227
+    },
+    {
+      "id": "legacy-universal-stealth-pilots-rock-raiders",
+      "nativeId": 250,
+      "path": "legacy/Universal/Optimized for most clients/Universal - Stealth Pilots Rock Raiders.rbxl.bz2",
+      "sha256": "3766735652951a8dab2d0aa022ce321439375cb40b708ff1164941be9b9cdc28",
+      "format": "xml",
+      "bytes": 5234641
+    },
+    {
+      "id": "legacy-universal-stealth-pilots-war-of-the-worlds-mayhem",
+      "nativeId": 251,
+      "path": "legacy/Universal/Optimized for most clients/Universal - Stealth Pilots War of the worlds mayhem.rbxl.bz2",
+      "sha256": "d029549cab7a8e09533da375dedd6c853e3598360367295062f9765c826fc2f1",
+      "format": "xml",
+      "bytes": 152283
+    },
+    {
+      "id": "legacy-universal-sunset-plains",
+      "nativeId": 252,
+      "path": "legacy/Universal/Optimized for most clients/Universal - Sunset Plains.rbxl.bz2",
+      "sha256": "22b0e6d212a9ae85304b97daa6f8d8023a5729751c1a1af419f849ce25777010",
+      "format": "xml",
+      "bytes": 5591892
+    },
+    {
+      "id": "legacy-universal-sword-fight-on-the-heights-ii",
+      "nativeId": 253,
+      "path": "legacy/Universal/Optimized for most clients/Universal - Sword Fight on The Heights II.rbxl.bz2",
+      "sha256": "18c57d0a53dde77750e740ae6231adfaadd490901b0a0c5db6aa31cda5017f0b",
+      "format": "xml",
+      "bytes": 1406775
+    },
+    {
+      "id": "legacy-universal-sword-fight-on-the-heights-iii",
+      "nativeId": 254,
+      "path": "legacy/Universal/Optimized for most clients/Universal - Sword Fight on The Heights III.rbxl.bz2",
+      "sha256": "63b36e0f351646df8a5e0775a083bfcd4a17d195d661e44447c15c3efdd35175",
+      "format": "xml",
+      "bytes": 1958987
+    },
+    {
+      "id": "legacy-universal-sword-fight-on-the-heights-iv",
+      "nativeId": 255,
+      "path": "legacy/Universal/Optimized for most clients/Universal - Sword Fight on The Heights IV.rbxl.bz2",
+      "sha256": "a258e028a4b96feaeaa35ac2a3f68f4b976861a96aa70b4d14f647d870b647fc",
+      "format": "xml",
+      "bytes": 2720987
+    },
+    {
+      "id": "legacy-universal-sword-fight-on-the-heights-i",
+      "nativeId": 256,
+      "path": "legacy/Universal/Optimized for most clients/Universal - Sword Fight on the Heights I.rbxl.bz2",
+      "sha256": "836e6f139bf078c9444e1aae75b0c9cfbdb87881972db2b5279f819346af93ac",
+      "format": "xml",
+      "bytes": 548844
+    },
+    {
+      "id": "legacy-universal-thrillville",
+      "nativeId": 257,
+      "path": "legacy/Universal/Optimized for most clients/Universal - ThrillVille.rbxl.bz2",
+      "sha256": "4c7c6d4b6470e064a4404be196585b48fd2c32e2c31079ba02173d12691f1c8b",
+      "format": "xml",
+      "bytes": 16190491
+    },
+    {
+      "id": "legacy-universal-timmy-and-the-killbots",
+      "nativeId": 258,
+      "path": "legacy/Universal/Optimized for most clients/Universal - Timmy and the Killbots.rbxl.bz2",
+      "sha256": "97e928f186ba734eb16a9c29f4e4674da188e4ce8cb610b24f4caddc88763d04",
+      "format": "xml",
+      "bytes": 2514792
+    },
+    {
+      "id": "legacy-universal-ultimate-build",
+      "nativeId": 259,
+      "path": "legacy/Universal/Optimized for most clients/Universal - Ultimate Build.rbxl.bz2",
+      "sha256": "0035e9212cd55d9a8fd3e45d7fb875ce1b62389b64a080e743647ee531fbcfcf",
+      "format": "xml",
+      "bytes": 5608768
+    },
+    {
+      "id": "legacy-universal-ultimate-paintball",
+      "nativeId": 260,
+      "path": "legacy/Universal/Optimized for most clients/Universal - Ultimate Paintball.rbxl.bz2",
+      "sha256": "d0821689e66d9d1861980d44eb9abf8c9828485f39e3be8d2552c052e546e7f3",
+      "format": "xml",
+      "bytes": 2225444
+    },
+    {
+      "id": "legacy-universal-welcome-to-roblox",
+      "nativeId": 261,
+      "path": "legacy/Universal/Optimized for most clients/Universal - Welcome to ROBLOX.rbxl.bz2",
+      "sha256": "8ca03c15a2b8b1b7d54db4623cb18f913ada72393808b5516ed3bbef3d86b6db",
+      "format": "xml",
+      "bytes": 3294962
+    },
+    {
+      "id": "legacy-universal-yoricks-resting-place",
+      "nativeId": 262,
+      "path": "legacy/Universal/Optimized for most clients/Universal - Yoricks Resting Place.rbxl.bz2",
+      "sha256": "fb39b4bee89f67369cd52089e003facf7ea9bf8fd9e1b7724287fdf08f3ba49c",
+      "format": "xml",
+      "bytes": 8032000
+    },
+    {
+      "id": "2006e-bulding-room",
+      "nativeId": 263,
+      "path": "maps/2006/2006E/2006E - Bulding Room.rbxl.bz2",
+      "sha256": "f2a5f191de6142ab1c14266ce8507b34a4348f63c2417d4e805375ff5c14ce19",
+      "format": "xml",
+      "bytes": 746457
+    },
+    {
+      "id": "2006e-room-environment",
+      "nativeId": 264,
+      "path": "maps/2006/2006E/2006E - room_environment.rbxl.bz2",
+      "sha256": "5dcfbe40c502da2168bd1b66045a62db2a64b9a18662986ef8360f2d02f5657a",
+      "format": "xml",
+      "bytes": 130008
+    },
+    {
+      "id": "2006l-chaos-canyon",
+      "nativeId": 265,
+      "path": "maps/2006/2006L/2006L - Chaos Canyon.rbxl.bz2",
+      "sha256": "032fcbcdef6a55b16b5b652080fd38499e9dcbedc75b686a7a9c01cbda4cb82c",
+      "format": "xml",
+      "bytes": 4641776
+    },
+    {
+      "id": "2006l-community-construction-site",
+      "nativeId": 266,
+      "path": "maps/2006/2006L/2006L - Community Construction Site.rbxl.bz2",
+      "sha256": "8f8df7f9ba244662e3c672bd65fd2f8ff08ac2eeae06e78e2d0989774c136932",
+      "format": "xml",
+      "bytes": 6216786
+    },
+    {
+      "id": "2006l-grey-city",
+      "nativeId": 267,
+      "path": "maps/2006/2006L/2006L - Grey City.rbxl.bz2",
+      "sha256": "66fb1111f28ebd457e14407ee8fac99582c7aac2402b269222cc54e051e9deee",
+      "format": "xml",
+      "bytes": 16358503
+    },
+    {
+      "id": "2006l-haunted-mansion",
+      "nativeId": 268,
+      "path": "maps/2006/2006L/2006L - Haunted Mansion.rbxl.bz2",
+      "sha256": "5ba29fa1033730951409b7c9da1295324540cb471b1d574e0d4c12f37a63a87f",
+      "format": "xml",
+      "bytes": 7157343
+    },
+    {
+      "id": "2006l-pirate-ship",
+      "nativeId": 269,
+      "path": "maps/2006/2006L/2006L - Pirate Ship.rbxl.bz2",
+      "sha256": "9794522fb84356465a7da5b3dd25f66717870bfedc8bd8259b4792fd3e86a1a8",
+      "format": "xml",
+      "bytes": 2479375
+    },
+    {
+      "id": "2006l-roblox-world-headquarters-replica",
+      "nativeId": 270,
+      "path": "maps/2006/2006L/2006L - ROBLOX World Headquarters (Replica).rbxl.bz2",
+      "sha256": "c1650ffaa8d181b95c9fd98894ad11543982df548599494bbfb6508b52cebd6a",
+      "format": "xml",
+      "bytes": 12359428
+    },
+    {
+      "id": "2006l-santa-s-winter-stronghold",
+      "nativeId": 271,
+      "path": "maps/2006/2006L/2006L - Santa's Winter Stronghold.rbxl.bz2",
+      "sha256": "e4ab064455abccccd13c17fc2b91a3f2df8ec6b494b2d2074d109f99c3b465c0",
+      "format": "xml",
+      "bytes": 8924231
+    },
+    {
+      "id": "2006m-crossroads",
+      "nativeId": 272,
+      "path": "maps/2006/2006M/2006M - Crossroads.rbxl.bz2",
+      "sha256": "28e8c497496cbe3282824443545ac1072d09dc32ca90971bed9e8ecaa8351f31",
+      "format": "xml",
+      "bytes": 3156462
+    },
+    {
+      "id": "2006m-stairway-to-heaven",
+      "nativeId": 273,
+      "path": "maps/2006/2006M/2006M - Stairway to Heaven.rbxl.bz2",
+      "sha256": "a2d72c07db4bb923bfdc7963f7576065f21b5980a1c9f4cc209ade1d6d079e46",
+      "format": "xml",
+      "bytes": 10425850
+    },
+    {
+      "id": "2007e-roblox-world-headquarters",
+      "nativeId": 274,
+      "path": "maps/2007/2007E/2007E - ROBLOX World Headquarters.rbxl.bz2",
+      "sha256": "a79769ab9d6036f98a95857cda876e9673a08d3b01e7191c3c1de539c856edde",
+      "format": "xml",
+      "bytes": 12319587
+    },
+    {
+      "id": "2007e-rocketship-rally",
+      "nativeId": 275,
+      "path": "maps/2007/2007E/2007E - Rocketship Rally!.rbxl.bz2",
+      "sha256": "fffc9e7656ab8b98af1274edc49ab3a878e2d4bbd70da7079bc771bb66ed0fbf",
+      "format": "xml",
+      "bytes": 1656254
+    },
+    {
+      "id": "2007l-be-crushed-by-a-speeding-wall",
+      "nativeId": 276,
+      "path": "maps/2007/2007L/2007L - BE CRUSHED BY A SPEEDING WALL.rbxl.bz2",
+      "sha256": "ccf24545a278ad19294971f8cf14a83632e97542bbf0bce4a79257969218a2d6",
+      "format": "xml",
+      "bytes": 311167
+    },
+    {
+      "id": "2007l-dodge-the-teapots-of-doom",
+      "nativeId": 277,
+      "path": "maps/2007/2007L/2007L - Dodge The Teapots of Doom!.rbxl.bz2",
+      "sha256": "de10ba0767594f84e1e1793efce4d04b571d7c99b9becd504957b2bf3ba4017c",
+      "format": "xml",
+      "bytes": 179815
+    },
+    {
+      "id": "2007l-thrillville-park-theme-park-v3-99-8",
+      "nativeId": 278,
+      "path": "maps/2007/2007L/2007L - Thrillville park (theme park!) V3.99-8.rbxl.bz2",
+      "sha256": "60d8505e26562040c4c51154a8d91e5c02c3b76def3b6c9cd16299c5f781d132",
+      "format": "xml",
+      "bytes": 28642199
+    },
+    {
+      "id": "2007m-happy-home-in-robloxia",
+      "nativeId": 279,
+      "path": "maps/2007/2007M/2007M -  Happy Home in Robloxia.rbxl.bz2",
+      "sha256": "46ae3bf64f29356200725baabff88c7d54c03ad646d21c7f5a7fa4317abd2d53",
+      "format": "xml",
+      "bytes": 4947825
+    },
+    {
+      "id": "2007m-glass-houses",
+      "nativeId": 280,
+      "path": "maps/2007/2007M/2007M - Glass Houses.rbxl.bz2",
+      "sha256": "23e1eb875eb541566de842b9245d875042f8af8d4c379454ddf4c70b70c6b92d",
+      "format": "xml",
+      "bytes": 7455331
+    },
+    {
+      "id": "2007m-minigame-world-0-75",
+      "nativeId": 281,
+      "path": "maps/2007/2007M/2007M - Minigame World 0.75.rbxl.bz2",
+      "sha256": "6cd1409609ad4eb656f26476923ec6d0fca3d76e3a3b2c21148a0e42195e7545",
+      "format": "xml",
+      "bytes": 2187851
+    },
+    {
+      "id": "2007m-mustafar",
+      "nativeId": 282,
+      "path": "maps/2007/2007M/2007M - Mustafar.rbxl.bz2",
+      "sha256": "3a61bc62288c36ba5b1e89a7c26f58a4f91dbe2d64f1dabf9886c7c0d86f70fb",
+      "format": "xml",
+      "bytes": 765837
+    },
+    {
+      "id": "2007m-roblox-world-headquarters",
+      "nativeId": 283,
+      "path": "maps/2007/2007M/2007M - ROBLOX World Headquarters.rbxl.bz2",
+      "sha256": "77be317e5f90c983092df820e42c427d6b3f9543151f5cab92e3b18cc6d8d5d8",
+      "format": "xml",
+      "bytes": 19852190
+    },
+    {
+      "id": "2007m-stairway-to-heaven",
+      "nativeId": 284,
+      "path": "maps/2007/2007M/2007M - Stairway to Heaven.rbxl.bz2",
+      "sha256": "30416a17bf7f9a106225a56699a3f8d4069dfb6574e0bb4bb46b021689907a4c",
+      "format": "xml",
+      "bytes": 11134150
+    },
+    {
+      "id": "2007m-timmy-and-the-killbots",
+      "nativeId": 285,
+      "path": "maps/2007/2007M/2007M - Timmy and the Killbots.rbxl.bz2",
+      "sha256": "e3c388428f02a10f734354feef1e647cff19629bb0ab03634f3a84bf6e1da428",
+      "format": "xml",
+      "bytes": 2543611
+    },
+    {
+      "id": "2007m-train-crashing",
+      "nativeId": 286,
+      "path": "maps/2007/2007M/2007M - Train Crashing.rbxl.bz2",
+      "sha256": "be590fa699cddc02e6a3100a82659aa7857f1c946838daf23ec2ccd558e629e4",
+      "format": "xml",
+      "bytes": 4242889
+    },
+    {
+      "id": "2007m-millons-of-roblox-kill-them",
+      "nativeId": 287,
+      "path": "maps/2007/2007M/2007M - millons of Roblox. Kill them.rbxl.bz2",
+      "sha256": "50b4509b032c66c2037669c48c2ba87ad2237b1cc3683b1f348b50fc5cccd5eb",
+      "format": "xml",
+      "bytes": 9518789
+    },
+    {
+      "id": "2008e-balance",
+      "nativeId": 288,
+      "path": "maps/2008/2008E/2008E - Balance.rbxl.bz2",
+      "sha256": "6f9303c14ad06217e2859f23edad40c524138b98c17767ffea775f065094a24c",
+      "format": "xml",
+      "bytes": 30291
+    },
+    {
+      "id": "2008e-nuke-the-whales",
+      "nativeId": 289,
+      "path": "maps/2008/2008E/2008E - Nuke The Whales!.rbxl.bz2",
+      "sha256": "f2814ba2cd32fbbb046c48b54582df83e52b97a5c172a7468fdee2b30aa3efc4",
+      "format": "xml",
+      "bytes": 1282143
+    },
+    {
+      "id": "2008e-roblox-hq-2-0",
+      "nativeId": 290,
+      "path": "maps/2008/2008E/2008E - Roblox HQ 2.0.rbxl.bz2",
+      "sha256": "627d60755b7f015a53904dbdf87a32c99813a1b9c6b1514339d2e3a19d77a211",
+      "format": "xml",
+      "bytes": 15761692
+    },
+    {
+      "id": "2008e-rocket-arena",
+      "nativeId": 291,
+      "path": "maps/2008/2008E/2008E - Rocket Arena.rbxl.bz2",
+      "sha256": "a2689809ccc64c214fc79865dea3b4fda879cca9f4739b69964139835670db90",
+      "format": "xml",
+      "bytes": 4631679
+    },
+    {
+      "id": "2008e-sword-fight-on-the-heights-original",
+      "nativeId": 292,
+      "path": "maps/2008/2008E/2008E - Sword Fight on the Heights Original.rbxl.bz2",
+      "sha256": "9568ee51bc2da932337c8023ad9d220bed8993dfe6ada996bd2db9bf01bee9b1",
+      "format": "xml",
+      "bytes": 547830
+    },
+    {
+      "id": "2008e-sword-fights-on-the-heights-ii",
+      "nativeId": 293,
+      "path": "maps/2008/2008E/2008E - Sword Fights on the Heights II.rbxl.bz2",
+      "sha256": "41b3bd0b668dad4fed983e12812a07adc969ba06f06cd1004eabb8b73d0f5d0b",
+      "format": "xml",
+      "bytes": 1367648
+    },
+    {
+      "id": "2008l-sword-fights-on-the-heights-iv",
+      "nativeId": 294,
+      "path": "maps/2008/2008L/2008L - Sword Fights on the Heights IV.rbxl.bz2",
+      "sha256": "546f65f796f910d7e850d85928287e8b89fd08edd9563b5ddf484ddf6b8f424b",
+      "format": "xml",
+      "bytes": 2783904
+    },
+    {
+      "id": "2008m-crossroads",
+      "nativeId": 1,
+      "path": "maps/2008/2008M/2008M - Crossroads.rbxl.bz2",
+      "sha256": "919fb3a096a51c774d1f5157ae724b54a4ca5e2d784abbf2020295b2f50bb5c5",
+      "format": "xml",
+      "bytes": 4325070
+    },
+    {
+      "id": "2008m-down-hill-smash",
+      "nativeId": 295,
+      "path": "maps/2008/2008M/2008M - Down Hill Smash!.rbxl.bz2",
+      "sha256": "31cb2cc216678a94e9a191010dbcf4b801c36eecaee5b66380c76e43dd89fd26",
+      "format": "xml",
+      "bytes": 1398021
+    },
+    {
+      "id": "2008m-grow-a-brick",
+      "nativeId": 296,
+      "path": "maps/2008/2008M/2008M - Grow-a-brick.rbxl.bz2",
+      "sha256": "0f8c8e355152e0ac67637498a34a09da78a62a69ae74f87efa8a2f2223fdc5ea",
+      "format": "xml",
+      "bytes": 743860
+    },
+    {
+      "id": "2008m-happy-home-in-robloxia",
+      "nativeId": 297,
+      "path": "maps/2008/2008M/2008M - Happy Home in Robloxia.rbxl.bz2",
+      "sha256": "5eede4c52379c4dde684988322f7d588ba1783d6ce33d66068dc5bb4c3941639",
+      "format": "xml",
+      "bytes": 3168231
+    },
+    {
+      "id": "2008m-sword-fight-on-the-heights-iii",
+      "nativeId": 298,
+      "path": "maps/2008/2008M/2008M - Sword Fight on the Heights III.rbxl.bz2",
+      "sha256": "f619b9d49d50a477942c4db1ec6b8e9bb08156219d87d139298ecbbdd4d37e0a",
+      "format": "xml",
+      "bytes": 1851812
+    },
+    {
+      "id": "2009e-chaos-canyon",
+      "nativeId": 2,
+      "path": "maps/2009/2009E/2009E - Chaos Canyon.rbxl.bz2",
+      "sha256": "dfcf59fa2a9e487427092509b6331be11dbcf6d72d5ebe65e0dd87318d91b22a",
+      "format": "xml",
+      "bytes": 4626626
+    },
+    {
+      "id": "2009e-happy-home-in-robloxia",
+      "nativeId": 3,
+      "path": "maps/2009/2009E/2009E - Happy Home in Robloxia.rbxl.bz2",
+      "sha256": "495178bf347b78303274f2f369e631c28a7ff4ebd53426c9e15adb54db1a7fc3",
+      "format": "xml",
+      "bytes": 3210568
+    },
+    {
+      "id": "2009e-roblox-bowling-alley",
+      "nativeId": 4,
+      "path": "maps/2009/2009E/2009E - ROBLOX Bowling Alley.rbxl.bz2",
+      "sha256": "9dd9c34b3fcfb7ce29812b1f0577683412b883a874c1f71f3ea621474ac00f28",
+      "format": "xml",
+      "bytes": 3964477
+    },
+    {
+      "id": "2009e-rotris",
+      "nativeId": 5,
+      "path": "maps/2009/2009E/2009E - ROtris.rbxl.bz2",
+      "sha256": "4d05421bf09120aa710b2634ff0065e80ed10cc39c418eae0662a45f656aa2f3",
+      "format": "xml",
+      "bytes": 207576
+    },
+    {
+      "id": "2009e-the-undead-coming-v1-3",
+      "nativeId": 6,
+      "path": "maps/2009/2009E/2009E - The Undead Coming v1.3.rbxl.bz2",
+      "sha256": "9eff778809cf8d45da1b50ad614bee8c5bd12d3fee9bfc00b1da4b5c397cf822",
+      "format": "xml",
+      "bytes": 3628262
+    },
+    {
+      "id": "2009e-the-underground-war",
+      "nativeId": 7,
+      "path": "maps/2009/2009E/2009E - The Underground War.rbxl.bz2",
+      "sha256": "c32322bb9952f9542b8622bf2cac90e3014d179f74c5bcb68cb5e17b4f5bc120",
+      "format": "xml",
+      "bytes": 3990883
+    },
+    {
+      "id": "2009l-happy-home-in-robloxia",
+      "nativeId": 8,
+      "path": "maps/2009/2009L/2009L - Happy Home in Robloxia.rbxl.bz2",
+      "sha256": "013f33aae51a715406c883c7a9b115cf7be41107997523d613741e265a0be769",
+      "format": "xml",
+      "bytes": 7468556
+    },
+    {
+      "id": "2009m-jj5x5-s-house",
+      "nativeId": 9,
+      "path": "maps/2009/2009M/2009M - JJ5x5's House.rbxl.bz2",
+      "sha256": "c6e4828902589bc91e8ca9d50b8a20ca35b5471b3f3c764c4de39ce82dc8515c",
+      "format": "xml",
+      "bytes": 2749775
+    },
+    {
+      "id": "2010e-a-bridge-too-far",
+      "nativeId": 10,
+      "path": "maps/2010/2010E/2010E - A Bridge too far.rbxl.bz2",
+      "sha256": "8918deb6d7ec42cb0c51797829a2956b220b881a48214f174554ec80387a0e2d",
+      "format": "xml",
+      "bytes": 21769974
+    },
+    {
+      "id": "2010e-galleons-v4-2",
+      "nativeId": 11,
+      "path": "maps/2010/2010E/2010E - Galleons v4.2.rbxl.bz2",
+      "sha256": "f7484fa6ad386ccd50e1fe10e2ba4106bd79b9409904d51fe6bbbadd83fddd2b",
+      "format": "xml",
+      "bytes": 3206304
+    },
+    {
+      "id": "2010m-fall-down-stairs",
+      "nativeId": 12,
+      "path": "maps/2010/2010M/2010M -  Fall Down Stairs!.rbxl.bz2",
+      "sha256": "b3e4c52ede2a9482cc9da9151eb5f44334634c33f42bdbcd797cadcb34d6d9b3",
+      "format": "xml",
+      "bytes": 1601740
+    },
+    {
+      "id": "2010m-ultimate-build",
+      "nativeId": 13,
+      "path": "maps/2010/2010M/2010M - Ultimate Build.rbxl.bz2",
+      "sha256": "f0ab7eafe8421866d37ec0b8275911b0178b0e1843f7fd4af6e02737acb2700d",
+      "format": "xml",
+      "bytes": 5604310
+    },
+    {
+      "id": "2010m-work-at-a-pizza-place",
+      "nativeId": 14,
+      "path": "maps/2010/2010M/2010M - Work at a Pizza Place.rbxl.bz2",
+      "sha256": "3c7562f0ef825350ec51ab5f76854b175dcfeb1ba868b8e9ee9f1c7cd3d548cb",
+      "format": "xml",
+      "bytes": 6864141
+    },
+    {
+      "id": "2011m-happy-home-in-robloxia",
+      "nativeId": 299,
+      "path": "maps/2011/2011M/2011M - Happy Home in Robloxia.rbxl.bz2",
+      "sha256": "f535ccb1457804c469143a34fe5ccc9214338f61905186c7f9ff96f36869e8e5",
+      "format": "xml",
+      "bytes": 34899238
+    },
+    {
+      "id": "2011m-the-iron-cafe",
+      "nativeId": 300,
+      "path": "maps/2011/2011M/2011M - The Iron Cafe.rbxl.bz2",
+      "sha256": "a0d83b01a6373a2742f421d6ea2aa66b76e4fe8ca93d19091329a06b171c92c8",
+      "format": "xml",
+      "bytes": 6182679
+    },
+    {
+      "id": "2012m-hide-n-seek-xl-living-spaces",
+      "nativeId": 301,
+      "path": "maps/2012/2012M/2012M - Hide n' Seek XL Living Spaces.rbxl.bz2",
+      "sha256": "c5ded3d9cd56c0fda407f76d6bef18f293db5cec9a7fec997806364d4501211e",
+      "format": "xml",
+      "bytes": 30476517
+    },
+    {
+      "id": "2013-protect-telemon-from-zombies",
+      "nativeId": 302,
+      "path": "maps/2013/2013 - Protect Telemon from zombies.rbxl.bz2",
+      "sha256": "53796a631063d17ca27f68fb00efd2984c1bcc7edfbe5c3527f49a5eec610c51",
+      "format": "xml",
+      "bytes": 12349937
+    },
+    {
+      "id": "2013-zombies-are-attacking-kfc",
+      "nativeId": 303,
+      "path": "maps/2013/2013 - Zombies Are Attacking KFC!.rbxl.bz2",
+      "sha256": "256d95d6f6add36069492d42d6088b87e14d72ce056e2d7433d03f89fd08a064",
+      "format": "xml",
+      "bytes": 9922097
+    },
+    {
+      "id": "2014-old-cars-v1",
+      "nativeId": 304,
+      "path": "maps/2014/2014 - Old Cars v1.rbxl.bz2",
+      "sha256": "1ffb20657877d93fa6bf17e37416e3b51fd9aa92eab4ef6eb48f16e8fd95baa0",
+      "format": "xml",
+      "bytes": 898127
+    },
+    {
+      "id": "2015-urban-terror-brickbattle",
+      "nativeId": 305,
+      "path": "maps/2015/2015 - Urban Terror Brickbattle.rbxl.bz2",
+      "sha256": "c35eb2ba724565b8c9d15a9fa6f6b6de9397f8a03981ef2c516d242f18a444e6",
+      "format": "xml",
+      "bytes": 17256486
+    },
+    {
+      "id": "2016-demolition-derby",
+      "nativeId": 306,
+      "path": "maps/2016/2016 - Demolition Derby.rbxl.bz2",
+      "sha256": "ed839a32160b277422c1e7c2d15cba27ad507f2e8e7d79039938803d475c5619",
+      "format": "xml",
+      "bytes": 4197185
+    },
+    {
+      "id": "2016-nobelium-town-v2",
+      "nativeId": 307,
+      "path": "maps/2016/2016 - Nobelium Town V2.rbxl.bz2",
+      "sha256": "5c386c537e8ed124d23599b01c49d17b4e79eda6cbc480e72eb47805f8fe8c37",
+      "format": "xml",
+      "bytes": 19133588
+    },
+    {
+      "id": "2016-old-cars-v2",
+      "nativeId": 308,
+      "path": "maps/2016/2016 - Old Cars v2.rbxl.bz2",
+      "sha256": "213df0074019afcec3d2493519a7167ee925da6a0601241ceddc6b4851878882",
+      "format": "xml",
+      "bytes": 1089970
+    },
+    {
+      "id": "2017-hot-knief-fight",
+      "nativeId": 309,
+      "path": "maps/2017/2017 - Hot Knief Fight.rbxl.bz2",
+      "sha256": "9d1f04578c3102f82f1cff617a13ee1f08b2066a84b021d2f2ba221f25c0d381",
+      "format": "xml",
+      "bytes": 4259425
+    },
+    {
+      "id": "2017-lego-s-obby",
+      "nativeId": 310,
+      "path": "maps/2017/2017 - Lego's Obby.rbxl.bz2",
+      "sha256": "4db65e99fefd442930d47a26225df838c53fc568cbd9ca455ca93e70637e63d8",
+      "format": "xml",
+      "bytes": 1940266
+    },
+    {
+      "id": "2017-lego-s-plane-wars",
+      "nativeId": 311,
+      "path": "maps/2017/2017 - Lego's Plane Wars.rbxl.bz2",
+      "sha256": "03b8b7468baca325656213fff351e20102efd1d5a620b3fd12c53eaae72a00d5",
+      "format": "xml",
+      "bytes": 4742755
+    },
+    {
+      "id": "2017-lego-s-tower-climb-2",
+      "nativeId": 312,
+      "path": "maps/2017/2017 - Lego's Tower Climb 2.rbxl.bz2",
+      "sha256": "fc96a6ae3b07ea997bfa633ed8ea447155b030f251b960b8667e4fe5a1c7436c",
+      "format": "xml",
+      "bytes": 14981232
+    },
+    {
+      "id": "2017-old-cars-v3",
+      "nativeId": 313,
+      "path": "maps/2017/2017 - Old Cars v3.rbxl.bz2",
+      "sha256": "2ff71c90a625aaa303b28256c220256bc389fd42a960d63152760ffbd45f5705",
+      "format": "xml",
+      "bytes": 2070714
+    },
+    {
+      "id": "2017-old-cars-v4",
+      "nativeId": 314,
+      "path": "maps/2017/2017 - Old Cars v4.rbxl.bz2",
+      "sha256": "bc467a52514f57177f5727b3f9d9c47531672be82cdbd5cefc2717344f54c456",
+      "format": "xml",
+      "bytes": 2718426
+    },
+    {
+      "id": "dev-baseplate1024",
+      "nativeId": 315,
+      "path": "maps/Dev - Baseplate1024.rbxl.bz2",
+      "sha256": "6293de183c6edc9a1c964c4c3f119b0ca51cd0afedc8c29bf282d5fdf4fa7ef8",
+      "format": "xml",
+      "bytes": 17139
+    },
+    {
+      "id": "dev-baseplate2048",
+      "nativeId": 316,
+      "path": "maps/Dev - Baseplate2048.rbxl.bz2",
+      "sha256": "2f5e0abff8a43f87925df327fb6105f85a7548a7c005e7a50c2fa0f57250de39",
+      "format": "xml",
+      "bytes": 48815
+    },
+    {
+      "id": "dev-baseplate512",
+      "nativeId": 317,
+      "path": "maps/Dev - Baseplate512.rbxl.bz2",
+      "sha256": "3ad6b1bac003cc5f6f7bdb601580056cda917a31e7320c1e2491433c359d9d44",
+      "format": "xml",
+      "bytes": 9851
+    },
+    {
+      "id": "dev-dialog-example",
+      "nativeId": 318,
+      "path": "maps/Dev - Dialog Example.rbxl.bz2",
+      "sha256": "fe0058ca0ce9663e0eb8f3bbdb78a522b9c2bd5270edfb50f32e704fa18a228b",
+      "format": "xml",
+      "bytes": 27503
+    },
+    {
+      "id": "dev-green-screen",
+      "nativeId": 319,
+      "path": "maps/Dev - Green Screen.rbxl.bz2",
+      "sha256": "ff3704a870cbca004fca78914cfcbde93672268e2588cc0507fae1d58b6e192f",
+      "format": "xml",
+      "bytes": 9712
+    },
+    {
+      "id": "dev-skateboard-example",
+      "nativeId": 320,
+      "path": "maps/Dev - Skateboard Example.rbxl.bz2",
+      "sha256": "c8edd7d57624bd538f0feaaec2dc444f5d1f37a88e787fb5e10e269004151214",
+      "format": "xml",
+      "bytes": 96977
+    },
+    {
+      "id": "dev-terrain-base",
+      "nativeId": 321,
+      "path": "maps/Dev - Terrain Base.rbxl.bz2",
+      "sha256": "6c5df0725dac54d07461015018ca2c3757cc02bdeef0fb39f76c0f702b614d99",
+      "format": "xml",
+      "bytes": 3036324
+    },
+    {
+      "id": "bitl-build-a-guy-and-more-2011",
+      "nativeId": 322,
+      "path": "maps/Novetus Exclusives/Bitls Places/Bitl - Build a guy and more 2011.rbxl.bz2",
+      "sha256": "fb60ab4d8446cb10e043625db7ba63db995c37aeaed35c4c4e202a1d7618ae2a",
+      "format": "xml",
+      "bytes": 2118510
+    },
+    {
+      "id": "bitl-everything-obby",
+      "nativeId": 323,
+      "path": "maps/Novetus Exclusives/Bitls Places/Bitl - Everything Obby.rbxl.bz2",
+      "sha256": "ef2937b80aa2a985058d0c0a07e2e0a711aa5e5f7ff96b2e74ddb90954d83e11",
+      "format": "xml",
+      "bytes": 13472665
+    },
+    {
+      "id": "bitl-portal-playground",
+      "nativeId": 324,
+      "path": "maps/Novetus Exclusives/Bitls Places/Bitl - Portal Playground.rbxl.bz2",
+      "sha256": "b1d3070535fac17a5e9ff9566d0a1e861c0d5853208739ba03a89dfb5206ec8d",
+      "format": "xml",
+      "bytes": 983241
+    },
+    {
+      "id": "bitl-rise-of-the-zombies-2010",
+      "nativeId": 325,
+      "path": "maps/Novetus Exclusives/Bitls Places/Bitl - Rise of the zombies 2010.rbxl.bz2",
+      "sha256": "502e0a505c0b9ecf66470395f7a22d3eeaa318cc1e0a4a64a5caac03e8171011",
+      "format": "xml",
+      "bytes": 3203044
+    },
+    {
+      "id": "bitl-rise-of-the-zombies-2011",
+      "nativeId": 326,
+      "path": "maps/Novetus Exclusives/Bitls Places/Bitl - Rise of the zombies 2011.rbxl.bz2",
+      "sha256": "d5dcc82d9575a1f42dd24fd70c407ad13f32e7bb6cd1ce5b91c724debfa8c275",
+      "format": "xml",
+      "bytes": 4094860
+    },
+    {
+      "id": "bitl-spore-galactic-adventures",
+      "nativeId": 327,
+      "path": "maps/Novetus Exclusives/Bitls Places/Bitl - SPORE Galactic Adventures.rbxl.bz2",
+      "sha256": "783f15571ac6dd87ef6030cb2fb8185a60d500da367d9f6cd15d59c45f25e151",
+      "format": "xml",
+      "bytes": 10885140
+    },
+    {
+      "id": "ironman-45-mw2",
+      "nativeId": 328,
+      "path": "maps/Novetus Exclusives/Community Place Contests/August 2022/Ironman_45 - MW2.rbxl.bz2",
+      "sha256": "a58ed7d2f916d8b3cc1cad7d7aa7d795ec18b7e5c5e4fd53e6c703cd97105b71",
+      "format": "xml",
+      "bytes": 8886584
+    },
+    {
+      "id": "lachrymogenic-lachrys-disorderly-deathmatch",
+      "nativeId": 329,
+      "path": "maps/Novetus Exclusives/Community Place Contests/August 2022/Lachrymogenic - Lachrys Disorderly Deathmatch.rbxl.bz2",
+      "sha256": "bc5daed00e085c15952817afe68ed33db4e8dab1d3b50ee548c2de3281afba25",
+      "format": "xml",
+      "bytes": 3676983
+    },
+    {
+      "id": "zork-and-lachrymogenic-bowlarama",
+      "nativeId": 330,
+      "path": "maps/Novetus Exclusives/Community Place Contests/August 2022/Zork and Lachrymogenic - Bowlarama.rbxl.bz2",
+      "sha256": "925840977b444df148334ccb2a83e33f0fc9382bd12548f6062753ea6ce70fcb",
+      "format": "xml",
+      "bytes": 9220403
+    },
+    {
+      "id": "atomic-and-tobu-fi-spooking-out",
+      "nativeId": 331,
+      "path": "maps/Novetus Exclusives/Community Place Contests/Halloween 2022/Atomic and tobu.fi - Spooking Out.rbxl.bz2",
+      "sha256": "389a2a3011d80a31570409324471b5c1b54650d1d67a6d0ab721afa44b1e7ee5",
+      "format": "xml",
+      "bytes": 9287415
+    },
+    {
+      "id": "zork-and-tobu-fi-explosive-xmas",
+      "nativeId": 332,
+      "path": "maps/Novetus Exclusives/Community Place Contests/Holiday 2022/Zork and tobu.fi - Explosive Xmas.rbxl.bz2",
+      "sha256": "e16a3350c715dd25ad6c3d7d6578641dc1816c471abd27498c5fcc9657b3aac9",
+      "format": "xml",
+      "bytes": 14521459
+    },
+    {
+      "id": "jozuno-survive-the-builder-s-club-members-revamped",
+      "nativeId": 333,
+      "path": "maps/Novetus Exclusives/Community Place Contests/July 2024/Jozuno - Survive the Builder's Club Members (Revamped).rbxl.bz2",
+      "sha256": "0e4e5b7dbe42598157cf4aac4e9db7b9653fdf8bce2659b190a919180e20bec9",
+      "format": "xml",
+      "bytes": 15518252
+    },
+    {
+      "id": "jskog-bionicle-s-kini-nui",
+      "nativeId": 334,
+      "path": "maps/Novetus Exclusives/Community Place Contests/July 2024/jskog - Bionicle's Kini-Nui.rbxl.bz2",
+      "sha256": "96e8ce25286c110c5ba10303cc8a1bf820c159af0f382b37b316555ad1ef90a2",
+      "format": "xml",
+      "bytes": 8312357
+    },
+    {
+      "id": "crossroads-evolved",
+      "nativeId": 335,
+      "path": "maps/Novetus Exclusives/Crossroads Evolved/Crossroads Evolved.rbxl.bz2",
+      "sha256": "92ee8ac49192ff14703fe1d803d7b232ee064c173885b7666a30888c6833c6ef",
+      "format": "xml",
+      "bytes": 8232121
+    },
+    {
+      "id": "bitl-s-roblox-shootout-2-ffa",
+      "nativeId": 336,
+      "path": "maps/Novetus Exclusives/ROBLOX Shootout 2/Bitl's ROBLOX Shootout 2 FFA.rbxl.bz2",
+      "sha256": "225e3ade3e0480de02d9b6608e7f0aa79c736388bd5d22a05bf33cd54ffebbf6",
+      "format": "xml",
+      "bytes": 13572826
+    },
+    {
+      "id": "bitl-s-roblox-shootout-2",
+      "nativeId": 337,
+      "path": "maps/Novetus Exclusives/ROBLOX Shootout 2/Bitl's ROBLOX Shootout 2.rbxl.bz2",
+      "sha256": "1ae108254f73dd6ac70270549791a58684df684d5f28342fa12fb9a395647b10",
+      "format": "xml",
+      "bytes": 13567527
+    },
+    {
+      "id": "dev-rise-of-the-killbots-template-level",
+      "nativeId": 338,
+      "path": "maps/Novetus Exclusives/Rise of the Killbots/Dev/Dev - Rise of the Killbots Template Level.rbxl.bz2",
+      "sha256": "ac892e8709dc894614487227755b830b7bce86ac5628f1eee4a1deb0419f7e4b",
+      "format": "xml",
+      "bytes": 98597
+    },
+    {
+      "id": "rise-of-the-killbots-baseplate",
+      "nativeId": 339,
+      "path": "maps/Novetus Exclusives/Rise of the Killbots/Rise of the Killbots - Baseplate.rbxl.bz2",
+      "sha256": "bcdfb2f2d7a012cc9e45fdb561944ff87b187e0003b54ae0e32ff4eaf5b97b02",
+      "format": "xml",
+      "bytes": 100636
+    },
+    {
+      "id": "rise-of-the-killbots-bitl-s-roblox-shootout-2",
+      "nativeId": 340,
+      "path": "maps/Novetus Exclusives/Rise of the Killbots/Rise of the Killbots - Bitl's ROBLOX Shootout 2.rbxl.bz2",
+      "sha256": "b1b8f056af97671cfc845a387ca8b63d2a4c8853be9aa378f389481f7c225ab7",
+      "format": "xml",
+      "bytes": 13050049
+    },
+    {
+      "id": "rise-of-the-killbots-chaos-canyon",
+      "nativeId": 341,
+      "path": "maps/Novetus Exclusives/Rise of the Killbots/Rise of the Killbots - Chaos Canyon.rbxl.bz2",
+      "sha256": "c79064306edc07d665c50c07ca5beeeafb8e745b12cd125040f2832a397f4513",
+      "format": "xml",
+      "bytes": 4448378
+    },
+    {
+      "id": "rise-of-the-killbots-crossroads",
+      "nativeId": 342,
+      "path": "maps/Novetus Exclusives/Rise of the Killbots/Rise of the Killbots - Crossroads.rbxl.bz2",
+      "sha256": "0b3832cc3607d0a071a424f7a09fbdac9f98bd85ffb5e30dea57ca04c676daec",
+      "format": "xml",
+      "bytes": 4417839
+    },
+    {
+      "id": "rise-of-the-killbots-glass-houses",
+      "nativeId": 343,
+      "path": "maps/Novetus Exclusives/Rise of the Killbots/Rise of the Killbots - Glass Houses.rbxl.bz2",
+      "sha256": "30fb163ad3b9e5a5eb1b4646eef9cc751bc5d7bd3beaa29430d255af3d242178",
+      "format": "xml",
+      "bytes": 6755264
+    },
+    {
+      "id": "rise-of-the-killbots-haunted-mansion",
+      "nativeId": 344,
+      "path": "maps/Novetus Exclusives/Rise of the Killbots/Rise of the Killbots - Haunted Mansion.rbxl.bz2",
+      "sha256": "90f1e3aa38c9601514dfb71973760ba95a9d545c041b089d483c1b736c42637e",
+      "format": "xml",
+      "bytes": 6674994
+    },
+    {
+      "id": "rise-of-the-killbots-roblox-hq-2007",
+      "nativeId": 345,
+      "path": "maps/Novetus Exclusives/Rise of the Killbots/Rise of the Killbots - ROBLOX HQ 2007.rbxl.bz2",
+      "sha256": "7dd4a8ee63946063c251e97c1ac9c0f1d04a33ce7dbb77e79ca3e9d8f20ad77c",
+      "format": "xml",
+      "bytes": 11853623
+    },
+    {
+      "id": "rise-of-the-killbots-rocket-arena",
+      "nativeId": 346,
+      "path": "maps/Novetus Exclusives/Rise of the Killbots/Rise of the Killbots - Rocket Arena.rbxl.bz2",
+      "sha256": "5f897c8641297a1e8f003f5586a563a553a7d4cff18021cb9d464cd96d1dc875",
+      "format": "xml",
+      "bytes": 4444431
+    },
+    {
+      "id": "rise-of-the-killbots-sword-fights-on-the-heights-iv",
+      "nativeId": 347,
+      "path": "maps/Novetus Exclusives/Rise of the Killbots/Rise of the Killbots - Sword Fights On The Heights IV.rbxl.bz2",
+      "sha256": "2fcf2d12d13c3dd805650393587d85126424daa4f74d3f9c0703accef00e8bfa",
+      "format": "xml",
+      "bytes": 2841080
+    },
+    {
+      "id": "rise-of-the-killbots-timmy-and-the-killbots",
+      "nativeId": 348,
+      "path": "maps/Novetus Exclusives/Rise of the Killbots/Rise of the Killbots - Timmy and the Killbots.rbxl.bz2",
+      "sha256": "23f98f2d871db71f7e0a8705ac85ef8748fdc375fc39b5fa765f7c5fa57ccc7f",
+      "format": "xml",
+      "bytes": 2524649
+    }
+  ]
+}

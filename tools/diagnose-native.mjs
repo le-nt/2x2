@@ -1,0 +1,10 @@
+import fs from'node:fs';import path from'node:path';import{fileURLToPath}from'node:url';import{createHash}from'node:crypto';
+const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');let errors=0;const fail=text=>{errors++;console.log('MISSING: '+text);};
+let cfg={};try{cfg=JSON.parse(fs.readFileSync(path.join(root,'server/config.json')));}catch{fail('server/config.json — start the server once, then configure native services.');}
+if(!cfg.accessToken)fail('Entrance key is not configured.');else console.log('Entrance key: configured (value not printed).');
+if(!cfg.native?.arbiterOrigin)fail('native.arbiterOrigin — run tools/configure-native.mjs.');
+const dir=path.join(root,'site/native-client');try{const m=JSON.parse(fs.readFileSync(path.join(dir,'manifest.json')));for(const[name,file]of Object.entries(m.files||{})){const data=fs.readFileSync(path.join(dir,file.path));if(createHash('sha256').update(data).digest('hex')!==file.sha256)fail('Native client checksum mismatch: '+name);}for(const name of ['UniversalClient.js','UniversalClient.wasm','UniversalClient.data'])if(!m.files?.[name])fail('Built client '+name);console.log('Client manifest inspected.');}catch{fail('Compiled WebClient — install a real native build using tools/install-webclient.py.');}
+try{const m=JSON.parse(fs.readFileSync(path.join(root,'server/native/places.json')));console.log('Imported place records: '+Object.keys(m.places).length);}catch{fail('Imported maps — run tools/import-native.py.');}
+try{const list=JSON.parse(fs.readFileSync(path.join(root,'server/native/missing-maps.json')));console.log('Listed maps without source files: '+list.length);}catch{}
+if(cfg.native?.arbiterOrigin){try{const response=await fetch(new URL('/health',cfg.native.arbiterOrigin),{signal:AbortSignal.timeout(5000)});if(!response.ok)fail('Arbiter is not healthy.');else console.log('Arbiter health: reachable.');}catch{fail('Arbiter is not running or is unreachable.');}}
+console.log(errors?'Native gameplay is not ready. Resolve the missing items above.':'Preflight passed. A real browser game join is still required to validate the native build.');process.exitCode=errors?1:0;

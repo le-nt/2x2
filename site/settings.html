@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Settings - 2x2</title>
+<link rel="stylesheet" href="css/site.css">
+<script defer src="js/effects.js"></script>
+<script defer src="js/motion.js"></script>
+<link rel="icon" href="img/logo-2x2.png" type="image/png">
+<link rel="stylesheet" href="css/retro.css">
+<link rel="stylesheet" href="css/modern.css">
+<link rel="stylesheet" href="css/r16.css">
+</head>
+<body>
+<div id="App">
+  <header id="Header"></header>
+  <aside id="Sidebar" aria-label="Site"></aside>
+  <div id="Page">
+    <main id="Main">
+      <div class="PageHead"><div><h1 class="PageTitle">Settings</h1></div></div>
+      <div class="StandardBox">
+        <div class="StandardBoxHeader">Theme</div>
+        <div class="BoxBody">
+          <div class="ThemePick" id="ThemePick">
+            <label><input type="radio" name="theme" value="dark"><div class="Preview p-dark"><i></i><b></b><u></u><s></s></div>Dark</label>
+            <label><input type="radio" name="theme" value="light"><div class="Preview p-light"><i></i><b></b><u></u><s></s></div>Light</label>
+          </div>
+          <p class="Hint" style="margin:12px 0 0">Saved in this browser.</p>
+        </div>
+      </div>
+      <div class="StandardBox">
+        <div class="StandardBoxHeader">Sounds &amp; effects</div>
+        <div class="BoxBody FXOptions">
+          <div class="FXOption"><label for="UISound">Interface sounds<small>Soft retro clicks, menu tones, and notification chimes. Starts after your first interaction.</small></label><input id="UISound" type="checkbox" data-experience="sound" checked></div>
+          <div class="FXOption"><label for="UIVolume">Sound volume</label><input id="UIVolume" type="range" min="0" max="100" value="22" data-experience="volume"></div>
+          <div class="FXOption"><label for="UIEffects">Shader backgrounds<small>Animated halftone skies and arcade grids in brand panels.</small></label><input id="UIEffects" type="checkbox" data-experience="effects" checked></div>
+          <div class="FXOption"><label for="UIMotion">Interface animations<small>Your device’s reduced-motion preference takes priority.</small></label><input id="UIMotion" type="checkbox" data-experience="motion" checked></div>
+        </div>
+      </div>
+      <div class="StandardBox">
+        <div class="StandardBoxHeader">Profile</div>
+        <form class="BoxBody Form" id="ProfileForm">
+          <div class="Row"><label for="Status">Status <span class="Hint">(shows on your profile, up to 100 characters)</span></label><input type="text" id="Status" maxlength="100"></div>
+          <div class="Row"><label for="Blurb">About me <span class="Hint">(up to 1000 characters)</span></label><textarea id="Blurb" rows="5" maxlength="1000"></textarea></div>
+          <div class="Row"><label for="Sig">Forum signature <span class="Hint">(up to 200 characters)</span></label><textarea id="Sig" rows="2" maxlength="200"></textarea></div>
+          <button class="Button Primary">Save profile</button> <span id="ProfileMsg" role="status"></span>
+        </form>
+      </div>
+      <div class="StandardBox">
+        <div class="StandardBoxHeader">Change password</div>
+        <form class="BoxBody Form" id="PwForm">
+          <div class="Row"><label for="OldPw">Current password</label><input type="password" id="OldPw" autocomplete="current-password" required></div>
+          <div class="Row"><label for="NewPw">New password <span class="Hint">(6 or more characters)</span></label><input type="password" id="NewPw" autocomplete="new-password" required minlength="6"></div>
+          <div class="Row"><label for="NewPw2">New password again</label><input type="password" id="NewPw2" autocomplete="new-password" required></div>
+          <button class="Button Primary">Change password</button> <span id="PwMsg" role="status"></span>
+        </form>
+      </div>
+      <div class="StandardBox">
+        <div class="StandardBoxHeader">Entrance key &amp; account</div>
+        <div class="BoxBody" id="AccountInfo"></div><div class="BoxBody"><p>Your entrance key is still required. This browser remembers a successful entry for up to 180 days.</p><form action="/__lock" method="post"><button class="Button" type="submit">Lock website &amp; require the key again</button></form></div>
+      </div>
+    </main>
+    <div id="FooterSlot"></div>
+  </div>
+</div>
+<script src="js/common.js"></script>
+<script>
+(async function () {
+  const $ = (id) => document.getElementById(id);
+  // Theme works even when logged out.
+  let theme = document.documentElement.dataset.theme || "dark";
+  const radio = document.querySelector(`[name=theme][value="${theme}"]`);
+  if (radio) radio.checked = true;
+  $("ThemePick").addEventListener("change", (e) => {
+    const t = e.target.value === "light" ? "light" : "dark";
+    try { localStorage.setItem("rb.siteTheme", t); } catch { /* ignore */ }
+    document.documentElement.dataset.theme = t;
+  });
+
+  const me = await RB.page("Settings", { auth: false });
+  if (!me) {
+    for (const f of ["ProfileForm", "PwForm"]) $(f).innerHTML = `<p><a href="index.html">Log in</a> to edit your profile.</p>`;
+    return;
+  }
+  $("Status").value = me.status;
+  $("Blurb").value = me.blurb;
+  $("Sig").value = me.signature;
+  $("AccountInfo").innerHTML = `<p>Username: <b>${RB.esc(me.username)}</b> ${me.admin ? '<span class="Pill red">Moderator</span>' : ""}</p>
+    <p>Member since ${RB.date(me.joined)} &middot; <span class="Robux">${RB.icon("robux", 16)} ${RB.num(me.robux)}</span> &middot; <span class="Tix">${RB.icon("tix", 16)} ${RB.num(me.tix)}</span></p>
+    <p><button type="button" class="Button" id="LogoutBtn">Log out</button></p>`;
+  $("LogoutBtn").addEventListener("click", () => RB.logout());
+
+  $("ProfileForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    try {
+      await RB.api("account", { method: "POST", body: { status: $("Status").value, blurb: $("Blurb").value, signature: $("Sig").value } });
+      $("ProfileMsg").innerHTML = `<span class="Success">Saved</span>`;
+    } catch (ex) { $("ProfileMsg").innerHTML = `<span class="Error">${RB.esc(ex.message)}</span>`; }
+  });
+  $("PwForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    if ($("NewPw").value !== $("NewPw2").value) { $("PwMsg").innerHTML = `<span class="Error">The new passwords don't match.</span>`; return; }
+    try {
+      await RB.api("account/password", { method: "POST", body: { oldPassword: $("OldPw").value, newPassword: $("NewPw").value } });
+      $("PwMsg").innerHTML = `<span class="Success">Password changed. Other sessions were logged out.</span>`;
+      e.target.reset();
+    } catch (ex) { $("PwMsg").innerHTML = `<span class="Error">${RB.esc(ex.message)}</span>`; }
+  });
+})();
+</script>
+</body>
+</html>

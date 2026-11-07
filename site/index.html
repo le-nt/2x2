@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>2x2: classic places, right in your browser</title>
+<meta name="description" content="2x2: play 2006-2010 places with your friends, right in your browser.">
+<link rel="stylesheet" href="css/site.css">
+<script defer src="js/effects.js"></script>
+<script defer src="js/motion.js"></script>
+<link rel="icon" href="img/logo-2x2.png" type="image/png">
+<link rel="stylesheet" href="css/retro.css">
+<link rel="stylesheet" href="css/modern.css">
+<link rel="stylesheet" href="css/r16.css">
+</head>
+<body class="Landing">
+<div class="LandingWrap" data-shader="sky">
+  <header id="Header"></header>
+
+  <main>
+    <section class="Hero">
+      <div class="HeroArt">
+        <img class="HeroLogo" src="img/logo-2x2.png" alt="2x2" width="300" height="300">
+        <div class="HeroPlate">
+          <h1>Classic places, right in your browser</h1>
+          <p>Play 2006&ndash;2010 places with your friends. Dress up your character, earn Tix and meet up in chat.</p>
+        </div>
+      </div>
+
+      <div class="HeroCopy">
+        <form class="AuthCard Form" id="AuthForm" autocomplete="on" novalidate>
+          <h2 class="AuthTitle" id="AuthTitle">Welcome back</h2>
+          <div class="Tabs" role="tablist" aria-label="Account">
+            <button type="button" role="tab" class="active" data-mode="login" aria-selected="true">Log in</button>
+            <button type="button" role="tab" data-mode="signup" aria-selected="false">Sign up</button>
+          </div>
+          <div class="Row">
+            <label for="Username">Username</label>
+            <input type="text" id="Username" name="username" autocomplete="username" maxlength="20" required autocapitalize="none" spellcheck="false">
+          </div>
+          <div class="Row">
+            <label for="Password">Password</label>
+            <input type="password" id="Password" name="password" autocomplete="current-password" maxlength="128" required>
+          </div>
+          <div class="Row" id="ConfirmRow" hidden>
+            <label for="Confirm">Confirm password</label>
+            <input type="password" id="Confirm" name="confirm" autocomplete="new-password" maxlength="128">
+          </div>
+          <div class="Error" id="AuthError" role="alert"></div>
+          <button class="Button Green Big Block" id="AuthSubmit" type="submit">Log in</button>
+          <p class="AuthNote" id="AuthNote">Forgot your password? Ask whoever runs this server.</p>
+        </form>
+      </div>
+    </section>
+
+    <section class="Strip" id="Strip" hidden>
+      <h2>Places you can play right now</h2>
+      <div class="Rail" id="StripRail"></div>
+    </section>
+  </main>
+
+  <div id="FooterSlot"></div>
+</div>
+
+<script src="js/common.js"></script>
+<script>
+(async function () {
+  const $ = (id) => document.getElementById(id);
+  // Not RB.mount(): that would show the daily-bonus toast here, right before we redirect away.
+  $("Header").innerHTML = `<div class="TopBar">${RB.logo("index.html")}<nav class="TopLinks" aria-label="Site"><a class="on" href="index.html">Play</a><a href="about.html">About</a></nav></div>`;
+  $("FooterSlot").innerHTML = RB.footer();
+
+  // Already signed in? Go straight to the site.
+  try { if (await RB.me()) { location.replace("home.html"); return; } } catch (e) { $("AuthError").textContent = e.message; }
+
+  // ---------- Log in / sign up ----------
+  const form = $("AuthForm");
+  let mode = "login";
+  function setMode(next, focus) {
+    mode = next;
+    for (const t of form.querySelectorAll("[data-mode]")) {
+      const on = t.dataset.mode === mode;
+      t.classList.toggle("active", on);
+      t.setAttribute("aria-selected", String(on));
+    }
+    $("ConfirmRow").hidden = mode !== "signup";
+    $("Confirm").required = mode === "signup";
+    $("Password").autocomplete = mode === "signup" ? "new-password" : "current-password";
+    $("AuthSubmit").textContent = mode === "signup" ? "Create account" : "Log in";
+    $("AuthTitle").textContent = mode === "signup" ? "Sign up and start playing" : "Welcome back";
+    $("AuthNote").textContent = mode === "signup"
+      ? "Usernames are 3 to 20 letters, numbers or underscores. Passwords need at least 6 characters."
+      : "Forgot your password? Ask whoever runs this server.";
+    $("AuthError").textContent = "";
+    if (focus) $("Username").focus();
+  }
+  form.addEventListener("click", (e) => { const t = e.target.closest("[data-mode]"); if (t) setMode(t.dataset.mode, true); });
+  setMode(location.hash === "#signup" ? "signup" : "login");
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const err = $("AuthError");
+    err.textContent = "";
+    const username = $("Username").value.trim(), password = $("Password").value;
+    if (!/^[A-Za-z0-9_]{3,20}$/.test(username)) { err.textContent = "Usernames are 3 to 20 letters, numbers or underscores."; $("Username").focus(); return; }
+    if (!password) { err.textContent = "Enter your password."; $("Password").focus(); return; }
+    if (mode === "signup" && password !== $("Confirm").value) { err.textContent = "The passwords don't match."; $("Confirm").focus(); return; }
+    const btn = $("AuthSubmit");
+    btn.disabled = true;
+    try {
+      await RB.api(mode === "signup" ? "register" : "login", { method: "POST", body: { username, password } });
+      location.href = "home.html";
+    } catch (ex) {
+      err.textContent = ex.message;
+      btn.disabled = false;
+    }
+  });
+
+  // ---------- A look at what's inside ----------
+  try {
+    const cat = await RB.catalog();
+    const top = cat.maps.filter((m) => m.thumb).sort((a, b) => b.visits - a.visits).slice(0, 8);
+    $("StripRail").innerHTML = top.map((m) => `
+      <div class="Game">
+        <a class="GameThumbnail" href="#login" data-focus title="${RB.esc(m.name)}">${RB.thumb(m)}</a>
+        <div class="GameDetails"><div class="GameName"><a href="#login" data-focus>${RB.esc(m.name)}</a></div>
+          <div class="GameMeta"><span>${RB.esc(m.era)}</span><span>${RB.compact(m.visits)} visits</span></div></div>
+      </div>`).join("");
+    $("Strip").hidden = !top.length;
+    $("StripRail").addEventListener("click", (e) => {
+      if (!e.target.closest("[data-focus]")) return;
+      e.preventDefault();
+      setMode("login");
+      scrollTo({ top: 0, behavior: "smooth" });
+      $("Username").focus({ preventScroll: true });
+    });
+  } catch { /* the strip is optional */ }
+})();
+</script>
+</body>
+</html>

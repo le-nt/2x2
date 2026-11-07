@@ -1,0 +1,91 @@
+
+(async () => {
+  const status = document.getElementById('status');
+  const canvas = document.getElementById('canvas');
+  canvas.addEventListener('contextmenu', e => e.preventDefault());
+
+  async function getJSON(url) {
+    const response = await fetch(url, {
+      credentials: 'same-origin', cache: 'no-store'
+    });
+    if (!response.ok)
+      throw Error(`${url}: HTTP ${response.status} ${await response.text()}`);
+    return response.json();
+  }
+
+  try {
+    if (!crossOriginIsolated)
+      throw Error('Cross-origin isolation is missing on this test page.');
+
+    const id = new URLSearchParams(location.search).get('id')
+      || '2008m-crossroads';
+    const launch = await getJSON('/api/native/launch?id='
+      + encodeURIComponent(id));
+    const manifest = await getJSON(launch.manifest);
+
+    function asset(name) {
+      const entry = manifest.files[name];
+      if (!entry || !/^[a-f0-9]{64}$/.test(entry.sha256 || '')
+          || typeof entry.path !== 'string'
+          || entry.path.includes('..') || entry.path.includes('\\')
+          || entry.path.startsWith('/'))
+        throw Error('Missing or invalid client file: ' + name);
+      return '/native-client/'
+        + entry.path.split('/').map(encodeURIComponent).join('/')
+        + '?v=' + entry.sha256;
+    }
+
+    let flags = {};
+    if (manifest.files['ClientAppSettings.json'])
+      flags = await getJSON(asset('ClientAppSettings.json'));
+    console.info('[minimal player] settings loaded:', Object.keys(flags).length);
+
+
+    // Emergency rollback: do not block client launch on optional legacy asset preloading.
+    window.Module = {
+      canvas,
+      mainScriptUrlOrBlob: asset('UniversalClient.js'),
+      locateFile: asset,
+      arguments: [
+        '--baseUrl=' + launch.baseUrl,
+        '--authenticationUrl=' + launch.authenticationUrl,
+        '--authenticationTicket=browser-session',
+        '--joinScriptUrl=' + launch.joinScriptUrl
+      ],
+      websocket: { subprotocol: null },
+      fastFlags: JSON.stringify(flags),
+      print: value => {
+        console.log('[minimal player]', value);
+        if (String(value).includes('Connection accepted'))
+          status.hidden = true;
+      },
+      printErr: value => console.error('[minimal player]', value),
+      setStatus: value => { if (value) status.textContent = value; },
+      onRuntimeInitialized() {
+        status.textContent = 'Runtime initialized — waiting for game';
+        canvas.focus();
+      },
+      onAbort(reason) { status.textContent = 'Aborted: ' + reason; }
+    };
+
+    const script = document.createElement('script');
+    script.src = asset('UniversalClient.js');
+    script.onerror = () => {
+      status.textContent = 'Failed to load UniversalClient.js';
+    };
+    document.body.appendChild(script);
+  } catch (error) {
+    status.textContent = error.message;
+    console.error('[minimal player]', error);
+  }
+})();
+
+document.addEventListener('pointerlockchange', () => {
+  if (!document.pointerLockElement && window.Module?.ccall) {
+    try {
+      window.Module.ccall('notifyPointerLockLost', 'void', [], []);
+    } catch (error) {
+      console.warn('[minimal player]', error);
+    }
+  }
+});

@@ -1,0 +1,89 @@
+{
+  "format": 1,
+  "places": {
+    "2008m-crossroads": {
+      "id": 1,
+      "file": "2008m-crossroads.rbxl",
+      "name": "Crossroads",
+      "sha256": "919fb3a096a51c774d1f5157ae724b54a4ca5e2d784abbf2020295b2f50bb5c5"
+    },
+    "2009e-chaos-canyon": {
+      "id": 2,
+      "file": "2009e-chaos-canyon.rbxl",
+      "name": "Chaos Canyon",
+      "sha256": "dfcf59fa2a9e487427092509b6331be11dbcf6d72d5ebe65e0dd87318d91b22a"
+    },
+    "2009e-happy-home-in-robloxia": {
+      "id": 3,
+      "file": "2009e-happy-home-in-robloxia.rbxl",
+      "name": "Happy Home in Robloxia",
+      "sha256": "495178bf347b78303274f2f369e631c28a7ff4ebd53426c9e15adb54db1a7fc3"
+    },
+    "2009e-roblox-bowling-alley": {
+      "id": 4,
+      "file": "2009e-roblox-bowling-alley.rbxl",
+      "name": "ROBLOX Bowling Alley",
+      "sha256": "9dd9c34b3fcfb7ce29812b1f0577683412b883a874c1f71f3ea621474ac00f28"
+    },
+    "2009e-rotris": {
+      "id": 5,
+      "file": "2009e-rotris.rbxl",
+      "name": "ROtris",
+      "sha256": "4d05421bf09120aa710b2634ff0065e80ed10cc39c418eae0662a45f656aa2f3"
+    },
+    "2009e-the-undead-coming-v1-3": {
+      "id": 6,
+      "file": "2009e-the-undead-coming-v1-3.rbxl",
+      "name": "The Undead Coming v1.3",
+      "sha256": "9eff778809cf8d45da1b50ad614bee8c5bd12d3fee9bfc00b1da4b5c397cf822"
+    },
+    "2009e-the-underground-war": {
+      "id": 7,
+      "file": "2009e-the-underground-war.rbxl",
+      "name": "The Underground War",
+      "sha256": "c32322bb9952f9542b8622bf2cac90e3014d179f74c5bcb68cb5e17b4f5bc120"
+    },
+    "2009l-happy-home-in-robloxia": {
+      "id": 8,
+      "file": "2009l-happy-home-in-robloxia.rbxl",
+      "name": "Happy Home in Robloxia",
+      "sha256": "013f33aae51a715406c883c7a9b115cf7be41107997523d613741e265a0be769"
+    },
+    "2009m-jj5x5-s-house": {
+      "id": 9,
+      "file": "2009m-jj5x5-s-house.rbxl",
+      "name": "JJ5x5's House",
+      "sha256": "c6e4828902589bc91e8ca9d50b8a20ca35b5471b3f3c764c4de39ce82dc8515c"
+    },
+    "2010e-a-bridge-too-far": {
+      "id": 10,
+      "file": "2010e-a-bridge-too-far.rbxl",
+      "name": "A Bridge too far",
+      "sha256": "8918deb6d7ec42cb0c51797829a2956b220b881a48214f174554ec80387a0e2d"
+    },
+    "2010e-galleons-v4-2": {
+      "id": 11,
+      "file": "2010e-galleons-v4-2.rbxl",
+      "name": "Galleons v4.2",
+      "sha256": "f7484fa6ad386ccd50e1fe10e2ba4106bd79b9409904d51fe6bbbadd83fddd2b"
+    },
+    "2010m-fall-down-stairs": {
+      "id": 12,
+      "file": "2010m-fall-down-stairs.rbxl",
+      "name": " Fall Down Stairs!",
+      "sha256": "b3e4c52ede2a9482cc9da9151eb5f44334634c33f42bdbcd797cadcb34d6d9b3"
+    },
+    "2010m-ultimate-build": {
+      "id": 13,
+      "file": "2010m-ultimate-build.rbxl",
+      "name": "Ultimate Build",
+      "sha256": "f0ab7eafe8421866d37ec0b8275911b0178b0e1843f7fd4af6e02737acb2700d"
+    },
+    "2010m-work-at-a-pizza-place": {
+      "id": 14,
+      "file": "2010m-work-at-a-pizza-place.rbxl",
+      "name": "Work at a Pizza Place",
+      "sha256": "3c7562f0ef825350ec51ab5f76854b175dcfeb1ba868b8e9ee9f1c7cd3d548cb"
+    }
+  }
+}

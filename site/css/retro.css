@@ -1,0 +1,146 @@
+/* 2x2 / 2016 remix. Loaded after the existing site stylesheet. */
+:root {
+  --bg:#e5e6eb; --surface:#fff; --raised:#eff0f5; --hover:#e5e6f0; --field:#fff;
+  --line:#d0d1dd; --text:#28243a; --muted:#666176; --faint:#777286;
+  --blue:#5c36c8; --blue-hover:#7545e4; --green:#6135c7; --green-hover:#7844e0;
+  --brick:#cb20e9; --danger:#b52756; --ok:#197c68; --robux:#5c36c8; --tix:#9d6314;
+  --shadow:0 2px 3px #26204413; --top-h:64px; --rail-w:182px;
+  --r-sm:3px; --r-md:3px; --r-lg:4px; --font:Arial,"Helvetica Neue",sans-serif;
+  color-scheme:light;
+}
+html[data-theme="dark"] {
+  --bg:#181522; --surface:#221e30; --raised:#2d273e; --hover:#39304d; --field:#191622;
+  --line:#42374f; --text:#efedf7; --muted:#b7aec9; --faint:#9c91b0;
+  --blue:#b69aff; --blue-hover:#c7b1ff; --green:#7541dc; --green-hover:#8c52ef;
+  --brick:#e83cfa; --danger:#ff90af; --ok:#62d8cb; --robux:#bca3ff; --tix:#f4c46a;
+  --shadow:0 2px 3px #0003; color-scheme:dark;
+}
+body { font-size:14px; line-height:1.45; }
+h1,h2,h3,h4 { letter-spacing:0; }
+#Header,.Landing #Header { background:linear-gradient(100deg,#3e238d,#5630b0 65%,#702daf); border-bottom:3px solid #24dbe2; box-shadow:0 2px 0 #0002; }
+.TopBar { gap:20px; padding:0 22px; height:61px; }
+.Logo { min-width:116px; gap:7px; color:white; }
+.Logo .BrickMark { width:49px; height:49px; object-fit:contain; }
+.Wordmark { color:#fff; font-size:29px; font-style:italic; letter-spacing:-2px; text-shadow:2px 2px #28125e; }
+.TopLinks { display:flex; align-items:stretch; align-self:stretch; gap:22px; }
+.TopLinks a { display:flex; align-items:center; color:#fff; font-size:14px; font-weight:bold; border-bottom:3px solid transparent; padding-top:3px; text-decoration:none; }
+.TopLinks a:hover { border-bottom-color:#f85cff; }
+.TopSearch { max-width:320px; height:31px; border-radius:3px; background:#fff; color:#786b92; border:1px solid #36206d; padding:0 10px; }
+.TopSearch input[type=search] { color:#33284d; font-size:13px; }
+#Authentication { gap:6px; }
+#Header .Wallet { border:1px solid #ffffff35; background:#26145440; border-radius:3px; height:30px; padding:0 8px; color:#fff; font-size:12px; }
+#Header .AccountBtn,#Header .IconButton { color:#fff; border-radius:3px; }
+#Header .IconButton:hover,#Header .AccountBtn:hover { background:#ffffff20; }
+#Header .Initial { border-radius:3px; background:#f5e9ff; color:#693097; width:27px; height:27px; font-size:13px; }
+#Header .Button { background:#fff; color:#4c279f; height:30px; font-size:12px; padding:0 13px; }
+#Header .Button.Primary { background:#e43bf2; color:#fff; border-color:#b91bcb; }
+.SoundToggle { position:relative; flex:none; }
+.SoundToggle svg { width:19px; height:19px; }
+#Sidebar { background:var(--surface); padding:17px 10px; border-right:1px solid var(--line); }
+#Sidebar a { height:37px; padding:0 10px; gap:11px; font-size:14px; border-radius:0; font-weight:normal; border-left:3px solid transparent; }
+#Sidebar a.current { background:var(--raised); border-left-color:var(--brick); font-weight:bold; }
+#Sidebar a:hover { background:var(--raised); color:var(--blue); }
+#Sidebar .Icon { width:19px; height:19px; }
+.RailFoot { margin-top:26px; }
+#Main { max-width:1230px; padding:25px 26px 36px; }
+h1.PageTitle,h2.PageTitle { font-size:26px; font-weight:normal; }
+.PageHead { border-bottom:1px solid var(--line); padding-bottom:14px; margin-bottom:20px; }
+.StandardBox,.ProfileHero,.AuthCard,.ModalBox { border:1px solid var(--line); box-shadow:var(--shadow); }
+.StandardBoxHeader { background:var(--raised); border-bottom:1px solid var(--line); font-size:15px; padding:10px 14px; }
+.Button,a.Button { border:1px solid var(--line); border-bottom-width:2px; background:var(--surface); border-radius:3px; font-size:13px; height:34px; font-weight:bold; box-shadow:0 1px 1px #00000008; transition:background .12s,transform .12s,box-shadow .12s; }
+.Button.Primary,a.Button.Primary { background:#6239c7; border-color:#4c259f; color:#fff; }
+.Button.Primary:hover:not(:disabled) { background:#7748de; }
+.Button.Green,a.Button.Green { background:#6037c8; border-color:#49269d; color:white; }
+.Button.Big { height:41px; font-size:15px; }
+.Button:active:not(:disabled),.Chip:active { transform:translateY(1px); box-shadow:none; }
+input[type=text],input[type=password],input[type=search],input[type=email],textarea,select { border-radius:2px; box-shadow:inset 0 1px 2px #21133d0c; }
+input:focus,textarea:focus,select:focus { border-color:#9760d7; }
+.Chips { gap:0; padding:0; border-bottom:1px solid var(--line); margin-bottom:14px; }
+.Chip,a.Chip,button.Chip { border-radius:0; background:none; color:var(--muted); height:39px; font-size:13px; border-bottom:3px solid transparent; padding:0 15px; }
+.Chip.active { background:var(--surface); color:var(--blue); border-bottom-color:var(--brick); }
+.Chip:hover { background:var(--raised); }
+.Tabs { gap:0; }
+.Tabs a.active,.Tabs button.active { border-bottom-color:var(--brick); color:var(--blue); }
+.Pill { border-radius:2px; font-size:10px; height:19px; padding:0 6px; text-transform:uppercase; letter-spacing:.3px; }
+.Shelf { margin-bottom:25px; }
+.ShelfHead { border-bottom:1px solid var(--line); padding-bottom:8px; margin-bottom:13px; }
+.ShelfHead h2,.Strip h2 { font-size:19px; font-weight:normal; }
+.ShelfHead a { font-size:12px; color:var(--blue); }
+.Game { border:1px solid var(--line); border-radius:2px; background:var(--surface); overflow:hidden; box-shadow:var(--shadow); transition:transform .16s,box-shadow .16s,border-color .16s; }
+.Game:hover { transform:translateY(-3px); border-color:#a783da; box-shadow:0 4px 0 #d027e41a,0 7px 14px #39205616; }
+.GameThumbnail { border-radius:0; border-bottom:1px solid var(--line); }
+.GameDetails { padding:9px 10px 11px; }
+.GameName { font-size:14px; line-height:1.3; }
+.GameMeta { font-size:11px; margin-top:6px; }
+.GameThumbnail::after { content:""; position:absolute; inset:0; pointer-events:none; background:linear-gradient(120deg,transparent 35%,#f9bcff28 47%,#8effff18 52%,transparent 65%); transform:translateX(-110%); transition:transform .55s; }
+.Game:hover .GameThumbnail::after { transform:translateX(110%); }
+.PlayButton { background:linear-gradient(#8450e4,#5a2ebb); border:1px solid #472293; border-bottom:3px solid #3c1b81; border-radius:3px; color:#fff; }
+.PlayButton:hover { background:linear-gradient(#955df3,#6d38ce); }
+.Tile .Head,.Friend .Avatar { border-radius:3px; }
+.Greeting { padding:0 0 20px; margin-bottom:20px; border-bottom:1px solid var(--line); }
+.Greeting h1 { font-size:27px; font-weight:normal; }
+.Footer { background:var(--surface); padding:24px 26px; font-size:11px; }
+.FooterBrand .BrickMark { width:32px;height:32px; }
+.FooterNav { gap:5px 20px; }
+/* Brand panels contain the animated shader, never the surrounding text. */
+.Landing { background:var(--bg); }
+.Landing .TopBar { max-width:1220px; }
+.Hero { max-width:1164px; margin:28px auto; padding:0; grid-template-columns:1.05fr .95fr; gap:0; background:var(--surface); border:1px solid var(--line); border-radius:3px; box-shadow:var(--shadow); align-items:stretch; overflow:hidden; }
+.HeroCopy { padding:32px 36px; }
+.Eyebrow { display:flex; align-items:center; gap:8px; font-size:11px; letter-spacing:1.4px; color:var(--blue); font-weight:bold; margin:0 0 14px; }
+.Eyebrow::before { content:""; width:6px; height:6px; background:#bc20e1; box-shadow:2px 2px #32c7dc; }
+.HeroCopy h1 { font-size:40px; font-weight:bold; line-height:1.1; letter-spacing:-1.1px; max-width:360px; margin-bottom:16px; }
+.HeroCopy > p { font-size:15px; max-width:360px; margin-bottom:24px; line-height:1.6; }
+.AuthCard { max-width:350px; padding:0; border:0; background:none; box-shadow:none; }
+.AuthCard .Tabs { background:var(--raised); border:1px solid var(--line); margin-bottom:20px; }
+.AuthCard .Tabs button { font-size:13px; padding:11px; }
+.AuthCard .Tabs button.active { background:var(--surface); }
+.AuthNote { font-size:11px!important; margin:12px 0 0!important; line-height:1.5!important; }
+.HeroArt { min-height:550px; display:flex; align-items:center; justify-content:center; background:radial-gradient(ellipse at 60% 35%,#58257c,#121139 70%); isolation:isolate; overflow:hidden; border-left:1px solid #442264; }
+.HeroArt::after,.BrandBanner::after { content:""; pointer-events:none; position:absolute; inset:0; z-index:1; background:repeating-linear-gradient(0deg,transparent 0 3px,#170d3212 3px 4px); }
+.HeroLogo { position:relative; z-index:2; width:min(78%,350px); image-rendering:auto; filter:drop-shadow(0 8px 0 #170a4d77) drop-shadow(0 0 32px #f064ff40); animation:brand-float 6s ease-in-out infinite; }
+.BrandCorner { position:absolute; z-index:2; font:11px "Courier New",monospace; letter-spacing:1px; color:#c2b3f0; left:22px; top:20px; }
+.BrandCaption { position:absolute; z-index:2; bottom:24px; left:22px; right:22px; display:flex; justify-content:space-between; color:#e7dcff; font:11px "Courier New",monospace; letter-spacing:1px; border-top:1px solid #c6a9fb55; padding-top:12px; }
+.BrandCaption b { color:#64eff0; font-weight:normal; }
+.ShaderCanvas { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; z-index:0; }
+.BrandBanner { position:relative; isolation:isolate; overflow:hidden; background:#201340; border:1px solid #50317f; min-height:125px; margin:0 0 24px; display:flex; align-items:center; padding:22px; color:#fff; }
+.BrandBanner img { width:80px; height:80px; object-fit:contain; position:relative; z-index:2; margin-right:20px; filter:drop-shadow(0 3px 0 #12092c); }
+.BrandBanner > div { z-index:2; position:relative; }
+.BrandBanner h2 { font-size:21px; margin-bottom:6px; color:#fff; }
+.BrandBanner p { color:#ddd0f0; font-size:13px; margin:0; }
+.BrandBanner a { margin-left:auto; z-index:2; background:#f4eaff!important; color:#58309b!important; border-color:#dfc7f4!important; }
+.Strip { max-width:1164px; padding:0 0 35px; }
+.Strip h2 { padding-bottom:10px; border-bottom:1px solid var(--line); }
+.Landing .Footer { max-width:1164px; margin:auto; background:transparent; }
+.LoadingOverlay { background:radial-gradient(ellipse at 50% 35%,#482263,#161331 75%); }
+.Launcher { z-index:2; }
+.Launcher .Spinner { width:110px; height:110px; animation:brand-float 3s ease-in-out infinite; filter:drop-shadow(0 0 20px #e64bf750); }
+.LauncherProgress { border-radius:0; background:#a27bd83b; height:8px; border:1px solid #ac80dc55; }
+.LauncherProgress::after { background:linear-gradient(90deg,#8c40e9,#ea45e4,#48e2e9); border-radius:0; }
+.Toast { border-left:4px solid var(--brick); border-radius:3px; }
+.FXOptions { display:grid; gap:15px; }
+.FXOption { display:flex; align-items:center; gap:12px; justify-content:space-between; }
+.FXOption label { font-weight:bold; }
+.FXOption small { display:block; color:var(--muted); font-weight:normal; margin-top:3px; }
+.FXOption input[type=checkbox] { width:18px;height:18px;accent-color:#7f3fcf; }
+.FXOption input[type=range] { width:130px;accent-color:#7f3fcf; }
+@keyframes brand-float { 0%,100% { transform:translateY(0) rotate(-3deg); } 50% { transform:translateY(-9px) rotate(1deg); } }
+@keyframes panel-in { from { opacity:0; transform:translateY(7px); } to { opacity:1; transform:translateY(0); } }
+#Main,.Hero { animation:panel-in .3s ease-out both; }
+.ModalBox { animation:panel-in .16s ease-out; border-top:3px solid var(--brick); }
+html[data-motion="off"] * { animation:none!important; transition:none!important; }
+html[data-effects="off"] .ShaderCanvas { display:none; }
+@media(min-width:1550px){ .Hero{margin-top:40px;} }
+@media(max-width:1150px){ .TopLinks{gap:14px}.TopBar{gap:12px}.AccName{max-width:86px}.TopSearch{max-width:230px}.Hero,.Strip{margin-left:22px;margin-right:22px}.Strip{padding:0 0 30px} }
+@media(max-width:960px){ .TopLinks{display:none}.HeroCopy{padding:28px}.HeroArt{min-height:500px}.HeroCopy h1{font-size:34px}.TopSearch{max-width:none} }
+@media(max-width:700px){ .Hero{display:flex;flex-direction:column-reverse;margin:16px}.HeroArt{min-height:255px;border-left:0;border-bottom:1px solid #442264}.HeroLogo{width:190px}.BrandCaption{bottom:14px;left:14px;right:14px;font-size:9px}.BrandCorner{top:12px;left:14px;font-size:9px}.HeroCopy{padding:24px}.HeroCopy h1{font-size:30px;max-width:none}.AuthCard{max-width:none}.HeroCopy > p{max-width:none}.BrandBanner{padding:14px;flex-wrap:wrap;gap:10px}.BrandBanner img{width:56px;height:56px;margin-right:0}.BrandBanner h2{font-size:17px}.BrandBanner a{margin-left:66px}.TopBar,.Landing .TopBar{padding:0 12px;gap:9px}.Logo{min-width:91px}.Logo .BrickMark{width:40px;height:40px}.Wordmark{font-size:24px}.TopSearch{height:30px}.SoundToggle{width:30px}.Strip{margin:0 16px}.Wallet{padding:0 5px!important}#Main{padding:20px 16px}.Greeting h1{font-size:23px} }
+@media(max-width:430px){ .Landing .TopSearch{display:none}.TopBar{gap:7px}.Logo{min-width:84px}#Authentication{gap:4px}#Header .Wallet{font-size:11px}#Header .Wallet .Icon{display:none}#Header .Button{padding:0 9px}.AccountBtn{padding:0}.AccountBtn .Initial{width:24px;height:24px}.SoundToggle{width:25px} }
+@media(prefers-reduced-motion:reduce){ *,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}.Game:hover{transform:none} }
+
+html[data-motion="off"] *::before,html[data-motion="off"] *::after { animation:none!important;transition:none!important; }
+.ChatPage .chans,.ChatPage .users { width:175px; }
+.ChatPage .send input,.ChatPage .line { border-radius:2px; }
+.ChatPage .log { font-size:14px; }
+@media(max-width:960px){.ChatPage .chans,.ChatPage .users{display:none}}
+
+.Game { animation:panel-in .25s ease-out; }
