@@ -5,6 +5,8 @@ import path from 'node:path';
 import http from 'node:http';
 import https from 'node:https';
 import { pipeline } from 'node:stream';
+import { execFile } from 'node:child_process';
+import { promisify } from 'node:util';
 import { gunzipSync } from 'node:zlib';
 import { issue,verify,equal,clientTicket,safeRelative } from './native-security.mjs';
 
@@ -20,6 +22,29 @@ export function createNative({db,cfg,root,port,sessionUser,isGated,assetResolver
  const serverDir=path.join(root,'../server');
  const charRoot=path.join(root,'../clients/shareddata/charcustom');
  const mapRoot=path.join(serverDir,'native/maps');
+ // Optional on-demand place repair. Original maps and the registry are never modified.
+ const preparedMaps=new Map(),prepareAttempted=new Set();
+ const execFileAsync=promisify(execFile);
+ async function preparePlace(id){
+  if(prepareAttempted.has(id))return;
+  prepareAttempted.add(id);
+  const entry=places.get(id);
+  if(!entry||entry.classic.includes('crossroads'))return; // protect proven working Crossroads places
+  const projectRoot=path.resolve(serverDir,'..');
+  const script=path.join(projectRoot,'tools','prepare-runtime-place.py');
+  if(!fs.existsSync(script)||!hasMap(entry))return;
+  const python=process.env.RBX_PYTHON||(process.platform==='win32'?'py':'python3');
+  try{
+   const {stdout}=await execFileAsync(python,[script,'--root',projectRoot,'--place',entry.classic],{cwd:projectRoot,timeout:30000,maxBuffer:1024*1024,windowsHide:true});
+   const result=JSON.parse(stdout),counts=result.counts||{};
+   if(!counts.repaired_places)return;
+   const rel='2x2-runtime-ready/'+entry.classic+'.rbxl';
+   const file=beneath(mapRoot,rel);
+   if(!file)throw Error('Prepared map missing after script recovery');
+   preparedMaps.set(id,file);
+   console.log(`[2x2 native] Prepared ${entry.classic}: ${counts.restored_linked_id||0} linked and ${counts.restored_crossroads_template||0} template scripts`);
+  }catch(error){console.warn(`[2x2 native] Preparing ${entry.classic} failed; using original map: ${error.message}`);}
+ }
  let mapping={};
  try{mapping=JSON.parse(fs.readFileSync(path.join(serverDir,'native/places.json'),'utf8')).places||{};}catch{}
  const places=new Map();
@@ -44,6 +69,7 @@ export function createNative({db,cfg,root,port,sessionUser,isGated,assetResolver
   const task=(async()=>{
    const count=db.prepare('SELECT count(*) AS n FROM native_jobs WHERE closed=0 AND last_heartbeat>?').get(Date.now()-100000).n;
    if(count+spawning.size>=Number(n.maxJobs||4))throw Error('All game workers are busy. Try again shortly.');
+   await preparePlace(id);
    const result=await arbiter('/gameserver/new',{place_id:id});
    if(!result.success||!/^[A-Za-z0-9-]{1,100}$/.test(result.job_id||''))throw Error(result.message||'Game worker creation failed.');
    const heartbeat=early.get(result.job_id);early.delete(result.job_id);
@@ -142,7 +168,7 @@ export function createNative({db,cfg,root,port,sessionUser,isGated,assetResolver
   }else if(/^\/native\/asset\/?$/.test(p)){
    const assetId=url.searchParams.get('id');
    const entry=/^[1-9][0-9]*$/.test(assetId||'')?places.get(Number(assetId)):null;
-   file=hasMap(entry);kind=file?'.rbxl':undefined;
+   file=preparedMaps.get(entry?.id)||hasMap(entry);kind=file?'.rbxl':undefined;
    // Place IDs retain priority; every other numeric ID can resolve to a cached
    // mesh, texture, model, audio file, or exact linked Lua dependency.
    if(!file){const asset=assetResolver?.lookup(assetId);if(asset){file=asset.file;kind=asset.ext;}}
