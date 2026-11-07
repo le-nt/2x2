@@ -116,7 +116,8 @@ namespace HttpPlatformImpl
         attr.requestHeaders = requestHeaders.data();
         attr.withCredentials = EM_TRUE;
         attr.timeoutMSecs = options.performTimeoutMillis > 0 ? options.performTimeoutMillis : 60000;
-        emscripten_fetch_t *fetch = emscripten_fetch(&attr, localLegacyAssetUrl(options.url).c_str());
+        const std::string requestUrl = localLegacyAssetUrl(options.url);
+        emscripten_fetch_t *fetch = emscripten_fetch(&attr, requestUrl.c_str());
         if (!fetch) throw std::runtime_error("Native HTTP request could not be created");
         long statusCode = fetch->status;
 
