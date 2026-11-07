@@ -94,9 +94,18 @@ local topbarEnabled = true
 
 
 if not NON_CORESCRIPT_MODE then
-	playerDropDownModule = require(GuiRoot.Modules:WaitForChild("PlayerDropDown"))
-	playerDropDown = playerDropDownModule:CreatePlayerDropDown()
-	blockingUtility = playerDropDownModule:CreateBlockingUtility()
+	-- This social menu is optional in the reconstructed native runtime.
+	-- Missing network-backed block APIs must not kill basic game chat.
+	local ok, err = pcall(function()
+		local dropdown = GuiRoot.Modules:WaitForChild("PlayerDropDown", 8)
+		if not dropdown then error("PlayerDropDown unavailable") end
+		playerDropDownModule = require(dropdown)
+		playerDropDown = playerDropDownModule:CreatePlayerDropDown()
+		blockingUtility = playerDropDownModule:CreateBlockingUtility()
+	end)
+	if not ok then
+		warn("[2x2 chat] Optional player dropdown unavailable: " .. tostring(err))
+	end
 end
 
 --[[ END OF SCRIPT VARIABLES ]]
@@ -1045,20 +1054,20 @@ local function CreateChatBarWidget(settings)
 
 	function this:CalculateVisibility()
 		if this.ChatBarContainer then
-			local enabled = self.WidgetVisible and chatCoreGuiEnabled and not NON_CORESCRIPT_MODE
+			local enabled = this.WidgetVisible and chatCoreGuiEnabled and not NON_CORESCRIPT_MODE
 			if enabled then
 				HookUpEvents()
 			else
 				TearDownEvents()
 			end
-			this.ChatBarContainer.Visible = enabled and self.FadedIn and (not chatBarDisabled)
+			this.ChatBarContainer.Visible = enabled and this.FadedIn and (not chatBarDisabled)
 		end
 	end
 
 	function this:ToggleVisibility(visible)
-		if visible ~= self.WidgetVisible then
-			self.WidgetVisible = visible
-			self:CalculateVisibility()
+		if visible ~= this.WidgetVisible then
+			this.WidgetVisible = visible
+			this:CalculateVisibility()
 		end
 		if NON_CORESCRIPT_MODE or chatBarDisabled then
 			this.ChatBarContainer.Visible = false
@@ -1066,19 +1075,19 @@ local function CreateChatBarWidget(settings)
 	end
 
 	function this:FadeIn()
-		self.FadedIn = true
-		self:CalculateVisibility()
+		this.FadedIn = true
+		this:CalculateVisibility()
 	end
 
 	function this:FadeOut()
-		self.FadedIn = false
-		self:CalculateVisibility()
+		this.FadedIn = false
+		this:CalculateVisibility()
 	end
 
 	function this:CoreGuiChanged(coreGuiType, enabled)
 		if coreGuiType == Enum.CoreGuiType.Chat or coreGuiType == Enum.CoreGuiType.All then
 			chatCoreGuiEnabled = enabled
-			self:CalculateVisibility()
+			this:CalculateVisibility()
 		end
 	end
 
@@ -1239,8 +1248,8 @@ local function CreateChatBarWidget(settings)
 		if this.ChatBar and not chatBarDisabled then
 			this.ChatBar.Visible = true
 			this.ChatBar:CaptureFocus()
-			if self.ClickToChatButton then
-				self.ClickToChatButton.Visible = false
+			if this.ClickToChatButton then
+				this.ClickToChatButton.Visible = false
 			end
 			if this.ChatModeText then
 				this.ChatModeText.Visible = true
@@ -1251,8 +1260,8 @@ local function CreateChatBarWidget(settings)
 			-- Update chatbar properties when chatbar is focused
 			this:OnChatBarBoundsChanged()
 			if GetTopBarFlag() and this.ChatBarContainer then
-				if self.ChatBarInnerBackground then
-					self.ChatBarInnerBackground.BackgroundTransparency = 0
+				if this.ChatBarInnerBackground then
+					this.ChatBarInnerBackground.BackgroundTransparency = 0
 				end
 			end
 			this.ChatBarGainedFocusEvent:fire()
@@ -1286,64 +1295,76 @@ local function CreateChatBarWidget(settings)
 	end
 
 	function this:OnChatBarFocusLost(enterPressed)
-		if self.ChatBar then
-			self.ChatBar.Visible = false
+		if this.ChatBar then
+			this.ChatBar.Visible = false
 			if enterPressed then
-				local didMatchSlashCommand = self:ProcessChatBarModes(false)
-				local cText = self:SanitizeInput(self:GetChatBarText())
+				local didMatchSlashCommand = this:ProcessChatBarModes(false)
+				local cText = this:SanitizeInput(this:GetChatBarText())
 				if cText ~= "" then
-					if self:FloodCheck() then -- and not didMatchSlashCommand then
-						self.ChatBarFloodEvent:fire()
+					if this:FloodCheck() then -- and not didMatchSlashCommand then
+						this.ChatBarFloodEvent:fire()
 					else
 						-- For now we will let any slash command go through, NOTE: these will show up in bubble-chat
 						--if not didMatchSlashCommand and string.sub(cText,1,1) == "/" then
-						--	self.ChatCommandEvent:fire(false, "Unknown", cText)
+						--	this.ChatCommandEvent:fire(false, "Unknown", cText)
 						--else
-						local currentMessageMode = self:GetMessageMode()
+						local currentMessageMode = this:GetMessageMode()
 						-- {All, Team, Whisper}
 						if currentMessageMode == 'Team' then
 							if Player and Player.Neutral == true then
-								self.ChatErrorEvent:fire("You're not on a team.")
+								this.ChatErrorEvent:fire("You're not on a team.")
 							else
-								pcall(function() PlayersService:TeamChat(cText) end)
+								local ok, err = pcall(function() PlayersService:TeamChat(cText) end)
+								if not ok then
+									warn("[2x2 chat] Team send failed: " .. tostring(err))
+									this.ChatErrorEvent:fire("Team chat is unavailable.")
+								end
 							end
 						elseif currentMessageMode == 'Whisper' then
-							if self.TargetWhisperPlayer then
-								if self.TargetWhisperPlayer == Player then
-									self.ChatErrorEvent:fire("You cannot send a whisper to yourself.")
+							if this.TargetWhisperPlayer then
+								if this.TargetWhisperPlayer == Player then
+									this.ChatErrorEvent:fire("You cannot send a whisper to yourself.")
 								else
-									pcall(function() PlayersService:WhisperChat(cText, self.TargetWhisperPlayer) end)
+									local ok, err = pcall(function() PlayersService:WhisperChat(cText, this.TargetWhisperPlayer) end)
+									if not ok then
+										warn("[2x2 chat] Whisper send failed: " .. tostring(err))
+										this.ChatErrorEvent:fire("Whisper chat is unavailable.")
+									end
 								end
 							else
-								self.ChatErrorEvent:fire("Invalid whisper target.")
+								this.ChatErrorEvent:fire("Invalid whisper target.")
 							end
 						elseif currentMessageMode == 'All' then
-							pcall(function() PlayersService:Chat(cText) end)
+							local ok, err = pcall(function() PlayersService:Chat(cText) end)
+							if not ok then
+								warn("[2x2 chat] Send failed: " .. tostring(err))
+								this.ChatErrorEvent:fire("In-game chat is unavailable.")
+							end
 						else
 							spawn(function() error("ChatScript: Unknown Message Mode of " .. tostring(currentMessageMode)) end)
 						end
 						table.insert(sentMessageTimeQueue, tick())
 						--end
-						self:SetChatBarText("")
+						this:SetChatBarText("")
 					end
 				end
 			end
 		end
-		if self.ClickToChatButton then
-			self.ClickToChatButton.Visible = true
+		if this.ClickToChatButton then
+			this.ClickToChatButton.Visible = true
 			-- Fade-back in the text so it doesn't abruptly appear
 			-- Normally I would like to cancel the old tween but it is so short that it doesn't matter
-			self.ClickToChatButton.TextTransparency = 1
-			Util.PropertyTweener(self.ClickToChatButton, 'TextTransparency', 1, 0, 0.25, Util.Linear)
+			this.ClickToChatButton.TextTransparency = 1
+			Util.PropertyTweener(this.ClickToChatButton, 'TextTransparency', 1, 0, 0.25, Util.Linear)
 		end
-		if self.ChatModeText then
-			self.ChatModeText.Visible = false
+		if this.ChatModeText then
+			this.ChatModeText.Visible = false
 		end
 		if GetTopBarFlag() and this.ChatBarContainer then
 			local currSize = this.ChatBarContainer.Size
 			this.ChatBarContainer.Size = UDim2.new(currSize.X.Scale, currSize.X.Offset, currSize.Y.Scale, 32)
-			if self.ChatBarInnerBackground then
-				self.ChatBarInnerBackground.BackgroundTransparency = 0.5
+			if this.ChatBarInnerBackground then
+				this.ChatBarInnerBackground.BackgroundTransparency = 0.5
 			end
 		end
 		this.ChatBarChangedConn = Util.DisconnectEvent(this.ChatBarChangedConn)
@@ -1550,7 +1571,7 @@ local function CreateChatWindowWidget(settings)
 	end
 
 	function this:IsHovering()
-		if this.ChatContainer and this.LastMousePosition and self:CalculateVisibility() then
+		if this.ChatContainer and this.LastMousePosition and this:CalculateVisibility() then
 			return PointInChatWindow(this.LastMousePosition)
 		end
 		return false
@@ -1753,7 +1774,7 @@ local function CreateChatWindowWidget(settings)
 		-- NOTE: Sort of hacky, but if we are approaching the max 16 bit size
 		-- we need to rebase y back to 0 which can be done with the resize function
 		if ySize > (MAX_UDIM_SIZE / 2) then
-			self:OnResize()
+			this:OnResize()
 		end
 	end
 
@@ -1855,14 +1876,16 @@ local function CreateChatWindowWidget(settings)
 	end
 
 	function this:CalculateVisibility()
-		return this.WidgetVisible and ((chatCoreGuiEnabled and PlayersService.ClassicChat) or NON_CORESCRIPT_MODE)
+		-- 2x2's join response enables classic chat, but the reconstructed
+		-- Players.ClassicChat property can be unavailable while bootstrapping.
+		return this.WidgetVisible and (chatCoreGuiEnabled or NON_CORESCRIPT_MODE)
 	end
 
 	function this:ToggleVisibility(visible)
-		if visible ~= self.WidgetVisible then
-			self.WidgetVisible = visible
+		if visible ~= this.WidgetVisible then
+			this.WidgetVisible = visible
 			if this.ChatContainer then
-				this.ChatContainer.Visible = self:CalculateVisibility()
+				this.ChatContainer.Visible = this:CalculateVisibility()
 			end
 		end
 		if NON_CORESCRIPT_MODE then
@@ -1874,7 +1897,7 @@ local function CreateChatWindowWidget(settings)
 		if coreGuiType == Enum.CoreGuiType.Chat or coreGuiType == Enum.CoreGuiType.All then
 			chatCoreGuiEnabled = enabled
 			if this.ChatContainer then
-				this.ChatContainer.Visible = self:CalculateVisibility()
+				this.ChatContainer.Visible = this:CalculateVisibility()
 			end
 		end
 	end
@@ -2142,22 +2165,22 @@ local function CreateChat()
 			if GetTopBarFlag() then
 				if enabled then
 					pcall(function()
-						self.SpecialKeyPressedConn = Util.DisconnectEvent(self.SpecialKeyPressedConn)
+						this.SpecialKeyPressedConn = Util.DisconnectEvent(this.SpecialKeyPressedConn)
 						GuiService:AddSpecialKey(Enum.SpecialKey.ChatHotkey)
-						self.SpecialKeyPressedConn = GuiService.SpecialKeyPressed:connect(function(key)
+						this.SpecialKeyPressedConn = GuiService.SpecialKeyPressed:connect(function(key)
 							if key == Enum.SpecialKey.ChatHotkey then
-								if self.Visible == false then
-									self:ToggleVisibility()
+								if this.Visible == false then
+									this:ToggleVisibility()
 								end
-								if self.ChatBarWidget then
-									self.ChatBarWidget:FocusChatBar()
+								if this.ChatBarWidget then
+									this.ChatBarWidget:FocusChatBar()
 								end
 							end
 						end)
 					end)
 				else
 					pcall(function() GuiService:RemoveSpecialKey(Enum.SpecialKey.ChatHotkey) end)
-					self.SpecialKeyPressedConn = Util.DisconnectEvent(self.SpecialKeyPressedConn)
+					this.SpecialKeyPressedConn = Util.DisconnectEvent(this.SpecialKeyPressedConn)
 				end
 			end
 			if this.MobileChatButton then
@@ -2488,13 +2511,18 @@ local function CreateChat()
 		this.VisibilityStateChanged:fire(this.Visible)
 	end
 
-	function this:ToggleVisibility()
-		SetVisbility(not self.Visible)
+	function this:ToggleVisibility(visible)
+		-- Explicit visibility must be idempotent: the topbar initializes chat
+		-- already visible and its first synchronization must not hide it.
+		if type(visible) ~= "boolean" then
+			visible = not this.Visible
+		end
+		SetVisbility(visible)
 	end
 
 	function this:FocusChatBar()
-		if self.ChatBarWidget and this.Visible then
-			self.ChatBarWidget:FocusChatBar()
+		if this.ChatBarWidget and this.Visible then
+			this.ChatBarWidget:FocusChatBar()
 		end
 	end
 
@@ -2508,7 +2536,7 @@ local function CreateChat()
 	function this:TopbarEnabledChanged(enabled)
 		topbarEnabled = enabled
 		-- Update coregui to reflect new topbar status
-		self:CoreGuiChanged(Enum.CoreGuiType.Chat, StarterGui:GetCoreGuiEnabled(Enum.CoreGuiType.Chat))
+		this:CoreGuiChanged(Enum.CoreGuiType.Chat, StarterGui:GetCoreGuiEnabled(Enum.CoreGuiType.Chat))
 	end
 
 	function this:Initialize()
@@ -2631,8 +2659,8 @@ do
 	local ChatInstance = CreateChat()
 	ChatInstance:Initialize()
 
-	function moduleApiTable:ToggleVisibility()
-		ChatInstance:ToggleVisibility()
+	function moduleApiTable:ToggleVisibility(visible)
+		ChatInstance:ToggleVisibility(visible)
 	end
 
 	function moduleApiTable:FocusChatBar()

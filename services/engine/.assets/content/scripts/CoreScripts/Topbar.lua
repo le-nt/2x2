@@ -797,12 +797,23 @@ local function CreateUnreadMessagesNotifier(ChatModule)
 end
 
 local function CreateChatIcon()
-	local chatEnabled = game:GetService("UserInputService"):GetPlatform() ~= Enum.Platform.XBoxOne
-	if not chatEnabled then return end
-	
-	local ChatModule = require(GuiRoot.Modules.Chat)
+	-- Browser builds may not expose a platform value during CoreGui startup.
+	-- Only hide the button if the platform is positively identified as Xbox.
+	local gotPlatform, platform = pcall(function() return InputService:GetPlatform() end)
+	if gotPlatform and platform == Enum.Platform.XBoxOne then return end
 
-	local bubbleChatIsOn = not PlayersService.ClassicChat and PlayersService.BubbleChat
+	-- A failing optional chat module must not prevent the health, player list,
+	-- and backpack topbar items from being created.
+	local loaded, ChatModule = pcall(function()
+		return require(GuiRoot.Modules:WaitForChild("Chat", 8))
+	end)
+	if not loaded or not ChatModule then
+		warn("[2x2 topbar] Chat module could not start: " .. tostring(ChatModule))
+		return nil
+	end
+
+	-- 2x2 forces a classic chat window even before legacy ChatMode flags exist.
+	local bubbleChatIsOn = false
 	local debounce = 0
 
 	local chatIconButton = Util.Create'ImageButton'
