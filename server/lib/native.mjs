@@ -10,6 +10,7 @@ import { promisify } from 'node:util';
 import { gunzipSync } from 'node:zlib';
 import { issue,verify,equal,clientTicket,safeRelative } from './native-security.mjs';
 import {createNativeChat} from './native-chat.mjs';
+import {rewriteLegacyAssetUrls} from './asset-resolver.mjs';
 
 const json=(res,status,value)=>{res.writeHead(status,{'Content-Type':'application/json','Cache-Control':'no-store'});res.end(JSON.stringify(value));};
 const xmlEscape=value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;'}[c]));
@@ -183,10 +184,20 @@ export function createNative({db,cfg,root,port,sessionUser,isGated,assetResolver
   if(!file)return json(res,404,{error:'Native content not found.'});
   let data=fs.readFileSync(file);
   const xmlHeader = data.subarray(0,1024).toString('utf8').replace(/^\uFEFF/,'');
-  if(data.includes(Buffer.from('shareddata/charcustom/')) && ['.rbxm','.rbxmx','.rbxl'].includes(kind) && /^\s*(?:<\?xml[^>]*>\s*)?<roblox(?:\s|>)/.test(xmlHeader)){
-   data=Buffer.from(data.toString('utf8').replace(/(<url>\s*)h?rbxasset:\/\/[./]*shareddata\/charcustom\/([^<]+?)(\s*<\/url>)/g,(_,before,rel,after)=>before+xmlEscape(base+'/content?path='+encodeURIComponent(rel.trim()))+after));
+  // AyaEX's XML-only asset substitution belongs on the native client endpoint.
+  // Never decode/re-encode binary RBXM/RBXL, meshes, images, or audio.
+  if (['.rbxm','.rbxmx','.rbxl'].includes(kind) && /^\s*(?:<\?xml[^>]*>\s*)?<roblox(?:\s|>)/i.test(xmlHeader)){
+   let xml=data.toString('utf8');
+   if(xml.includes('shareddata/charcustom/')){
+    xml=xml.replace(/(<url>\s*)h?rbxasset:\/\/[./]*shareddata\/charcustom\/([^<]+?)(\s*<\/url>)/g,
+     (_,before,rel,after)=>before+xmlEscape(base+'/content?path='+encodeURIComponent(rel.trim()))+after);
+   }
+   // Referenced assets must use this authenticated native asset route, not a
+   // separate worker-only API or a Roblox domain unavailable to WebAssembly.
+   xml=rewriteLegacyAssetUrls(xml,base);
+   data=Buffer.from(xml,'utf8');
   }
-  const types={'.png':'image/png','.jpg':'image/jpeg','.jpeg':'image/jpeg','.wav':'audio/wav','.mp3':'audio/mpeg','.ogg':'audio/ogg','.rbxmx':'application/xml','.lua':'text/plain; charset=utf-8','.txt':'text/plain; charset=utf-8'};
+  const types={'.png':'image/png','.jpg':'image/jpeg','.jpeg':'image/jpeg','.dds':'application/octet-stream','.mesh':'application/octet-stream','.rbxm':'application/octet-stream','.rbxl':'application/octet-stream','.wav':'audio/wav','.mp3':'audio/mpeg','.ogg':'audio/ogg','.rbxmx':'application/xml','.lua':'text/plain; charset=utf-8','.txt':'text/plain; charset=utf-8'};
   res.writeHead(200,{'Content-Type':types[kind]||'application/octet-stream','Content-Length':data.length,'Cache-Control':'no-store'});res.end(req.method==='HEAD'?undefined:data);
  }
  function upgrade(req,socket,head,cookies){
