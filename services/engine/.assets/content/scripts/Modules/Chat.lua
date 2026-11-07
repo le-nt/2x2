@@ -1314,20 +1314,32 @@ local function CreateChatBarWidget(settings)
 							if Player and Player.Neutral == true then
 								this.ChatErrorEvent:fire("You're not on a team.")
 							else
-								pcall(function() PlayersService:TeamChat(cText) end)
+								local ok, err = pcall(function() PlayersService:TeamChat(cText) end)
+								if not ok then
+									warn("[2x2 chat] Team send failed: " .. tostring(err))
+									this.ChatErrorEvent:fire("Team chat is unavailable.")
+								end
 							end
 						elseif currentMessageMode == 'Whisper' then
 							if this.TargetWhisperPlayer then
 								if this.TargetWhisperPlayer == Player then
 									this.ChatErrorEvent:fire("You cannot send a whisper to yourself.")
 								else
-									pcall(function() PlayersService:WhisperChat(cText, this.TargetWhisperPlayer) end)
+									local ok, err = pcall(function() PlayersService:WhisperChat(cText, this.TargetWhisperPlayer) end)
+									if not ok then
+										warn("[2x2 chat] Whisper send failed: " .. tostring(err))
+										this.ChatErrorEvent:fire("Whisper chat is unavailable.")
+									end
 								end
 							else
 								this.ChatErrorEvent:fire("Invalid whisper target.")
 							end
 						elseif currentMessageMode == 'All' then
-							pcall(function() PlayersService:Chat(cText) end)
+							local ok, err = pcall(function() PlayersService:Chat(cText) end)
+							if not ok then
+								warn("[2x2 chat] Send failed: " .. tostring(err))
+								this.ChatErrorEvent:fire("In-game chat is unavailable.")
+							end
 						else
 							spawn(function() error("ChatScript: Unknown Message Mode of " .. tostring(currentMessageMode)) end)
 						end
