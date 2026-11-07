@@ -43,12 +43,22 @@ class Tests(unittest.TestCase):
             p=Path(t)/'map.rbxl';p.write_bytes(fixture())
             result=m.inspect_binary(p)
         self.assertEqual(result['binaryInstanceCount'],3)
+        self.assertEqual(result['classCounts'],{'Folder':1,'Tool':1,'Script':1})
         self.assertEqual(result['tools'][0]['path'],'Workspace/MagicWand')
         self.assertEqual(result['scripts'][0]['containerTool'],'MagicWand')
         self.assertEqual(result['scripts'][0]['path'],'Workspace/MagicWand/DoThing')
         self.assertEqual(result['assetIds'],['12345'])
         self.assertTrue(result['scripts'][0]['sourcePresent'])
         self.assertNotIn('print(',str(result))
+    def test_linked_source_is_available_to_gameplay_audit(self):
+        data=fixture()
+        end=chunk(b'END.',b'</roblox>')
+        data=data[:-len(end)]+prop(2,'LinkedSource',['https://assetdelivery.roblox.com/v1/asset?version=1&id=98765'])+end
+        with tempfile.TemporaryDirectory() as t:
+            p=Path(t)/'map.rbxl';p.write_bytes(data)
+            result=m.inspect_binary(p)
+        self.assertEqual(result['scripts'][0]['linkedSourceId'],'98765')
+        self.assertIn('98765',result['assetIds'])
     def test_lz4_simple_literal(self):
         self.assertEqual(m.lz4_block(b'\x50hello',5),b'hello')
     def test_truncated_file_fails(self):

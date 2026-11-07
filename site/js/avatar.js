@@ -473,7 +473,7 @@ const RBAvatar = (() => {
     placeholder(el, size, size);
     return withThree(el,
       () => stillInto(el, avatar, items, size, size, "head", -15),
-      (css) => css.render(el, avatar, items, { scale: size / 6.6, angle: -15, still: true }));
+      (css) => css.render(el, avatar, items, { scale: size / 2.8, angle: -15, still: true, headshot: true, size }));
   }
 
   return { render, headshot, _debug: { buildRig, loadThree } };

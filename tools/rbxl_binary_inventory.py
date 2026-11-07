@@ -7,6 +7,7 @@ Limits chunk expansion and instance counts for resilience to malformed files.
 import hashlib
 import re
 import struct
+from collections import Counter
 from pathlib import Path
 
 MAGIC = b'<roblox!\x89\xff\r\n\x1a\n'
@@ -17,7 +18,7 @@ SCRIPT_CLASSES = {'Script', 'LocalScript', 'ModuleScript'}
 TOOL_CLASSES = {'Tool', 'HopperBin'}
 ASSET_PROPERTIES = {'Texture', 'TextureID', 'TextureId', 'MeshId', 'MeshID', 'SoundId', 'SoundID',
                     'AnimationId', 'ShirtTemplate', 'PantsTemplate', 'Graphic', 'LinkedSource'}
-ASSET_RE = re.compile(r'(?:rbxassetid://|https?://(?:www\.)?roblox\.com/asset/\?id=)(\d+)', re.I)
+ASSET_RE = re.compile(r'(?:rbxassetid://|https?://(?:www\.)?roblox\.com/asset/\?(?:[^#]*?&)?id=|https?://assetdelivery\.roblox\.com/v1/asset\?(?:[^#]*?&)?id=)([1-9][0-9]{0,15})(?!\d)', re.I)
 
 class BinaryFormatError(ValueError):
     pass
@@ -98,6 +99,7 @@ def inspect_binary(path):
     source_info = {}
     assets = set()
     unsupported = set()
+    linked_sources = {}
     with Path(path).open('rb') as f:
         if f.read(len(MAGIC)) != MAGIC:
             raise BinaryFormatError('Not a binary Roblox file')
@@ -156,6 +158,9 @@ def inspect_binary(path):
                             'sourceBytes': len(encoded)}
                     elif pname in ASSET_PROPERTIES:
                         assets.update(ASSET_RE.findall(val))
+                        if pname == 'LinkedSource' and cname in SCRIPT_CLASSES:
+                            linked = ASSET_RE.search(val)
+                            linked_sources[ref] = linked.group(1) if linked else None
             elif tag == b'PRNT':
                 r.u8(); count = r.u32()
                 children = r.refs(count); parents = r.refs(count)
@@ -179,7 +184,9 @@ def inspect_binary(path):
             tools.append(item)
         else:
             item.update(source_info.get(ref, {'sourcePresent':False,'sourceSha256':None,'sourceBytes':0}))
+            item['linkedSourceId'] = linked_sources.get(ref)
             item['containerTool'] = next((n for k,n in reversed(chain[:-1]) if k in TOOL_CLASSES),None)
             scripts.append(item)
     return {'scripts':scripts, 'tools':tools, 'assetIds':sorted(assets, key=lambda x:(len(x),x)),
+            'classCounts':dict(Counter(instances.values())),
             'unsupportedBinaryProperties':sorted(unsupported), 'binaryInstanceCount':len(instances)}

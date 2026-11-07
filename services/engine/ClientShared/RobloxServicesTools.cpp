@@ -5,6 +5,7 @@
 #include "format_string.h"
 #include <boost/algorithm/string/predicate.hpp>
 #include <sstream>
+#include <cstdlib>
 
 #define DEFAULT_URL_SCHEMA "https"
 
@@ -63,11 +64,23 @@ std::string GetClientVersionUploadUrl(const std::string &baseUrl, const std::str
 
 std::string GetPlayerGameDataUrl(const std::string &baseurl, int userId, const std::string &key)
 {
+#if defined(RBX_RCC_SECURITY)
+    // Preserve this deployment's host, port and /native path. The legacy builder
+    // discards the path and rewrites 2x2.example.com to www.example.com.
+    const char* nativeBase = std::getenv("RBX_INTERNAL_BASE_URL");
+    if (nativeBase && *nativeBase)
+        return trim_trailing_slashes(nativeBase) + format_string("/api/game/players/%d", userId);
+#endif
 	return BuildGenericApiUrl(baseurl, "", format_string("api/game/players/%d", userId), key);
 }
 
 std::string GetWebChatFilterURL(const std::string& baseUrl, const std::string& key)
 {
+#if defined(RBX_RCC_SECURITY)
+    const char* nativeBase = std::getenv("RBX_INTERNAL_BASE_URL");
+    if (nativeBase && *nativeBase)
+        return trim_trailing_slashes(nativeBase) + "/api/moderation/filtertext";
+#endif
 	return BuildGenericApiUrl(baseUrl, "", "api/moderation/filtertext", key);
 }
 
@@ -156,4 +169,3 @@ std::string BuildGenericGameUrl(const std::string& baseUrl, const std::string &s
     }
     return constructedURLDomain + constructedServicePath;
 }
-
