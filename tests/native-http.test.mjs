@@ -11,6 +11,10 @@ test('native protocol shares 2x2 identity, requires the key, and gates WebSocket
  fs.writeFileSync(path.join(tmp,'site/index.html'),'<title>2x2</title>');fs.writeFileSync(path.join(tmp,'server/native/maps/test.rbxl'),'<roblox version="4"></roblox>');
  const binary=Buffer.concat([Buffer.from('<roblox!\x89\xff\r\n\x1a\n','latin1'),Buffer.from([0,255,254,128,0,1])]);
  fs.writeFileSync(path.join(tmp,'server/native/maps/binary.rbxl'),binary);
+ fs.mkdirSync(path.join(tmp,'server/native/asset-library'),{recursive:true});
+ fs.mkdirSync(path.join(tmp,'server/native/asset-recovery/scripts'),{recursive:true});
+ fs.writeFileSync(path.join(tmp,'server/native/asset-library/34854607.mesh'),'version 1.00\n');
+ fs.writeFileSync(path.join(tmp,'server/native/asset-recovery/scripts/1014476.lua'),'print("linked Lua delivered")\n');
  fs.writeFileSync(path.join(tmp,'server/native/places.json'),JSON.stringify({format:1,places:{[classic]:{id:1,file:'test.rbxl'},'binary-map':{id:2,file:'binary.rbxl'}}}));
  const realPlaces=JSON.parse(fs.readFileSync(path.join(root,'server/native/places.json'))).places;
  const cross=realPlaces['2008m-crossroads'];
@@ -62,6 +66,12 @@ test('native protocol shares 2x2 identity, requires the key, and gates WebSocket
   const app=await request('/native/appearance/'+me.user.id);assert.equal(app.status,200);assert.ok((await app.text()).includes('/native/bodycolors/'+me.user.id));
   const binaryResponse=await request('/native/asset?id=2',{headers:{AccessKey:key}},'');assert.deepEqual(Buffer.from(await binaryResponse.arrayBuffer()),binary,'binary map bytes must not be decoded as UTF-8');
   const serviceMap=await request('/native/asset?id=1',{headers:{AccessKey:key}},'');assert.equal(serviceMap.status,200);assert.ok((await serviceMap.text()).startsWith('<roblox'));
+  const mesh=await request('/native/asset?id=34854607',{headers:{AccessKey:key}},'');
+  assert.equal(mesh.status,200);assert.equal(await mesh.text(),'version 1.00\n');
+  const lua=await request('/native/asset?id=1014476',{headers:{AccessKey:key}},'');
+  assert.equal(lua.status,200);assert.match(await lua.text(),/linked Lua delivered/);
+  assert.equal((await request('/native/asset?id=34854607',{headers:{AccessKey:'wrong'}},'')).status,401);
+  assert.equal((await request('/native/asset?id=999999999',{headers:{AccessKey:key}},'')).status,404);
   const socketURL=new URL(info.WebSocketAddress);
   async function handshake(cookie,origin){return new Promise((resolve,reject)=>{
    const req=http.request(base+socketURL.pathname+socketURL.search,{headers:{Cookie:cookie,Origin:origin,Connection:'Upgrade',Upgrade:'websocket','Sec-WebSocket-Version':'13','Sec-WebSocket-Key':'dGhlIHNhbXBsZSBub25jZQ=='}});
