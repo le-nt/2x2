@@ -4,4 +4,4 @@ The server discovers regular files automatically (up to 16 MB each), with a 15-s
 
 Desktop slots are 160 × 600, cropped with `object-fit: cover` without stretching. Portrait artwork works best; use `object-position` in `css/community-shell.css` for special focal points. Rails disappear below 1280 px and never appear around the running game.
 
-The initial three images were supplied by the project owner. The originals' visible artist credits are retained in the source artwork. These placements are decorative community ads with no external tracking or paid links.
+The ten initial images were supplied by the project owner. The originals' visible artist credits are retained in the source artwork. These placements are decorative community ads with no external tracking or paid links.

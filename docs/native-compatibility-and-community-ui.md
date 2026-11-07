@@ -2,7 +2,13 @@
 
 ## Install website changes
 
-Use the real `C:\RBXBanland` checkout. Pull the reviewed branch, then restart the Node website server. Existing accounts, map IDs, map files, runtime repairs, game tickets and WebSocket routing are retained.
+Use the real `C:\RBXBanland` checkout. To copy only the reviewed update files from Command Prompt:
+
+```bat
+cd /d C:\RBXBanland && git fetch https://github.com/le-nt/2x2.git codex/native-compat-community-ui-20261107 && git show FETCH_HEAD:tools/apply-reviewed-update.py > "%TEMP%\2x2-apply-update.py" && py "%TEMP%\2x2-apply-update.py" --root "C:\RBXBanland" --ref FETCH_HEAD
+```
+
+The installer reads added/modified files from this update, applies a source-file allowlist, and backs up replaced files in `backup-reviewed-update-<timestamp>`. It never copies WASM/client bundles, maps, configuration, databases or place registries. It does not delete files, switch your branch or change the Git index. Local changes to update files are retained in the backup; all other local files are left alone. Restart the Node website server afterwards. Existing accounts, map IDs, map files, runtime repairs, game tickets and WebSocket routing are retained.
 
 The website changes and damage-overlay asset require no client rebuild. The new chat service also needs the RCC URL change below before the engine can reach it.
 
@@ -49,6 +55,6 @@ Drop PNG, JPG, JPEG, GIF, WebP or AVIF files into `site/img/ads/`. The server di
 
 Each navigation chooses two different images where possible. Desktop rails use 160 × 600 slots and `object-fit: cover`; the tree image has a focal-point adjustment. Rails disappear below 1280 px and stay out of the running game and login landing page. Empty folders or failed ad requests do not block the website.
 
-The three supplied images are included as optimized WebP files. They also appear in the home banner, community panel, forum header and sidebar art card. Header and sidebar initials now use the same avatar headshot renderer as Home, loaded on demand on pages without an avatar script. The CSS fallback also frames headshots instead of full-body avatars.
+Ten supplied images are included as optimized WebP files. The first three also appear in the home banner, community panel, forum header and sidebar art card. Header and sidebar initials now use the same avatar headshot renderer as Home, loaded on demand on pages without an avatar script. The CSS fallback also frames headshots instead of full-body avatars.
 
 Browser review used local sample accounts. Full-site account/worker authorization was checked separately against the real Node server in a throwaway test database.
