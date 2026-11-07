@@ -20,6 +20,7 @@ def main():
     p.add_argument('--skip-download',action='store_true')
     p.add_argument('--skip-server-route',action='store_true')
     p.add_argument('--skip-conversion',action='store_true')
+    p.add_argument('--skip-linked-scripts',action='store_true',help='Skip Novetus exact LinkedSource Lua recovery')
     args=p.parse_args()
     root=args.root.resolve(strict=True)
     if not args.origin.startswith('https://') or any(x in args.origin for x in ('?', '#', '{', '}')):
@@ -32,6 +33,8 @@ def main():
         invoke(['install-asset-route.py','--root',root])
     if not args.skip_download:
         invoke(['bulk-compat.py','--root',root,'--assets-only','--workers',args.workers])
+    if not args.skip_download and not args.skip_linked_scripts:
+        invoke(['recover-linked-lua.py','--root',root,'--workers',args.workers])
     if not args.skip_conversion:
         # The standalone converter writes copies first. It does not activate yet;
         # later script repair can read these copies after one deliberate activation.

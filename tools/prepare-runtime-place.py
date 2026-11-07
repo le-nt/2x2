@@ -104,7 +104,7 @@ def repair_scripts(payload,templates,luadir):
     ET.fromstring(output)
     return output,dict(stats),records
 
-def run(root,activate=False):
+def run(root,activate=False,only=None):
     maps=root/'server/native/maps'; registry_file=root/'server/native/places.json'
     reg=json.loads(registry_file.read_text('utf-8'))
     if not isinstance(reg.get('places'),dict):raise ValueError('No places in native registry')
@@ -112,7 +112,10 @@ def run(root,activate=False):
     templates=json.loads((Path(__file__).parent/'crossroads-tool-sources.json').read_text('utf-8'))
     out=maps/'2x2-runtime-ready';out.mkdir(parents=True,exist_ok=True)
     report=[];totals=Counter();updates={}
+    if only is not None and only not in reg['places']:
+        raise ValueError('Unknown registered place: '+str(only))
     for place,entry in sorted(reg['places'].items()):
+        if only is not None and place != only:continue
         if 'crossroads' in place.lower():totals['protected_crossroads']+=1;continue
         rel=entry.get('file','')
         if not isinstance(rel,str) or not rel.lower().endswith('.rbxl'):continue
@@ -154,5 +157,5 @@ def run(root,activate=False):
     return {'counts':dict(totals),'report':str(destination),'registryBackup':str(backup) if backup else None}
 
 if __name__=='__main__':
-    a=argparse.ArgumentParser();a.add_argument('--root',type=Path,required=True);a.add_argument('--activate',action='store_true');args=a.parse_args()
-    print(json.dumps(run(args.root.resolve(strict=True),args.activate),indent=2))
+    a=argparse.ArgumentParser();a.add_argument('--root',type=Path,required=True);a.add_argument('--activate',action='store_true');a.add_argument('--place',help='Prepare only this registered place ID; never modify the active registry unless --activate is supplied');args=a.parse_args()
+    print(json.dumps(run(args.root.resolve(strict=True),args.activate,args.place),indent=2))
