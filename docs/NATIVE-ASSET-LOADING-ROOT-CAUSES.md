@@ -217,6 +217,13 @@ you are permitted to retrieve. The downloader has per-request byte,
 duration, concurrency, and overall-count safeguards. Re-running the
 seeder preserves previously archived bytes rather than overwriting them.
 
+Successful runtime proxy responses are now also preserved automatically in
+`server/native/asset-seed/` when space is available, independently of the
+evictable `asset-cache` directory. Set `ASSET_PERSIST_DOWNLOADS=0` to
+turn off runtime archiving or `ASSET_ARCHIVE_MAX_GB=20` (default 20 GiB)
+to adjust its storage ceiling. Existing seed files are never intentionally
+overwritten. New seed files become visible to the resolver immediately.
+
 The actual client accesses the permanent seeded directory **first**.
 For new builds, media IDs go to `/native/content-asset?id=<ID>` and
 place IDs continue using `/native/asset?id=<place-id>`, so collisions
