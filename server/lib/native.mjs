@@ -182,7 +182,10 @@ export function createNative({db,cfg,root,port,sessionUser,isGated,assetResolver
    const id=Number(url.searchParams.get('PlaceId'));if(!places.has(id))return json(res,404,{error:'Unknown place.'});
    res.writeHead(200,{'Content-Type':'text/plain','Cache-Control':'no-store'});return res.end(`--rbxsig%=0\npcall(function() game:SetPlaceID(${id}, false) end)`);
   }else return json(res,404,{error:'Unknown native endpoint.'});
-  if(!file)return json(res,404,{error:'Native content not found.'});
+  if(!file){
+   const reason=/^\/native\/asset\/?$/.test(p) ? assetResolver?.getFailureReason(url.searchParams.get('id')) : null;
+   return json(res,404,{error:'Native content not found.',reason:reason||'not_in_archive'});
+  }
   let data=fs.readFileSync(file);
   const xmlHeader = data.subarray(0,1024).toString('utf8').replace(/^\uFEFF/,'');
   // AyaEX's XML-only asset substitution belongs on the native client endpoint.
