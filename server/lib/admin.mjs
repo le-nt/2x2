@@ -91,6 +91,11 @@ export function createAdmin({ db, cfg, secure }) {
       actor_id INTEGER NOT NULL REFERENCES users(id), action TEXT NOT NULL,
       target TEXT NOT NULL, detail TEXT NOT NULL, created_at INTEGER NOT NULL);
     CREATE TABLE IF NOT EXISTS site_features (key TEXT PRIMARY KEY, enabled INTEGER NOT NULL);
+    CREATE TABLE IF NOT EXISTS admin_ack (action_id INTEGER PRIMARY KEY REFERENCES admin_actions(id) ON DELETE CASCADE,
+      user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE, acknowledged_at INTEGER NOT NULL);
+    CREATE TABLE IF NOT EXISTS site_banner (id INTEGER PRIMARY KEY CHECK(id=1), message TEXT NOT NULL, enabled INTEGER NOT NULL DEFAULT 0,
+      updated_by INTEGER REFERENCES users(id), updated_at INTEGER NOT NULL);
+
     CREATE INDEX IF NOT EXISTS admin_audit_time ON admin_audit(created_at DESC);
     CREATE INDEX IF NOT EXISTS admin_actions_target ON admin_actions(target_id, created_at DESC);
   `);
@@ -115,6 +120,16 @@ export function createAdmin({ db, cfg, secure }) {
     const row = q("SELECT * FROM admin_sessions WHERE token_hash = ? AND user_id = ? AND web_session_hash = ? AND expires_at > ?")
       .get(sha256(cookies.rbxcsa), user.id, sessionHash, Date.now());
     return Boolean(row);
+  }
+  function latestNotice(userId) {
+    const a = q("SELECT id,action,reason,until_at,created_at FROM admin_actions WHERE target_id=? ORDER BY id DESC LIMIT 1").get(userId);
+    if(!a || a.action==="Unban")return null;
+    if(a.action==="Warn" || a.action==="Remind") {
+      if(q("SELECT 1 FROM admin_ack WHERE action_id=? AND user_id=?").get(a.id,userId))return null;
+      return {...a,kind:"warning"};
+    }
+    if(a.action==="Delete" || (a.action.startsWith("Ban_") && a.until_at>Date.now()))return {...a,kind:"ban"};
+    return null;
   }
   function activeBan(userId) {
     const a = q("SELECT action, until_at FROM admin_actions WHERE target_id=? ORDER BY id DESC LIMIT 1").get(userId);
@@ -186,6 +201,19 @@ export function createAdmin({ db, cfg, secure }) {
         return ok({ok:true});
       }
 
+      if (p === "/banner" && method === "GET") {
+        requireRole("Administrator");
+        return ok({banner:q("SELECT message,enabled,updated_at FROM site_banner WHERE id=1").get()||{message:"",enabled:0}});
+      }
+      if (p === "/banner" && method === "POST") {
+        requireRole("Administrator");
+        if(typeof body.enabled!=="boolean")throw [400,"Enabled must be a boolean."];
+        const message=String(body.message??"").trim().replace(/[\u0000-\u001f\u007f]/g," ");
+        if(message.length>240 || (body.enabled&&!message))throw [400,"Banner text must be 1–240 characters when enabled."];
+        q("INSERT INTO site_banner(id,message,enabled,updated_by,updated_at) VALUES (1,?,?,?,?) ON CONFLICT(id) DO UPDATE SET message=excluded.message,enabled=excluded.enabled,updated_by=excluded.updated_by,updated_at=excluded.updated_at").run(message,body.enabled?1:0,user.id,Date.now());
+        audit(user,"SITE_BANNER","site",JSON.stringify({enabled:body.enabled,message}));
+        return ok({ok:true});
+      }
       if (p === "/dashboard" && method === "GET") {
         requireRole("ForumModerator");
         return ok({userCount:q("SELECT COUNT(*) AS n FROM users").get().n,
@@ -294,5 +322,5 @@ export function createAdmin({ db, cfg, secure }) {
       send(res,status,{error:Array.isArray(e)?e[1]:"Internal admin error."});
     }
   }
-  return {handle,activeBan,role};
+  return {handle,activeBan,latestNotice,role};
 }
