@@ -13,6 +13,7 @@ import {createNativeChat} from './native-chat.mjs';
 import {rewriteLegacyAssetUrls} from './asset-resolver.mjs';
 import {inspectAvatarDependencies} from './native-avatar-deps.mjs';
 import {loadLegacyTextureMap,legacyTextureAssetId} from './legacy-texture-map.mjs';
+import {createNativeAssetPrefetch} from './native-asset-prefetch.mjs';
 
 const json=(res,status,value)=>{res.writeHead(status,{'Content-Type':'application/json','Cache-Control':'no-store'});res.end(JSON.stringify(value));};
 const xmlEscape=value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;'}[c]));
@@ -29,6 +30,7 @@ export function createNative({db,cfg,root,port,sessionUser,isGated,assetResolver
  const legacyTexturesRoot=path.join(root,'native-legacy-assets/textures');
  const engineTexturesRoot=path.join(root,'../services/engine/.assets/content/textures');
  const legacyTextureIds=loadLegacyTextureMap(path.join(serverDir,'native/legacy-texture-ids.json'));
+ const assetPrefetch=createNativeAssetPrefetch({serverDir,assetResolver});
  const catalogFacesRoot=path.join(root,'img/catalog/faces');
  const mapRoot=path.join(serverDir,'native/maps');
  // Optional on-demand place repair. Original maps and the registry are never modified.
@@ -79,6 +81,9 @@ export function createNative({db,cfg,root,port,sessionUser,isGated,assetResolver
    const count=db.prepare('SELECT count(*) AS n FROM native_jobs WHERE closed=0 AND last_heartbeat>?').get(Date.now()-100000).n;
    if(count+spawning.size>=Number(n.maxJobs||4))throw Error('All game workers are busy. Try again shortly.');
    await preparePlace(id);
+   // Prefetch only already-discovered missing IDs; never delay game-server startup.
+   const classic=places.get(id)?.classic;
+   if(classic) assetPrefetch.launch(classic);
    const result=await arbiter('/gameserver/new',{place_id:id});
    if(!result.success||!/^[A-Za-z0-9-]{1,100}$/.test(result.job_id||''))throw Error(result.message||'Game worker creation failed.');
    const heartbeat=early.get(result.job_id);early.delete(result.job_id);
