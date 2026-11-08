@@ -120,3 +120,15 @@ test('on-demand Aya-compatible fallback caches mesh bytes and deduplicates reque
   assert.equal(requests, 1);
   assert.equal(fs.readFileSync(path.join(tmp,'server/native/asset-cache/7281929')).toString('utf8'),upstreamBytes.toString('utf8'));
 });
+
+
+test('obsolete Project Pizda URLs and Novetus SBCR numeric paths are rewritten', async () => {
+  const {rewriteLegacyAssetUrls} = await import('../server/lib/asset-resolver.mjs');
+  const input = '<roblox><url>https://www.projectpizza.net/api/asset?id=105897927</url>' +
+    '<url>rbxasset://../../../shareddata/SBCR/2761723</url>' +
+    '<url>rbxasset://Textures/SpawnLocation.png</url></roblox>';
+  const out = rewriteLegacyAssetUrls(input, 'https://2x2.example/native');
+  assert.match(out, /https:\/\/2x2\.example\/native\/asset\?id=105897927/);
+  assert.match(out, /https:\/\/2x2\.example\/native\/asset\?id=2761723/);
+  assert.match(out, /rbxasset:\/\/Textures\/SpawnLocation\.png/);
+});
