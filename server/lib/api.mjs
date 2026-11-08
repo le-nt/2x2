@@ -45,6 +45,7 @@ export function createApi({ db, cfg, catalog, places, secure }) {
   const q = (sql) => db.prepare(sql);
   const userByName = (name) => q("SELECT * FROM users WHERE username = ?").get(String(name || ""));
   const isAdmin = (u) => !!u && (u.id === 1 || (cfg.admins || []).some((a) => a.toLowerCase() === u.username.toLowerCase()));
+  const featureOn = key => q("SELECT enabled FROM site_features WHERE key=?").get(key)?.enabled !== 0;
   const online = (u) => Date.now() - u.last_seen < ONLINE_MS;
   const postCount = (id) => q("SELECT COUNT(*) AS n FROM posts WHERE user_id = ?").get(id).n;
 
@@ -150,6 +151,7 @@ export function createApi({ db, cfg, catalog, places, secure }) {
   }, { auth: false });
 
   route("POST", "/api/register", async ({ body, ip, res }) => {
+    if (!featureOn("registration")) fail(403, "New account registration is temporarily disabled.");
     if (registerLimiter.blocked(ip)) fail(429, "Too many new accounts from your network. Try again later.");
     const username = String(body.username || "").trim();
     if (!/^[A-Za-z0-9_]{3,20}$/.test(username)) fail(400, "Usernames are 3-20 letters, numbers or underscores.");
@@ -358,6 +360,7 @@ export function createApi({ db, cfg, catalog, places, secure }) {
   }
 
   route("POST", "/api/forums/boards/:id/threads", ({ user, params, body }) => {
+    if (!featureOn("forumPosting")) fail(403, "Forum posting is temporarily disabled.");
     const b = q("SELECT * FROM boards WHERE id = ?").get(Number(params.id));
     if (!b) fail(404, "No such forum.");
     const title = text(body.title, { min: 3, max: 80, name: "Subject" });
@@ -374,6 +377,7 @@ export function createApi({ db, cfg, catalog, places, secure }) {
   });
 
   route("POST", "/api/forums/threads/:id/posts", ({ user, params, body }) => {
+    if (!featureOn("forumPosting")) fail(403, "Forum posting is temporarily disabled.");
     const t = q("SELECT * FROM threads WHERE id = ?").get(Number(params.id));
     if (!t) fail(404, "That thread doesn't exist.");
     if (t.locked && !isAdmin(user)) fail(403, "This thread is locked.");
