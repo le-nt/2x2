@@ -157,6 +157,23 @@ async function handler(req, res) {
   const ip = clientIp(req);
   const gated = safeEqual(cookies[GATE_COOKIE] || "", gateValue);
 
+  // Public, read-only staff badge lookup for classic player list clients.
+  // Roles are authoritative server-side assignments, never client-supplied designations.
+  if (urlPath === "/api/public/staff-badges" && req.method === "GET") {
+    const input = url.searchParams.get("ids") || "";
+    const ids = [...new Set(input.split(",").filter(v=>/^[1-9][0-9]{0,14}$/.test(v)).map(Number))].slice(0,50);
+    const roles = {};
+    const statement = db.prepare("SELECT id,username FROM users WHERE id=?");
+    for (const id of ids) {
+      const person = statement.get(id);
+      if (person) {
+        const staff = admin.role(person);
+        if (staff !== "Unprivileged") roles[id] = staff;
+      }
+    }
+    res.writeHead(200, {"Content-Type":"application/json","Cache-Control":"public, max-age=30","X-Content-Type-Options":"nosniff"});
+    res.end(JSON.stringify({roles}));return;
+  }
   if (urlPath === "/__lock" && req.method === "POST") {
     if (req.headers["sec-fetch-site"] === "cross-site") { res.writeHead(403).end(); return; }
     const current = sessionUser(cookies);
