@@ -22,7 +22,7 @@ test('inventory resolves exact relative paths without copying and preserves prov
   const manifest=await inventoryArchives(roots);
   const vfs=createAssetVfs({manifest,roots});
   const result=vfs.resolve('rbxasset://textures/spawnlocation.PNG');
-  assert.equal(result.status,'resolved');assert.equal(result.file,file);
+  assert.equal(result.status,'resolved');assert.equal(result.file,fs.realpathSync.native(file));
   assert.equal(manifest.files[0].compatibility,'not_tested');
   assert.equal(vfs.resolve('rbxasset://../../../shareddata/RiseOfTheKillbots/fonts/Shotgun.mesh').status,'resolved');
   assert.equal(vfs.resolve('rbxasset://SpawnLocation.png').status,'unresolved');

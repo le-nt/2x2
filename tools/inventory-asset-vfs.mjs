@@ -18,7 +18,10 @@ export async function inventoryArchives(roots, {maxFiles=250000, maxBytes=100 * 
     if (!root.id || ids.has(root.id) || !['content','shareddata','inventory'].includes(root.namespace)) throw Error('Invalid or duplicate archive root');
     ids.add(root.id);
     let base;
-    try { base = fs.realpathSync(root.path); if (!fs.statSync(base).isDirectory()) throw Error('not_directory'); }
+    // On Windows realpathSync's JS implementation can preserve an 8.3 alias,
+    // while promises.realpath expands it. Use native canonicalization on both
+    // sides of containment checks so RUNNER~1 roots remain valid archives.
+    try { base = await fs.promises.realpath(root.path); if (!fs.statSync(base).isDirectory()) throw Error('not_directory'); }
     catch { diagnostics.push({rootId:root.id, reason:'root_unavailable'}); continue; }
     const pending = [''];
     while (pending.length && !truncated) {

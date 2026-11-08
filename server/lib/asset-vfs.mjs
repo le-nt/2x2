@@ -24,7 +24,7 @@ export function safeArchiveFile(root, relativePath) {
   if (typeof relativePath !== 'string' || /[\\\x00-\x1f:]/.test(relativePath) || path.isAbsolute(relativePath) ||
       relativePath.split('/').some(s => !s || s === '.' || s === '..')) return null;
   try {
-    const base = fs.realpathSync(root), file = fs.realpathSync(path.join(base, relativePath));
+    const base = fs.realpathSync.native(root), file = fs.realpathSync.native(path.join(base, relativePath));
     const rel = path.relative(base, file);
     if (!rel || rel === '..' || rel.startsWith('..' + path.sep) || path.isAbsolute(rel)) return null;
     const stat = fs.statSync(file);

@@ -151,6 +151,11 @@ files. The wider filename search inspected 60,457 files in the known D: archives
 
 The main Linux regression run passed 44 tests; subsequent VFS tests additionally
 cover inventory-only roots and invalid configured manifests failing closed.
+Windows CI initially exposed an 8.3-alias discrepancy: `realpathSync` preserved
+`RUNNER~1` while `promises.realpath` expanded it, so valid files failed the
+containment check. The discrepancy was reproduced locally with a real short
+archive path, corrected using consistent native canonicalization, and checked
+with short-path TMP/TEMP against inventory, ingestion and native HTTP tests.
 Nine Python structural/binary tests passed. A broader optional legacy-loader
 source check fails on the unchanged PR #17 baseline: it expects an optional
 preload implementation that the existing emergency-rollback loader removed.
