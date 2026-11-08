@@ -29,12 +29,12 @@ function trustedRobloxRedirect(url) {
   return url.protocol === 'https:' && !url.username && !url.password &&
     (url.hostname === 'assetdelivery.roblox.com' || url.hostname.endsWith('.rbxcdn.com'));
 }
-async function downloadBytes(startURL, {roblox = false, report = () => {}} = {}) {
+async function downloadBytes(startURL, {roblox = false, report = () => {}, headers = {}} = {}) {
   let url = new URL(startURL);
   const abort = AbortSignal.timeout(12000);
   for (let redirects = 0; redirects < 4; redirects++) {
     if (roblox && !trustedRobloxRedirect(url)) { report('untrusted_redirect'); return null; }
-    const response = await fetch(url, {redirect:'manual', signal:abort});
+    const response = await fetch(url, {redirect:'manual', signal:abort, headers});
     if ([301,302,303,307,308].includes(response.status)) {
       const location = response.headers.get('location');
       if (!location) { report('redirect_without_location'); return null; }
@@ -199,7 +199,11 @@ export function createAssetResolver({serverDir, siteDir, publicOrigin = ''}) {
         const failures = [];
         const note = (source, reason) => failures.push(source + ':' + reason);
         if (aya) {
-          try { bytes = await downloadBytes(aya, {report: reason => note('aya',reason)}); }
+          try {
+            const accessKey = process.env.AYA_ASSET_FALLBACK_ACCESS_KEY;
+            bytes = await downloadBytes(aya, {report: reason => note('aya',reason),
+              headers:accessKey ? {accesskey:accessKey} : {}});
+          }
           catch (error) { note('aya','network_error'); if (debug) console.warn('[2x2 assets] Aya lookup failed for', id, error.message); }
         }
         if (!bytes && process.env.ROBLOX_ASSET_FETCH !== '0') {
