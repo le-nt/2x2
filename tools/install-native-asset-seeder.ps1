@@ -51,7 +51,8 @@ try {
   foreach ($relative in $files) {
     $local = Join-Path $staging $relative
     New-Item -ItemType Directory -Path (Split-Path $local) -Force | Out-Null
-    $url=$raw + "/" + ($relative -split "/" | ForEach-Object { [uri]::EscapeDataString($_) } | Join-String -Separator "/")
+    $parts = @($relative -split "/" | ForEach-Object { [uri]::EscapeDataString($_) })
+    $url = $raw + "/" + ($parts -join "/")
     Invoke-WebRequest -Uri $url -OutFile $local -UseBasicParsing
     if (!(Test-Path $local) -or (Get-Item $local).Length -eq 0) { throw "Missing download: $relative" }
   }
