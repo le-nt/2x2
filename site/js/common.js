@@ -319,6 +319,21 @@ const RB = {
     const f = document.getElementById("FooterSlot");
     if (f) f.innerHTML = RB.footer();
     RB.mountAds();
+    // A moderation action can happen while the player is browsing. Check periodically
+    // and send the affected signed-in user to the classic not-approved notice.
+    if(!RB._noticeChecker){
+      RB._noticeChecker=async()=>{
+        if(location.pathname.endsWith("/not-approved.html"))return;
+        try{
+          const r=await fetch("/api/not-approved",{cache:"no-store",credentials:"same-origin"});
+          if(!r.ok)return;
+          const d=await r.json();
+          if(d.notice)location.replace("/not-approved.html");
+        }catch{}
+      };
+      RB._noticeChecker();
+      RB._noticeInterval=setInterval(RB._noticeChecker,15000);
+    }
 
     if (s && !document.getElementById("Scrim")) { const sc = document.createElement("div"); sc.id = "Scrim"; document.body.appendChild(sc); }
     const toggle = document.querySelector(".NavToggle");
