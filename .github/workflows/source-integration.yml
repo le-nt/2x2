@@ -44,6 +44,14 @@ jobs:
           python-version: '3.12'
       - name: Asset and advertisement tests
         run: node --test tests/ads.test.mjs tests/asset-resolver.test.mjs tests/native-avatar-deps.test.mjs tests/native-chat.test.mjs
+      - name: Administrator syntax checks
+        run: |
+          node --check server/server.mjs
+          node --check server/lib/admin.mjs
+          node --check server/lib/api.mjs
+          node --check site/js/admin-console.js
+          node --check site/js/not-approved.js
+          node --check site/js/common.js
       - name: Admin API authorization and TOTP tests
         run: node --test tests/admin.test.mjs
       - name: Native topbar chat health source tests
