@@ -28,6 +28,7 @@ table{border-collapse:collapse;width:100%}td,th{padding:10px;text-align:left;bor
 <nav id="nav" hidden>
 <button data-page="dashboard" class="active">Dashboard</button>
 <button data-page="users">User moderation</button>
+<button data-page="appeals" data-min="Moderator">Appeals</button>
 <button data-page="forums">Forum moderation</button>
 <button data-page="banner" data-min="Administrator">Sitewide banner</button>
 <button data-page="infrastructure" data-min="Administrator">Server monitor</button>
@@ -82,6 +83,9 @@ table{border-collapse:collapse;width:100%}td,th{padding:10px;text-align:left;bor
 <p><button id="addNote">Add note</button></p>
 </div>
 </section>
+<section id="appeals" hidden><div class="panel"><h2>Account appeals</h2><p class="muted">Staff may review appeals, add a response, then separately reverse an enforcement action when warranted.</p>
+<div class="row"><select id="appealFilter"><option value="pending">Pending</option><option value="reviewed">Reviewed</option><option value="all">All</option></select><button id="refreshAppeals">Refresh</button></div>
+<div id="appealList"></div></div></section>
 <section id="forums" hidden>
 <div class="panel">
 <h2>Forum moderation</h2>
