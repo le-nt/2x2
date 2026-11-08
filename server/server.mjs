@@ -87,12 +87,25 @@ function grantGate(res, next) {
   res.end();
 }
 
-function sessionUser(cookies) {
+function rawSessionUser(cookies) {
   const tok = cookies.rbxsess;
   if (!tok) return { user: null, sessionHash: null };
   const h = sha256(tok);
   const user = db.prepare(`SELECT u.* FROM sessions s JOIN users u ON u.id = s.user_id WHERE s.token_hash = ? AND s.expires_at > ?`).get(h, Date.now());
-  return { user: user && !admin.activeBan(user.id) ? user : null, sessionHash: user && !admin.activeBan(user.id) ? h : null };
+  return { user: user || null, sessionHash: user ? h : null };
+}
+function sessionUser(cookies) {
+  const result=rawSessionUser(cookies);
+  return result.user && admin.latestNotice(result.user.id) ? {user:null,sessionHash:null} : result;
+}
+function sameOriginJson(req) {
+  if(!/^application\/json\b/i.test(req.headers["content-type"]||""))return false;
+  try {
+    const origin=new URL(req.headers.origin);
+    const allowed=[req.headers.host];
+    if(cfg.trustProxy)allowed.push(...String(req.headers["x-forwarded-host"]||"").split(",").map(x=>x.trim()));
+    return allowed.includes(origin.host);
+  }catch{return false;}
 }
 
 const assetResolver = createAssetResolver({serverDir:here,siteDir:root,publicOrigin:cfg.native?.publicOrigin || ''});
@@ -179,6 +192,44 @@ async function handler(req, res) {
     return;
   }
 
+  // Account-enforcement interstitial: suspended users may view their notice and log out,
+  // but cannot access gameplay or authenticated APIs until enforcement ends.
+  const rawAccount = rawSessionUser(cookies);
+  const notice = rawAccount.user ? admin.latestNotice(rawAccount.user.id) : null;
+  if (urlPath === "/api/not-approved" && req.method === "GET") {
+    res.writeHead(rawAccount.user?200:401,{"Content-Type":"application/json","Cache-Control":"no-store"});
+    res.end(JSON.stringify({notice:notice||null,username:rawAccount.user?.username||null}));
+    return;
+  }
+  if (urlPath === "/api/not-approved/ack" && req.method === "POST") {
+    if(!sameOriginJson(req)){res.writeHead(403).end();return;}
+    if(!rawAccount.user || !notice || notice.kind!=="warning"){res.writeHead(403).end();return;}
+    db.prepare("INSERT OR IGNORE INTO admin_ack(action_id,user_id,acknowledged_at) VALUES (?,?,?)").run(notice.id,rawAccount.user.id,Date.now());
+    res.writeHead(200,{"Content-Type":"application/json","Cache-Control":"no-store"}).end('{"ok":true}');
+    return;
+  }
+  if (notice) {
+    if (urlPath === "/api/logout" && req.method === "POST") {
+      if(!sameOriginJson(req)){res.writeHead(403).end();return;}
+      db.prepare("DELETE FROM sessions WHERE token_hash=?").run(rawAccount.sessionHash);
+      res.writeHead(200,{"Content-Type":"application/json","Cache-Control":"no-store","Set-Cookie":cookie("rbxsess","",{maxAge:0,secure})}).end('{"ok":true}');
+      return;
+    }
+    const allowed=urlPath==="/not-approved.html"||urlPath==="/js/not-approved.js";
+    if(!allowed) {
+      const wantsHtml=req.method==="GET" && (urlPath==="/"||urlPath.endsWith(".html")||urlPath==="/cs"||/text\/html/.test(req.headers.accept||""));
+      if(wantsHtml){res.writeHead(302,{Location:"/not-approved.html","Cache-Control":"no-store"}).end();return;}
+      if(urlPath.startsWith("/api/")||urlPath.startsWith("/native/")) {
+        res.writeHead(403,{"Content-Type":"application/json","Cache-Control":"no-store"}).end('{"error":"Account moderation notice pending.","notApproved":true}');return;
+      }
+    }
+  }
+  if (urlPath === "/api/site/banner" && req.method === "GET") {
+    const row=db.prepare("SELECT message,enabled,updated_at FROM site_banner WHERE id=1").get();
+    res.writeHead(200,{"Content-Type":"application/json","Cache-Control":"no-store"});
+    res.end(JSON.stringify({banner:row&&row.enabled?{message:row.message,updatedAt:row.updated_at}:null}));
+    return;
+  }
   if (urlPath.startsWith("/native/") || urlPath.startsWith("/api/native/")) {
     const { user, sessionHash } = sessionUser(cookies);
     try { return await native.route(req, res, url, user, sessionHash); }
