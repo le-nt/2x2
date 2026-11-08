@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>2x2 • Administration</title>
+<style>
+:root{color-scheme:dark;--bg:#101019;--panel:#1b1b2a;--panel2:#26263a;--border:#3b3853;--fg:#f0eef8;--muted:#a8a3c0;--accent:#a88aff;--bad:#ff858f}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:15px system-ui,Arial,sans-serif}
+a{color:var(--accent)}button,input,textarea,select{font:inherit}button{background:#654ac6;color:white;border:1px solid #8e75e0;border-radius:7px;padding:9px 14px;cursor:pointer}button:hover{filter:brightness(1.13)}button:disabled{opacity:.5;cursor:default}button.secondary{background:#343149;border-color:var(--border)}button.danger{background:#8a3348;border-color:#b95669}
+input,textarea,select{width:100%;background:#11111d;color:var(--fg);border:1px solid #53506b;padding:9px 11px;border-radius:6px}label{display:block;color:var(--muted);font-size:13px;margin:12px 0 6px}
+h1,h2,h3{margin:0 0 13px}h1{font-size:24px}h2{font-size:20px}h3{font-size:16px}p{line-height:1.5}
+.wrap{display:grid;grid-template-columns:235px minmax(0,1fr);min-height:100vh}.rail{padding:22px 16px;background:#191626;border-right:1px solid var(--border)}
+.brand{display:flex;gap:10px;align-items:center;font-size:21px;font-weight:800;color:var(--fg);text-decoration:none;margin-bottom:28px}.mark{display:grid;place-items:center;background:#654ac6;border-radius:9px;width:40px;height:40px}
+.rail button{display:block;width:100%;text-align:left;margin:5px 0;background:transparent;border-color:transparent}.rail button.active{background:#3b305f;border-color:#65548e}
+.rail small{color:var(--muted)}main{padding:30px;max-width:1250px;width:100%}.panel{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:20px;margin:16px 0}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(185px,1fr));gap:15px}.metric{background:var(--panel2);border-radius:9px;padding:18px}.metric b{display:block;font-size:26px;margin-top:8px}.muted{color:var(--muted)}.error{color:var(--bad)}.success{color:#85d3ad}.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.row>*{flex:1}.row button{flex:0 0 auto}
+table{border-collapse:collapse;width:100%}td,th{padding:10px;text-align:left;border-bottom:1px solid var(--border);vertical-align:top}th{color:var(--muted);font-weight:600}
+.scroller{overflow:auto}.hidden,[hidden]{display:none!important}code{word-break:break-all}.pill{background:#393056;color:#dfceff;padding:3px 8px;border-radius:99px;font-size:12px}
+#message{margin-bottom:14px;min-height:22px}nav{margin-top:15px}.small{font-size:12px}hr{border:0;border-top:1px solid var(--border);margin:20px 0}
+@media(max-width:750px){.wrap{grid-template-columns:1fr}.rail{border:0;border-bottom:1px solid var(--border)}.rail nav{display:flex;flex-wrap:wrap}.rail button{width:auto}main{padding:16px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<aside class="rail">
+<a href="home.html" class="brand"><span class="mark">2×2</span><span>Admin</span></a>
+<small id="role">Checking permissions…</small>
+<nav id="nav" hidden>
+<button data-page="dashboard" class="active">Dashboard</button>
+<button data-page="users">User moderation</button>
+<button data-page="appeals" data-min="Moderator">Appeals</button>
+<button data-page="forums">Forum moderation</button>
+<button data-page="banner" data-min="Administrator">Sitewide banner</button>
+<button data-page="infrastructure" data-min="Administrator">Server monitor</button>
+<button data-page="assets" data-min="AssetManager">Asset inspector</button>
+<button data-page="features" data-min="SuperAdmin">Site features</button>
+<button data-page="staff" data-min="SuperAdmin">Staff roles</button>
+<button data-page="audit" data-min="Administrator">Audit log</button>
+</nav>
+<hr><button class="secondary" id="logout" hidden>End admin session</button>
+<p class="muted small"><a href="home.html">Return to 2x2</a></p>
+</aside>
+<main>
+<h1 id="title">2x2 Administration</h1>
+<div id="message" role="status" aria-live="polite"></div>
+<section id="auth" class="panel" hidden>
+<h2>Staff verification</h2>
+<p id="authHelp" class="muted"></p>
+<div id="setup" hidden>
+<label for="password">Confirm your 2x2 password</label>
+<input id="password" type="password" autocomplete="current-password">
+<button id="generate">Generate authenticator setup</button>
+<div id="secretArea" hidden>
+<p>Enter this secret into an authenticator app. It is shown only during setup.</p>
+<code id="secret"></code>
+</div>
+</div>
+<label for="otp">Six-digit authenticator code</label>
+<input id="otp" type="text" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="one-time-code">
+<p><button id="verify">Verify</button></p>
+</section>
+<section id="dashboard" hidden>
+<div class="grid" id="metrics"></div>
+<div class="panel"><h2>Administrator session</h2><p class="muted" id="expiry"></p>
+<p>Changes to users and site features are recorded in the audit log. Moderation actions apply to the Node website and its login sessions.</p></div>
+</section>
+<section id="users" hidden>
+<div class="panel">
+<h2>Find users</h2><div class="row"><input id="userQuery" type="search" placeholder="Username (partial match)" maxlength="60"><button id="findUsers">Search</button></div>
+<div class="scroller"><table><thead><tr><th>User</th><th>ID</th><th>Joined</th><th></th></tr></thead><tbody id="userResults"></tbody></table></div>
+</div>
+<div class="panel" id="userDetail" hidden>
+<h2 id="targetName"></h2><p class="muted" id="targetFacts"></p><p id="banStatus"></p>
+<h3>Enforcement history</h3><div class="scroller"><table><tbody id="history"></tbody></table></div>
+<h3>Moderate account</h3>
+<label for="action">Action</label><select id="action">
+<option value="Warn">Warning</option><option value="Ban_1Day">Ban 1 day</option>
+<option value="Ban_3Day">Ban 3 days</option><option value="Ban_7Day">Ban 7 days</option>
+<option value="Ban_14Day">Ban 14 days</option><option value="Delete">Delete account</option><option value="Unban">Unban / restore</option>
+</select>
+<label for="reason">Reason</label><textarea id="reason" rows="3" maxlength="500"></textarea>
+<p><button id="moderate" class="danger">Apply moderation action</button></p>
+<hr><h3>Internal staff notes</h3><div id="notes"></div><label for="note">New note</label><textarea id="note" rows="3" maxlength="2000"></textarea>
+<p><button id="addNote">Add note</button></p>
+</div>
+</section>
+<section id="appeals" hidden><div class="panel"><h2>Account appeals</h2><p class="muted">Staff may review appeals, add a response, then separately reverse an enforcement action when warranted.</p>
+<div class="row"><select id="appealFilter"><option value="pending">Pending</option><option value="reviewed">Reviewed</option><option value="all">All</option></select><button id="refreshAppeals">Refresh</button></div>
+<div id="appealList"></div></div></section>
+<section id="forums" hidden>
+<div class="panel">
+<h2>Forum moderation</h2>
+<p class="muted">Search threads to lock or pin them. Every change is recorded in the audit log.</p>
+<div class="row"><input id="threadQuery" type="search" maxlength="80" placeholder="Search thread titles"><button id="findThreads">Search</button></div>
+<div class="scroller"><table><thead><tr><th>Title</th><th>Board</th><th>Author</th><th>Locked</th><th>Pinned</th><th></th></tr></thead><tbody id="threadResults"></tbody></table></div>
+</div>
+</section>
+<section id="assets" hidden>
+<div class="panel"><h2>Cached asset inspector</h2><p class="muted">Read-only local asset library diagnostics. Search by numeric Roblox asset ID to check if it is cached.</p>
+<div class="row"><input id="assetId" inputmode="numeric" placeholder="Asset ID (blank for recent cache sample)" maxlength="20"><button id="inspectAsset">Inspect</button></div>
+<p id="assetCount" class="muted"></p><div class="scroller"><table><thead><tr><th>Local filename</th><th>Size</th><th>Modified</th></tr></thead><tbody id="assetResults"></tbody></table></div>
+</div></section>
+<section id="infrastructure" hidden>
+<div class="panel"><h2>Server and Arbiter monitor</h2><p class="muted">Read-only diagnostics for this Node server and registered native game jobs.</p>
+<div class="grid" id="infraMetrics"></div><p><button class="secondary" id="refreshInfra">Refresh status</button></p>
+<h3>Active game jobs</h3><div class="scroller"><table><thead><tr><th>Job ID</th><th>Place</th><th>Ready</th><th>Players</th><th>Last heartbeat</th></tr></thead><tbody id="infraJobs"></tbody></table></div>
+<h3>Stale jobs</h3><p class="muted" id="staleCount"></p></div>
+</section>
+<section id="banner" hidden><div class="panel"><h2>Sitewide announcement banner</h2>
+<p class="muted">Display a short notice on the 2x2 website. Text is shown as plain text, not HTML.</p>
+<label for="bannerMessage">Banner message (maximum 240 characters)</label><textarea id="bannerMessage" maxlength="240" rows="3"></textarea>
+<label><input id="bannerEnabled" type="checkbox" style="width:auto"> Enable announcement</label>
+<p><button id="saveBanner">Save announcement</button></p>
+</div></section>
+<section id="features" hidden><div class="panel"><h2>Website feature flags</h2><p class="muted">These switches affect the live Node.js API.</p><div id="flags"></div></div></section>
+<section id="staff" hidden><div class="panel"><h2>Staff roles</h2><p class="muted">Roles are hierarchical. Bootstrap administrators configured by the server cannot be reassigned here.</p>
+<div class="scroller"><table><tbody id="staffList"></tbody></table></div><hr>
+<label for="staffId">User ID</label><input id="staffId" type="number" min="1">
+<label for="staffRole">Role</label><select id="staffRole"><option>Unprivileged</option><option>ForumModerator</option><option>AssetManager</option><option>Moderator</option><option>Administrator</option><option>SuperAdmin</option></select>
+<p><button id="saveStaff">Save role</button></p></div></section>
+<section id="audit" hidden><div class="panel"><h2>Audit log</h2><div class="scroller"><table><thead><tr><th>Time</th><th>Staff</th><th>Action</th><th>Target</th><th>Details</th></tr></thead><tbody id="auditRows"></tbody></table></div><p><button class="secondary" id="moreAudit">Next page</button></p></div></section>
+</main>
+</div>
+<script src="js/admin-console.js" defer></script>
+</body></html>

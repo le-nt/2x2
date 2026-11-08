@@ -1,0 +1,219 @@
+// 2x2 native admin console: all sensitive decisions are enforced in server/lib/admin.mjs.
+(() => {
+"use strict";
+const $=id=>document.getElementById(id);
+const ROLES=["Unprivileged","ForumModerator","AssetManager","Moderator","Administrator","SuperAdmin"];
+let state={role:"Unprivileged",target:null,verified:false,auditPage:1,page:"dashboard",enrolled:false};
+const fmt=v=>v?new Date(v).toLocaleString():"—";
+const el=(tag,text,cls)=>{const e=document.createElement(tag);e.textContent=String(text??"");if(cls)e.className=cls;return e};
+function showMessage(msg,bad=false){const n=$("message");n.textContent=msg||"";n.className=bad?"error":"success";}
+async function api(path,method="GET",body){
+  const r=await fetch("/api/admin"+path,{method,credentials:"same-origin",headers:method==="GET"?{}:{"Content-Type":"application/json"},body:method==="GET"?undefined:JSON.stringify(body||{}),cache:"no-store"});
+  const result=await r.json().catch(()=>({error:"Unexpected server response."}));
+  if(!r.ok)throw Error(result.error||"Request failed ("+r.status+")");
+  return result;
+}
+async function perform(fn){try{showMessage("");await fn();}catch(e){showMessage(e.message,true);}}
+function can(role){return ROLES.indexOf(state.role)>=ROLES.indexOf(role);}
+function showPage(name){
+  state.page=name;$("title").textContent=({dashboard:"Dashboard",users:"User moderation",appeals:"Appeals",forums:"Forum moderation",banner:"Sitewide banner",infrastructure:"Server monitor",assets:"Asset inspector",features:"Site features",staff:"Staff roles",audit:"Audit log"})[name]||"2x2 Administration";
+  for(const p of ["dashboard","users","appeals","forums","banner","infrastructure","assets","features","staff","audit"])$(p).hidden=p!==name;
+  for(const b of document.querySelectorAll("#nav button"))b.classList.toggle("active",b.dataset.page===name);
+}
+async function init(){
+  const status=await api("/status");
+  state.role=status.staffRole;state.verified=status.verified;state.enrolled=status.enrolled;
+  $("role").textContent="Staff role: "+state.role;
+  $("nav").hidden=!state.verified;$("logout").hidden=!state.verified;$("auth").hidden=state.verified;
+  $("setup").hidden=state.enrolled;
+  $("authHelp").textContent=state.enrolled?"Enter your authenticator code to start a six-hour staff session.":"Verify your password, then enroll an authenticator app before using the admin panel.";
+  for(const b of document.querySelectorAll("#nav button[data-min]"))b.hidden=!can(b.dataset.min);
+  if(state.verified){showPage(state.page);await loadPage(state.page);}
+  else for(const p of ["dashboard","users","appeals","forums","banner","infrastructure","assets","features","staff","audit"])$(p).hidden=true;
+}
+async function loadPage(p){
+  if(p==="dashboard"){
+    const d=await api("/dashboard");
+    $("metrics").replaceChildren();
+    for(const [label,value] of [["Total users",d.userCount],["New accounts today",d.signUpsToday],["Active enforcement",d.activeBans]]){
+      const c=el("div",label,"metric");c.append(el("b",value));$("metrics").append(c);
+    }
+    $("expiry").textContent="Session expires: "+fmt(d.sessionExpires);
+  }else if(p==="users")await findUsers();
+  else if(p==="appeals")await loadAppeals();
+  else if(p==="forums")await findThreads();
+  else if(p==="banner")await loadBanner();
+  else if(p==="infrastructure")await loadInfra();
+  else if(p==="assets")await inspectAssets();
+  else if(p==="features")await loadFlags();
+  else if(p==="staff")await loadStaff();
+  else if(p==="audit")await loadAudit();
+}
+async function findUsers(){
+  const d=await api("/users?q="+encodeURIComponent($("userQuery").value.trim()));
+  $("userResults").replaceChildren();
+  for(const u of d.users){
+    const tr=document.createElement("tr");
+    for(const value of [u.username,u.id,fmt(u.created_at)])tr.append(el("td",value));
+    const td=document.createElement("td"),b=el("button","Inspect");b.className="secondary";b.onclick=()=>perform(()=>viewUser(u.id));
+    td.append(b);tr.append(td);$("userResults").append(tr);
+  }
+  if(!d.users.length)$("userResults").append(el("tr","No accounts found."));
+}
+async function viewUser(id){
+  const d=await api("/users/"+id);
+  state.target=d.user.id;$("userDetail").hidden=false;
+  $("targetName").textContent=d.user.username+" (#"+d.user.id+")";
+  $("targetFacts").textContent="Joined "+fmt(d.user.created_at)+" • Last seen "+fmt(d.user.last_seen)+" • R$ "+d.user.robux+" • Tx "+d.user.tix;
+  $("banStatus").textContent=d.ban?"Active enforcement: "+d.ban.action+(d.ban.until_at?" until "+fmt(d.ban.until_at):""):"No active enforcement";
+  $("history").replaceChildren();
+  for(const a of d.history){
+    const tr=document.createElement("tr");
+    for(const v of [fmt(a.created_at),a.action,a.reason,a.actor])tr.append(el("td",v));
+    $("history").append(tr);
+  }
+  $("notes").replaceChildren();
+  for(const n of d.notes)$("notes").append(el("p",fmt(n.created_at)+" • "+n.author+": "+n.note));
+}
+async function moderate(){
+  if(!state.target)throw Error("Select a user first.");
+  const action=$("action").value,reason=$("reason").value.trim();
+  if(!reason)throw Error("Enter a reason.");
+  if(!confirm("Apply "+action+" to user #"+state.target+"? This will be audited."))return;
+  await api("/users/"+state.target+"/action","POST",{action,reason});
+  $("reason").value="";await viewUser(state.target);showMessage("Moderation action saved.");
+}
+async function addNote(){
+  if(!state.target)throw Error("Select a user.");
+  await api("/users/"+state.target+"/notes","POST",{note:$("note").value});
+  $("note").value="";await viewUser(state.target);showMessage("Note added.");
+}
+async function loadAppeals(){
+  const d=await api("/appeals?status="+encodeURIComponent($("appealFilter").value));
+  $("appealList").replaceChildren();
+  if(!d.appeals.length)$("appealList").append(el("p","No appeals found.","muted"));
+  for(const a of d.appeals){
+    const box=el("div","","panel");box.append(el("h3",a.username+" (#"+a.user_id+") — "+a.status));
+    box.append(el("p",fmt(a.created_at)+" • Moderation action #"+a.action_id,"muted"));
+    box.append(el("p",a.message));
+    if(a.status==="pending"){
+      const input=document.createElement("textarea");input.rows=2;input.placeholder="Staff response to the player";input.maxLength=2000;
+      const send=el("button","Mark reviewed");
+      send.onclick=()=>perform(async()=>{
+        await api("/appeals/"+a.id,"POST",{response:input.value});
+        await loadAppeals();showMessage("Appeal response saved.");
+      });
+      box.append(input,send);
+    }else box.append(el("p","Staff response: "+a.response));
+    $("appealList").append(box);
+  }
+}
+async function findThreads(){
+  const d=await api("/forums?q="+encodeURIComponent($("threadQuery").value.trim()));
+  $("threadResults").replaceChildren();
+  for(const t of d.threads){
+    const tr=document.createElement("tr");
+    for(const v of [t.title,t.board,t.author])tr.append(el("td",v));
+    const locked=document.createElement("input");locked.type="checkbox";locked.checked=Boolean(t.locked);
+    const pinned=document.createElement("input");pinned.type="checkbox";pinned.checked=Boolean(t.pinned);
+    const lc=document.createElement("td"),pc=document.createElement("td"),ac=document.createElement("td");
+    lc.append(locked);pc.append(pinned);
+    const save=el("button","Save");save.onclick=()=>perform(async()=>{
+      await api("/forums/"+t.id,"POST",{locked:locked.checked,pinned:pinned.checked});
+      showMessage("Thread moderation saved.");
+    });
+    ac.append(save);tr.append(lc,pc,ac);$("threadResults").append(tr);
+  }
+}
+async function inspectAssets(){
+  const d=await api("/assets?id="+encodeURIComponent($("assetId").value.trim()));
+  $("assetCount").textContent=d.cachedCount+" files in local asset library"+(d.query?" • "+d.files.length+" matching "+d.query:"");
+  $("assetResults").replaceChildren();
+  for(const item of d.files){
+    const tr=document.createElement("tr");
+    for(const v of [item.name,(item.size/1024).toFixed(1)+" KiB",fmt(item.modifiedAt)])tr.append(el("td",v));
+    $("assetResults").append(tr);
+  }
+  if(!d.files.length)$("assetResults").append(el("tr","No matching assets found."));
+}
+async function loadInfra(){
+  const d=await api("/infrastructure");
+  $("infraMetrics").replaceChildren();
+  for(const [name,value] of [["Server uptime",Math.floor(d.uptimeSeconds/60)+" min"],["Memory RSS",(d.memoryRss/1048576).toFixed(1)+" MiB"],["Arbiter configured",d.arbiterConfigured?"Yes":"No"],["Active jobs",d.activeJobs.length]]){
+    const card=el("div",name,"metric");card.append(el("b",value));$("infraMetrics").append(card);
+  }
+  $("infraJobs").replaceChildren();
+  for(const j of d.activeJobs){
+    const tr=document.createElement("tr");
+    for(const v of [j.id,j.placeId,j.ready?"Ready":"Loading",j.playerCount,fmt(j.lastHeartbeat)])tr.append(el("td",v));
+    $("infraJobs").append(tr);
+  }
+  $("staleCount").textContent=d.staleJobs.length+" stale job(s) (no heartbeat for over 100 seconds).";
+}
+async function loadBanner(){
+  const d=await api("/banner");
+  $("bannerMessage").value=d.banner?.message||"";
+  $("bannerEnabled").checked=Boolean(d.banner?.enabled);
+}
+async function saveBanner(){
+  await api("/banner","POST",{message:$("bannerMessage").value,enabled:$("bannerEnabled").checked});
+  showMessage("Sitewide banner updated.");
+}
+async function loadFlags(){
+  const d=await api("/features");$("flags").replaceChildren();
+  for(const f of d.features){
+    const line=el("div","","panel"),title=el("h3",f.description||f.key),detail=el("p","Key: "+f.key+" • "+(f.enabled?"Enabled":"Disabled"),"muted");
+    const b=el("button",f.enabled?"Disable":"Enable",f.enabled?"secondary":"");
+    b.onclick=()=>perform(async()=>{await api("/features/"+f.key,"POST",{enabled:!f.enabled});await loadFlags();showMessage("Feature flag updated.");});
+    line.append(title,detail,b);$("flags").append(line);
+  }
+}
+async function loadStaff(){
+  const d=await api("/staff");$("staffList").replaceChildren();
+  for(const s of d.staff){
+    const tr=document.createElement("tr");
+    for(const v of [s.username,"#"+s.user_id,s.role])tr.append(el("td",v));
+    $("staffList").append(tr);
+  }
+}
+async function saveStaff(){
+  const userId=Number($("staffId").value),role=$("staffRole").value;
+  if(!Number.isSafeInteger(userId)||userId<1)throw Error("Enter a valid user ID.");
+  if(!confirm("Set user #"+userId+" to "+role+"?"))return;
+  await api("/staff","POST",{userId,role});await loadStaff();showMessage("Staff role updated.");
+}
+async function loadAudit(){
+  const d=await api("/audit?page="+state.auditPage);$("auditRows").replaceChildren();
+  for(const a of d.records){
+    const tr=document.createElement("tr");
+    for(const v of [fmt(a.created_at),a.actor,a.action,a.target,a.detail])tr.append(el("td",v));
+    $("auditRows").append(tr);
+  }
+  $("moreAudit").disabled=d.records.length<50;
+}
+$("generate").onclick=()=>perform(async()=>{
+  const d=await api("/totp/setup","POST",{password:$("password").value});
+  $("secretArea").hidden=false;$("secret").textContent=d.secret;
+  $("password").value="";showMessage("Add the secret to an authenticator app, then enter its six-digit code.");
+});
+$("verify").onclick=()=>perform(async()=>{
+  await api(state.enrolled?"/totp/login":"/totp/enroll","POST",{code:$("otp").value.trim()});
+  $("otp").value="";$("secret").textContent="";$("secretArea").hidden=true;
+  showMessage("Administrator session started.");await init();
+});
+$("logout").onclick=()=>perform(async()=>{await api("/logout","POST");state.page="dashboard";await init();});
+for(const b of document.querySelectorAll("#nav button"))b.onclick=()=>perform(async()=>{showPage(b.dataset.page);await loadPage(b.dataset.page);});
+$("findUsers").onclick=()=>perform(findUsers);
+$("findThreads").onclick=()=>perform(findThreads);
+$("refreshAppeals").onclick=()=>perform(loadAppeals);
+
+$("userQuery").addEventListener("keydown",e=>{if(e.key==="Enter")perform(findUsers);});
+$("moderate").onclick=()=>perform(moderate);
+$("addNote").onclick=()=>perform(addNote);
+$("saveStaff").onclick=()=>perform(saveStaff);
+$("saveBanner").onclick=()=>perform(saveBanner);
+$("refreshInfra").onclick=()=>perform(loadInfra);
+$("inspectAsset").onclick=()=>perform(inspectAssets);
+$("moreAudit").onclick=()=>perform(async()=>{state.auditPage++;await loadAudit();});
+perform(init);
+})();

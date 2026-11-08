@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Account Not Approved - 2x2</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:white;color:#161616;font:16px Arial,Helvetica,sans-serif}
+.notice{width:min(720px,calc(100% - 30px));margin:32px auto;padding:30px 38px 45px;border:1px solid #aaa}
+h1{font-size:34px;line-height:1.2;font-weight:400;margin:10px 0 26px}
+p{line-height:1.6;margin:16px 0}small{color:#666}
+.label{font-weight:bold}#moderatorReason{white-space:pre-wrap;background:#f0f0f0;border:1px solid #bbb;padding:13px 17px;min-height:50px;margin:12px 0 16px}
+.actions{text-align:center;margin:30px 0 0}button{font:13px Arial,sans-serif;padding:4px 11px;border:1px solid #999;background:linear-gradient(#fff,#ddd);border-radius:2px;cursor:pointer;margin:0 4px}
+a{color:#1460a9}#error{color:#a11;min-height:1em}#reviewed{font-weight:bold}
+@media(max-width:520px){.notice{padding:22px 18px}h1{font-size:27px}}
+</style>
+</head>
+<body>
+<main class="notice">
+<h1 id="heading">Account Not Approved</h1>
+<p>Our content monitors have determined that your behavior on 2x2 has been in violation of our Community Guidelines. Please abide by the rules to keep 2x2 fun for everyone.</p>
+<p>Reviewed: <span id="reviewed">Loading…</span></p>
+<p class="label">Moderator Note:</p>
+<div id="moderatorReason"></div>
+<p>Please abide by the <a href="about.html">2x2 Community Guidelines</a> so that 2x2 can be fun for users of all ages.</p>
+<p id="duration"></p>
+<details id="appealBox" style="margin-top:18px"><summary style="cursor:pointer;color:#1460a9">Appeal this moderation decision</summary>
+<p>Explain why this action should be reviewed. One appeal can be submitted for each moderation action.</p>
+<textarea id="appealText" rows="5" maxlength="2000" style="width:100%;padding:9px;border:1px solid #aaa;font:14px Arial,sans-serif"></textarea>
+<p><button id="sendAppeal">Submit Appeal</button></p>
+<p id="appealStatus"></p></details>
+<p class="actions"><button id="ack" hidden>Reactivate My Account</button><button id="logout">Logout</button></p>
+<p id="error" role="alert"></p>
+</main>
+<script src="/js/not-approved.js" defer></script>
+</body>
+</html>

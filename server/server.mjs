@@ -11,6 +11,7 @@ import { fileURLToPath } from "node:url";
 import { loadConfig } from "./lib/config.mjs";
 import { openDb } from "./lib/db.mjs";
 import { createApi } from "./lib/api.mjs";
+import { createAdmin } from "./lib/admin.mjs";
 import { gatePage } from "./lib/gate.mjs";
 import { createGame } from "./lib/game.mjs";
 import { hmac, safeEqual, sha256, parseCookies, cookie, RateLimiter } from "./lib/auth.mjs";
@@ -26,6 +27,7 @@ const catalog = JSON.parse(fs.readFileSync(path.join(here, "catalog.json"), "utf
 const places = new Map(JSON.parse(fs.readFileSync(path.join(root, "data", "maps.json"), "utf8")).maps.map((m) => [m.id, m]));
 const secure = !!cfg.secureCookies;
 const api = createApi({ db, cfg, catalog, places, secure });
+const admin = createAdmin({ db, cfg, secure, serverDir:here });
 const game = createGame({ db, root }); // game agent: avatar overlay zips, multiplayer servers
 
 const GATE_COOKIE = "rbxgate";
@@ -85,12 +87,35 @@ function grantGate(res, next) {
   res.end();
 }
 
-function sessionUser(cookies) {
+function rawSessionUser(cookies) {
   const tok = cookies.rbxsess;
   if (!tok) return { user: null, sessionHash: null };
   const h = sha256(tok);
   const user = db.prepare(`SELECT u.* FROM sessions s JOIN users u ON u.id = s.user_id WHERE s.token_hash = ? AND s.expires_at > ?`).get(h, Date.now());
   return { user: user || null, sessionHash: user ? h : null };
+}
+function qAppeal(actionId,userId){
+  return db.prepare("SELECT status,response,created_at,reviewed_at FROM admin_appeals WHERE action_id=? AND user_id=?").get(actionId,userId)||null;
+}
+function sessionUser(cookies) {
+  const result=rawSessionUser(cookies);
+  return result.user && admin.latestNotice(result.user.id) ? {user:null,sessionHash:null} : result;
+}
+async function readSmallJson(req) {
+  const parts=[];let size=0;
+  for await(const part of req){size+=part.length;if(size>4096)throw Error("Request too large.");parts.push(part);}
+  const result=JSON.parse(Buffer.concat(parts).toString("utf8")||"{}");
+  if(!result||Array.isArray(result)||typeof result!=="object")throw Error("Invalid request.");
+  return result;
+}
+function sameOriginJson(req) {
+  if(!/^application\/json\b/i.test(req.headers["content-type"]||""))return false;
+  try {
+    const origin=new URL(req.headers.origin);
+    const allowed=[req.headers.host];
+    if(cfg.trustProxy)allowed.push(...String(req.headers["x-forwarded-host"]||"").split(",").map(x=>x.trim()));
+    return allowed.includes(origin.host);
+  }catch{return false;}
 }
 
 const assetResolver = createAssetResolver({serverDir:here,siteDir:root,publicOrigin:cfg.native?.publicOrigin || ''});
@@ -177,6 +202,59 @@ async function handler(req, res) {
     return;
   }
 
+  // Account-enforcement interstitial: suspended users may view their notice and log out,
+  // but cannot access gameplay or authenticated APIs until enforcement ends.
+  const rawAccount = rawSessionUser(cookies);
+  const notice = rawAccount.user ? admin.latestNotice(rawAccount.user.id) : null;
+  if (urlPath === "/api/not-approved" && req.method === "GET") {
+    res.writeHead(rawAccount.user?200:401,{"Content-Type":"application/json","Cache-Control":"no-store"});
+    const appeal=notice?qAppeal(notice.id,rawAccount.user.id):null;
+    res.end(JSON.stringify({notice:notice||null,username:rawAccount.user?.username||null,appeal}));
+
+    return;
+  }
+  if(urlPath==="/api/not-approved/appeal"&&req.method==="POST"){
+    if(!sameOriginJson(req)){res.writeHead(403).end();return;}
+    if(!rawAccount.user||!notice){res.writeHead(403).end();return;}
+    try {
+      const input=await readSmallJson(req);
+      const message=String(input.message||"").trim();
+      if(message.length<12||message.length>2000){res.writeHead(400,{"Content-Type":"application/json"}).end('{"error":"Appeal must be 12–2000 characters."}');return;}
+      const existing=qAppeal(notice.id,rawAccount.user.id);
+      if(existing){res.writeHead(409,{"Content-Type":"application/json"}).end('{"error":"An appeal has already been submitted for this action."}');return;}
+      db.prepare("INSERT INTO admin_appeals(action_id,user_id,message,created_at) VALUES (?,?,?,?)").run(notice.id,rawAccount.user.id,message,Date.now());
+      res.writeHead(200,{"Content-Type":"application/json","Cache-Control":"no-store"}).end('{"ok":true}');return;
+    } catch(e){res.writeHead(400,{"Content-Type":"application/json"}).end(JSON.stringify({error:"Could not submit appeal."}));return;}
+  }
+  if (urlPath === "/api/not-approved/ack" && req.method === "POST") {
+    if(!sameOriginJson(req)){res.writeHead(403).end();return;}
+    if(!rawAccount.user || !notice || notice.kind!=="warning"){res.writeHead(403).end();return;}
+    db.prepare("INSERT OR IGNORE INTO admin_ack(action_id,user_id,acknowledged_at) VALUES (?,?,?)").run(notice.id,rawAccount.user.id,Date.now());
+    res.writeHead(200,{"Content-Type":"application/json","Cache-Control":"no-store"}).end('{"ok":true}');
+    return;
+  }
+  if (notice) {
+    if (urlPath === "/api/logout" && req.method === "POST") {
+      if(!sameOriginJson(req)){res.writeHead(403).end();return;}
+      db.prepare("DELETE FROM sessions WHERE token_hash=?").run(rawAccount.sessionHash);
+      res.writeHead(200,{"Content-Type":"application/json","Cache-Control":"no-store","Set-Cookie":cookie("rbxsess","",{maxAge:0,secure})}).end('{"ok":true}');
+      return;
+    }
+    const allowed=urlPath==="/not-approved.html"||urlPath==="/js/not-approved.js";
+    if(!allowed) {
+      const wantsHtml=req.method==="GET" && (urlPath==="/"||urlPath.endsWith(".html")||urlPath==="/cs"||/text\/html/.test(req.headers.accept||""));
+      if(wantsHtml){res.writeHead(302,{Location:"/not-approved.html","Cache-Control":"no-store"}).end();return;}
+      if(urlPath.startsWith("/api/")||urlPath.startsWith("/native/")) {
+        res.writeHead(403,{"Content-Type":"application/json","Cache-Control":"no-store"}).end('{"error":"Account moderation notice pending.","notApproved":true}');return;
+      }
+    }
+  }
+  if (urlPath === "/api/site/banner" && req.method === "GET") {
+    const row=db.prepare("SELECT message,enabled,updated_at FROM site_banner WHERE id=1").get();
+    res.writeHead(200,{"Content-Type":"application/json","Cache-Control":"no-store"});
+    res.end(JSON.stringify({banner:row&&row.enabled?{message:row.message,updatedAt:row.updated_at}:null}));
+    return;
+  }
   if (urlPath.startsWith("/native/") || urlPath.startsWith("/api/native/")) {
     const { user, sessionHash } = sessionUser(cookies);
     try { return await native.route(req, res, url, user, sessionHash); }
@@ -187,11 +265,16 @@ async function handler(req, res) {
     return assetResolver.handle(req, res, url);
   }
   // ---- API ----
+  if (urlPath.startsWith("/api/admin/")) {
+    const { user, sessionHash } = sessionUser(cookies);
+    return admin.handle(req, res, url, user, sessionHash, cookies, ip);
+  }
   if (ads(req,res,url)) return;
   if (urlPath.startsWith("/api/")) {
     const { user, sessionHash } = sessionUser(cookies);
     return api({ req, res, url, user, sessionHash, ip });
   }
+  if (urlPath === "/cs" || urlPath === "/cs/") { res.writeHead(302, { Location: "/admin.html", "Cache-Control": "no-store" }).end(); return; }
   if (game(req, res, urlPath)) return;
   if (req.method !== "GET" && req.method !== "HEAD") { res.writeHead(405).end(); return; }
   serveStatic(req, res, urlPath);
