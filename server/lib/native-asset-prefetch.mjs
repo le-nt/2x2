@@ -8,6 +8,7 @@ export function createNativeAssetPrefetch({serverDir,assetResolver,maxPerLaunch=
   const perLaunch=Math.min(100,Math.max(0,Math.trunc(maxPerLaunch)));
   const cap=Math.min(4,Math.max(1,Math.trunc(concurrency)));
   const pending=new Set(),queue=[];
+  const placeCooldown=new Map();
   let active=0;
   let stopped=false;
   const validId=id=>typeof id==='string' && /^[1-9]\d{0,15}$/.test(id) && Number.isSafeInteger(Number(id));
@@ -23,6 +24,8 @@ export function createNativeAssetPrefetch({serverDir,assetResolver,maxPerLaunch=
   }
   function launch(place){
     if(stopped||!assetResolver||!validPlace(place)||!perLaunch||!process.env.ROBLOX_OPEN_CLOUD_API_KEY)return 0;
+    // Multiple players launching one place should not extend the queue repeatedly.
+    if((placeCooldown.get(place)||0)>Date.now())return 0;
     const file=path.join(serverDir,'native','asset-reports',place+'.json');
     let report;
     try{report=JSON.parse(fs.readFileSync(file,'utf8'));}catch{return 0;}
@@ -37,7 +40,11 @@ export function createNativeAssetPrefetch({serverDir,assetResolver,maxPerLaunch=
       queue.push(id);
       added++;
     }
-    if(added)logger.log?.('[2x2 prefetch]',place,'queued',added,'missing assets');
+    if(added){
+      if(placeCooldown.size>=1024)placeCooldown.delete(placeCooldown.keys().next().value);
+      placeCooldown.set(place,Date.now()+5*60*1000);
+      logger.log?.('[2x2 prefetch]',place,'queued',added,'missing assets');
+    }
     pump();
     return added;
   }
