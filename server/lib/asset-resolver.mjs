@@ -279,5 +279,5 @@ export function createAssetResolver({serverDir, siteDir, publicOrigin = ''}) {
     });
     return true;
   }
-  return {lookup,resolve,handle};
+  return {lookup,resolve,handle, getFailureReason: id => failureReasons.get(String(id))?.reason || null};
 }
