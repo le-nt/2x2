@@ -214,6 +214,17 @@ export function createAdmin({ db, cfg, secure }) {
         audit(user,"SITE_BANNER","site",JSON.stringify({enabled:body.enabled,message}));
         return ok({ok:true});
       }
+      if(p==="/infrastructure"&&method==="GET"){
+        requireRole("Administrator");
+        let jobs=[];
+        try{jobs=q("SELECT job_id,place_id,ready,last_heartbeat,players,closed FROM native_jobs WHERE closed=0 ORDER BY last_heartbeat DESC LIMIT 100").all()
+          .map(j=>({id:j.job_id,placeId:j.place_id,ready:Boolean(j.ready),lastHeartbeat:j.last_heartbeat,
+            playerCount:(()=>{try{return JSON.parse(j.players).length}catch{return 0}})()}));}catch{}
+        const memory=process.memoryUsage();
+        return ok({uptimeSeconds:Math.floor(process.uptime()),memoryRss:memory.rss,
+          heapUsed:memory.heapUsed,arbiterConfigured:Boolean(cfg.native?.arbiterOrigin),
+          activeJobs:jobs.filter(j=>Date.now()-j.lastHeartbeat<100000),staleJobs:jobs.filter(j=>Date.now()-j.lastHeartbeat>=100000)});
+      }
       if (p === "/dashboard" && method === "GET") {
         requireRole("ForumModerator");
         return ok({userCount:q("SELECT COUNT(*) AS n FROM users").get().n,
