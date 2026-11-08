@@ -13,7 +13,9 @@ WANTED = [
  'SpawnLocation.png','redsky512_rt.png','redsky512_up.png',
  'redsky512_bk.png','redsky512_lf.png','redsky512_dn.png','redsky512_ft.png',
  'cake.png','easteregg.png','bluevortex.png','vortex.png','Disappear.png',
- 'Rocket whoosh 01.wav'
+ 'Rocket whoosh 01.wav',
+ 'home.png','games.png','user.png','group.png','chat.png',
+ 'shopping_cart.png','gear.png','speech_balloon.png','book.png','info.png'
 ]
 parser=argparse.ArgumentParser()
 parser.add_argument('--project',type=Path,default=Path('D:/RBXBanland'))
