@@ -45,7 +45,7 @@ test('binary RBXM stays a binary file',()=>{
 test('native legacy URL substitution uses native route',async()=>{
  const {rewriteLegacyAssetUrls}=await import('../server/lib/asset-resolver.mjs');
  const xml='<roblox><url>http://www.roblox.com/asset/?id=123</url></roblox>';
- assert.match(rewriteLegacyAssetUrls(xml,'https://example.test/native'),/https:\/\/example\.test\/native\/asset\?id=123/);
+ assert.match(rewriteLegacyAssetUrls(xml,'https://example.test/native'),/https:\/\/example\.test\/native\/content-asset\?id=123/);
 });
 test('extensionless local Aya library resolves images and XML by signature',()=>{
  const aya=path.join(tmp,'aya-assets');
@@ -128,7 +128,7 @@ test('obsolete Project Pizda URLs and Novetus SBCR numeric paths are rewritten',
     '<url>rbxasset://../../../shareddata/SBCR/2761723</url>' +
     '<url>rbxasset://Textures/SpawnLocation.png</url></roblox>';
   const out = rewriteLegacyAssetUrls(input, 'https://2x2.example/native');
-  assert.match(out, /https:\/\/2x2\.example\/native\/asset\?id=105897927/);
-  assert.match(out, /https:\/\/2x2\.example\/native\/asset\?id=2761723/);
+  assert.match(out, /https:\/\/2x2\.example\/native\/content-asset\?id=105897927/);
+  assert.match(out, /https:\/\/2x2\.example\/native\/content-asset\?id=2761723/);
   assert.match(out, /rbxasset:\/\/Textures\/SpawnLocation\.png/);
 });
