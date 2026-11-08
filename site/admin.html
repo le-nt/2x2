@@ -29,6 +29,7 @@ table{border-collapse:collapse;width:100%}td,th{padding:10px;text-align:left;bor
 <button data-page="dashboard" class="active">Dashboard</button>
 <button data-page="users">User moderation</button>
 <button data-page="forums">Forum moderation</button>
+<button data-page="banner" data-min="Administrator">Sitewide banner</button>
 <button data-page="features" data-min="SuperAdmin">Site features</button>
 <button data-page="staff" data-min="SuperAdmin">Staff roles</button>
 <button data-page="audit" data-min="Administrator">Audit log</button>
@@ -88,6 +89,12 @@ table{border-collapse:collapse;width:100%}td,th{padding:10px;text-align:left;bor
 <div class="scroller"><table><thead><tr><th>Title</th><th>Board</th><th>Author</th><th>Locked</th><th>Pinned</th><th></th></tr></thead><tbody id="threadResults"></tbody></table></div>
 </div>
 </section>
+<section id="banner" hidden><div class="panel"><h2>Sitewide announcement banner</h2>
+<p class="muted">Display a short notice on the 2x2 website. Text is shown as plain text, not HTML.</p>
+<label for="bannerMessage">Banner message (maximum 240 characters)</label><textarea id="bannerMessage" maxlength="240" rows="3"></textarea>
+<label><input id="bannerEnabled" type="checkbox" style="width:auto"> Enable announcement</label>
+<p><button id="saveBanner">Save announcement</button></p>
+</div></section>
 <section id="features" hidden><div class="panel"><h2>Website feature flags</h2><p class="muted">These switches affect the live Node.js API.</p><div id="flags"></div></div></section>
 <section id="staff" hidden><div class="panel"><h2>Staff roles</h2><p class="muted">Roles are hierarchical. Bootstrap administrators configured by the server cannot be reassigned here.</p>
 <div class="scroller"><table><tbody id="staffList"></tbody></table></div><hr>
