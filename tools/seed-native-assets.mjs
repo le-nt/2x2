@@ -129,7 +129,8 @@ function rememberResources(placeId,references,parentAsset=null) {
     if(!canonicalResource(reference)||resources.has(reference))continue;
     if(resources.size>=opts.maxAssets){cappedPlaces.add(placeId);break;}
     const result=archiveVfs?.resolve(reference)||{status:'not_inventoried'};
-    resources.set(reference,{reference,parentAsset,status:result.status,sha256:result.sha256||null,rootId:result.rootId||null});
+    resources.set(reference,{reference,parentAsset,status:result.status,sha256:result.sha256||null,rootId:result.rootId||null,
+      ...(result.mapping?{mapping:result.mapping}:{})});
   }
 }
 function archiveAsset(record,found) {

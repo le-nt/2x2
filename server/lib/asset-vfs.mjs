@@ -13,6 +13,10 @@ export function canonicalResource(value) {
   if (/^h?rbxasset:\/\//i.test(text)) text = text.replace(/^h?rbxasset:\/\//i, '');
   text = text.replace(/^(?:\.\.\/)+(?=shareddata\/)/i, '');
   if (/%|[\\\x00-\x1f\x7f?#:]/.test(text) || text.startsWith('/')) return null;
+  // Historical content frequently contains repeated internal separators.
+  // Collapse only those separators, after rejecting absolute/escaped paths;
+  // dot segments remain invalid and never acquire filesystem semantics.
+  text = text.replace(/\/{2,}/g, '/');
   const parts = text.split('/');
   if (parts.some(s => !s || s === '.' || s === '..' || /[. ]$/.test(s))) return null;
   let namespace = 'content';
@@ -33,13 +37,22 @@ export function safeArchiveFile(root, relativePath) {
 }
 export const sha256 = bytes => crypto.createHash('sha256').update(bytes).digest('hex');
 
-export function createAssetVfs({manifest, roots, maxEntries = 250000}) {
+export function createAssetVfs({manifest, roots, mappings = [], maxEntries = 250000}) {
   if (manifest?.schemaVersion !== VFS_SCHEMA || !Array.isArray(manifest.files) || manifest.files.length > maxEntries)
     throw Error('Invalid or oversized Asset VFS manifest');
   // roots is trusted server configuration; manifest absolute locations are
   // provenance only, never authority to read a path.
   const configured = new Map(roots.map(r => [r.id, r]));
   if(configured.size!==roots.length)throw Error('Duplicate Asset VFS root IDs');
+  if(!Array.isArray(mappings) || mappings.length>4096)throw Error('Invalid Asset VFS mappings');
+  const mappedPaths=new Map();
+  for(const mapping of mappings) {
+    const from=canonicalResource(mapping.from),to=canonicalResource(mapping.to);
+    if(!from || !to || from.key===to.key || mappedPaths.has(from.key) ||
+        !/^[a-f0-9]{64}$/.test(mapping.sha256) || typeof mapping.reason!=='string' ||
+        !mapping.reason.trim() || mapping.reason.length>2048)throw Error('Invalid Asset VFS mapping');
+    mappedPaths.set(from.key,{...mapping,from,to});
+  }
   const byKey = new Map();
   const verified = new Map();
   for (const entry of manifest.files) {
@@ -55,6 +68,13 @@ export function createAssetVfs({manifest, roots, maxEntries = 250000}) {
     const ref = canonicalResource(value);
     if (!ref) return {status: 'invalid_reference'};
     let entries = byKey.get(ref.key) || [];
+    // Only a missing exact path may use an administrator-approved, hash-pinned
+    // relocation. Never hide conflicts, damaged bytes or version mismatches.
+    const mapping=!entries.length && mappedPaths.get(ref.key);
+    if(mapping) {
+      if(expectedSha256 && expectedSha256!==mapping.sha256)return {status:'mapping_hash_mismatch',reference:ref};
+      entries=(byKey.get(mapping.to.key)||[]).filter(e=>e.sha256===mapping.sha256);
+    }
     if (version) entries = entries.filter(e => e.clientVersion === version);
     if (expectedSha256) entries = entries.filter(e => e.sha256 === expectedSha256);
     if (!entries.length) return {status: 'unresolved', reference: ref};
@@ -70,7 +90,8 @@ export function createAssetVfs({manifest, roots, maxEntries = 250000}) {
       if(verified.size>=256)verified.delete(verified.keys().next().value);
       verified.set(found.file,{fingerprint,until:Date.now()+15000});
       return {status:'resolved', file:found.file, size:entry.size, sha256:entry.sha256,
-        rootId:entry.rootId, clientVersion:entry.clientVersion, reference:ref};
+        rootId:entry.rootId, clientVersion:entry.clientVersion, reference:ref,
+        ...(mapping?{mapping:{target:mapping.to,sha256:mapping.sha256,reason:mapping.reason}}:{})};
     }
     return {status:reason, reference:ref};
   }
@@ -88,6 +109,7 @@ export function loadAssetVfs(configPath = process.env.RBX_ASSET_VFS_CONFIG, proj
   const manifestFile = path.resolve(base, config.manifest);
   if (fs.statSync(manifestFile).size > 128 * 1024 * 1024) throw Error('Asset VFS manifest too large');
   return createAssetVfs({manifest:JSON.parse(fs.readFileSync(manifestFile, 'utf8')),
+    mappings:config.mappings,
     roots:config.roots.map(r => ({...r, path:path.resolve(base, r.path)}))});
 }
 

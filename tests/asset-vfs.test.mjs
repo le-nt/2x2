@@ -26,6 +26,9 @@ test('inventory resolves exact relative paths without copying and preserves prov
   assert.equal(manifest.files[0].compatibility,'not_tested');
   assert.equal(vfs.resolve('rbxasset://../../../shareddata/RiseOfTheKillbots/fonts/Shotgun.mesh').status,'resolved');
   assert.equal(vfs.resolve('rbxasset://SpawnLocation.png').status,'unresolved');
+  assert.equal(vfs.resolve('rbxasset://Textures//SpawnLocation.png').status,'resolved');
+  assert.equal(vfs.resolve('rbxasset:////Textures/SpawnLocation.png').status,'invalid_reference');
+  assert.equal(vfs.resolve('rbxasset://Textures//../SpawnLocation.png').status,'invalid_reference');
 });
 test('conflicting historical bytes require version or known hash; duplicates are safe',async t=>{
   const {roots,write}=fixture(t);
@@ -85,4 +88,27 @@ test('configured but broken manifests fail closed rather than falling back to un
   fs.mkdirSync(path.join(dir,'server/native'),{recursive:true});
   fs.writeFileSync(path.join(dir,'server/native/asset-vfs-config.json'),JSON.stringify({roots:[],manifest:'missing.json'}));
   assert.equal(createAssetVfsProvider(dir).resolve('textures/icon.png').status,'vfs_configuration_error');
+});
+
+test('approved relocations pin original bytes and never override exact paths or follow chains',async t=>{
+  const {roots,write}=fixture(t);
+  write(0,'avatar/scripts/health.rbxmx','genuine script');
+  let manifest=await inventoryArchives(roots);
+  const hash=manifest.files[0].sha256;
+  const mappings=[{from:'fonts/health.rbxm',to:'avatar/scripts/health.rbxmx',sha256:hash,reason:'Verified archive layout migration'}];
+  let vfs=createAssetVfs({manifest,roots,mappings});
+  const result=vfs.resolve('fonts/health.rbxm');
+  assert.equal(result.status,'resolved');assert.equal(result.sha256,hash);
+  assert.equal(result.mapping.target.relativePath,'avatar/scripts/health.rbxmx');
+  assert.equal(vfs.resolve('fonts/health.rbxm',{expectedSha256:'0'.repeat(64)}).status,'mapping_hash_mismatch');
+  assert.equal(vfs.resolve('fonts/health.rbxm',{version:'unknown'}).status,'unresolved');
+  write(1,'fonts/health.rbxm','exact path wins');
+  manifest=await inventoryArchives(roots);vfs=createAssetVfs({manifest,roots,mappings});
+  assert.equal(vfs.resolve('fonts/health.rbxm').mapping,undefined);
+  assert.equal(fs.readFileSync(vfs.resolve('fonts/health.rbxm').file,'utf8'),'exact path wins');
+  for(const invalid of [[...mappings,...mappings],[{...mappings[0],to:'../secret.lua'}],[{...mappings[0],sha256:'guess'}]])
+    assert.throws(()=>createAssetVfs({manifest,roots,mappings:invalid}),/Invalid Asset VFS mapping/);
+  vfs=createAssetVfs({manifest,roots,mappings:[{from:'fonts/start.rbxm',to:'fonts/missing.rbxm',sha256:hash,reason:'No chain'},
+    {from:'fonts/missing.rbxm',to:'avatar/scripts/health.rbxmx',sha256:hash,reason:'No chain'}]});
+  assert.equal(vfs.resolve('fonts/start.rbxm').status,'unresolved');
 });
