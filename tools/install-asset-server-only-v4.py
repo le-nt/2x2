@@ -43,12 +43,15 @@ for relative in files:
 
 text=native.read_text(encoding='utf-8-sig')
 original=text
+server_patch_skipped=False
 def insert_once(old,new):
-    global text
+    global text,server_patch_skipped
     if new in text:
         return
     if text.count(old)!=1:
-        raise SystemExit('Server source does not match expected layout: '+old[:90])
+        print('WARNING: server/lib/native.mjs source differs near:',old[:90])
+        server_patch_skipped=True
+        return
     text=text.replace(old,new,1)
 
 insert_once(
@@ -79,7 +82,9 @@ insert_once(
  "  }else if(p==='/native/legacy-texture'){",
  "  }else if(p==='/native/legacy-shared'){\n   file=findLegacyArchiveFile(sharedRoots,url.searchParams.get('path'));\n   kind=path.extname(file||'');\n  }else if(p==='/native/legacy-texture'){"
 )
-if text!=original:
+if server_patch_skipped:
+    print('SKIPPED server/lib/native.mjs integration. Other tools and tests can still install.')
+elif text!=original:
     updates['server/lib/native.mjs']=text.encode('utf-8')
 
 with tempfile.TemporaryDirectory(prefix='2x2-server-install-') as temp:
