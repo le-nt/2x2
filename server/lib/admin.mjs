@@ -91,6 +91,11 @@ export function createAdmin({ db, cfg, secure }) {
       actor_id INTEGER NOT NULL REFERENCES users(id), action TEXT NOT NULL,
       target TEXT NOT NULL, detail TEXT NOT NULL, created_at INTEGER NOT NULL);
     CREATE TABLE IF NOT EXISTS site_features (key TEXT PRIMARY KEY, enabled INTEGER NOT NULL);
+    CREATE TABLE IF NOT EXISTS admin_appeals (id INTEGER PRIMARY KEY, action_id INTEGER NOT NULL REFERENCES admin_actions(id),
+      user_id INTEGER NOT NULL REFERENCES users(id), message TEXT NOT NULL, status TEXT NOT NULL DEFAULT 'pending',
+      response TEXT NOT NULL DEFAULT '', reviewed_by INTEGER REFERENCES users(id), created_at INTEGER NOT NULL,
+      reviewed_at INTEGER, UNIQUE(action_id,user_id));
+    CREATE INDEX IF NOT EXISTS admin_appeals_status ON admin_appeals(status,created_at DESC);
     CREATE TABLE IF NOT EXISTS admin_ack (action_id INTEGER PRIMARY KEY REFERENCES admin_actions(id) ON DELETE CASCADE,
       user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE, acknowledged_at INTEGER NOT NULL);
     CREATE TABLE IF NOT EXISTS site_banner (id INTEGER PRIMARY KEY CHECK(id=1), message TEXT NOT NULL, enabled INTEGER NOT NULL DEFAULT 0,
@@ -212,6 +217,26 @@ export function createAdmin({ db, cfg, secure }) {
         if(message.length>240 || (body.enabled&&!message))throw [400,"Banner text must be 1–240 characters when enabled."];
         q("INSERT INTO site_banner(id,message,enabled,updated_by,updated_at) VALUES (1,?,?,?,?) ON CONFLICT(id) DO UPDATE SET message=excluded.message,enabled=excluded.enabled,updated_by=excluded.updated_by,updated_at=excluded.updated_at").run(message,body.enabled?1:0,user.id,Date.now());
         audit(user,"SITE_BANNER","site",JSON.stringify({enabled:body.enabled,message}));
+        return ok({ok:true});
+      }
+      if(p==="/appeals"&&method==="GET"){
+        requireRole("Moderator");
+        const status=String(url.searchParams.get("status")||"pending");
+        if(!["pending","reviewed","all"].includes(status))throw [400,"Invalid appeal filter."];
+        const items=status==="all"?
+          q("SELECT a.id,a.action_id,a.user_id,a.message,a.status,a.response,a.created_at,u.username FROM admin_appeals a JOIN users u ON u.id=a.user_id ORDER BY a.id DESC LIMIT 100").all():
+          q("SELECT a.id,a.action_id,a.user_id,a.message,a.status,a.response,a.created_at,u.username FROM admin_appeals a JOIN users u ON u.id=a.user_id WHERE a.status=? ORDER BY a.id DESC LIMIT 100").all(status);
+        return ok({appeals:items});
+      }
+      const appealParts=p.split("/");
+      if(appealParts.length===3&&appealParts[1]==="appeals"&&method==="POST"){
+        requireRole("Moderator");
+        const id=validId(appealParts[2]), response=safeText(body.response,2000);
+        const pending=q("SELECT a.user_id FROM admin_appeals a WHERE a.id=? AND a.status='pending'").get(id);
+        if(!pending)throw [404,"Pending appeal not found."];
+        if(rank(q("SELECT * FROM users WHERE id=?").get(pending.user_id))>=rank(user))throw [403,"Cannot review an equal-or-higher staff member's appeal."];
+        q("UPDATE admin_appeals SET status='reviewed',response=?,reviewed_by=?,reviewed_at=? WHERE id=?").run(response,user.id,Date.now(),id);
+        audit(user,"APPEAL_REVIEW",id,response);
         return ok({ok:true});
       }
       if(p==="/infrastructure"&&method==="GET"){
