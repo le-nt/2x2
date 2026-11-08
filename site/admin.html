@@ -28,6 +28,7 @@ table{border-collapse:collapse;width:100%}td,th{padding:10px;text-align:left;bor
 <nav id="nav" hidden>
 <button data-page="dashboard" class="active">Dashboard</button>
 <button data-page="users">User moderation</button>
+<button data-page="forums">Forum moderation</button>
 <button data-page="features" data-min="SuperAdmin">Site features</button>
 <button data-page="staff" data-min="SuperAdmin">Staff roles</button>
 <button data-page="audit" data-min="Administrator">Audit log</button>
@@ -77,6 +78,14 @@ table{border-collapse:collapse;width:100%}td,th{padding:10px;text-align:left;bor
 <p><button id="moderate" class="danger">Apply moderation action</button></p>
 <hr><h3>Internal staff notes</h3><div id="notes"></div><label for="note">New note</label><textarea id="note" rows="3" maxlength="2000"></textarea>
 <p><button id="addNote">Add note</button></p>
+</div>
+</section>
+<section id="forums" hidden>
+<div class="panel">
+<h2>Forum moderation</h2>
+<p class="muted">Search threads to lock or pin them. Every change is recorded in the audit log.</p>
+<div class="row"><input id="threadQuery" type="search" maxlength="80" placeholder="Search thread titles"><button id="findThreads">Search</button></div>
+<div class="scroller"><table><thead><tr><th>Title</th><th>Board</th><th>Author</th><th>Locked</th><th>Pinned</th><th></th></tr></thead><tbody id="threadResults"></tbody></table></div>
 </div>
 </section>
 <section id="features" hidden><div class="panel"><h2>Website feature flags</h2><p class="muted">These switches affect the live Node.js API.</p><div id="flags"></div></div></section>
