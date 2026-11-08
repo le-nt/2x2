@@ -97,9 +97,12 @@ namespace RBX {
             while (relative.compare(0, 3, "../") == 0) relative.erase(0, 3);
             while (relative.compare(0, 2, "./") == 0) relative.erase(0, 2);
             const std::string assetPrefix = "shareddata/assets/";
-            if (relative.compare(0, assetPrefix.size(), assetPrefix) != 0)
-                return false;
-            assetId = relative.substr(assetPrefix.size());
+            const std::string sbcrPrefix = "shareddata/sbcr/";
+            if (relative.compare(0, assetPrefix.size(), assetPrefix) == 0)
+                assetId = relative.substr(assetPrefix.size());
+            else if (relative.compare(0, sbcrPrefix.size(), sbcrPrefix) == 0)
+                assetId = relative.substr(sbcrPrefix.size());
+            else return false;
         }
         else
         {
@@ -111,7 +114,8 @@ namespace RBX {
             const size_t authorityEnd = lower.find_first_of("/?#", authorityStart);
             const std::string host = lower.substr(authorityStart, authorityEnd - authorityStart);
             if (host != "roblox.com" && host != "www.roblox.com" &&
-                host != "assetdelivery.roblox.com")
+                host != "assetdelivery.roblox.com" &&
+                host != "projectpizza.net" && host != "www.projectpizza.net")
                 return false;
             if (authorityEnd == std::string::npos || lower[authorityEnd] != '/')
                 return false;
@@ -119,6 +123,7 @@ namespace RBX {
             if (queryStart == std::string::npos) return false;
             const std::string requestPath = lower.substr(authorityEnd, queryStart - authorityEnd);
             if (requestPath != "/asset" && requestPath != "/asset/" &&
+                requestPath != "/api/asset" && requestPath != "/api/asset/" &&
                 requestPath != "/v1/asset" && requestPath != "/v1/asset/" &&
                 requestPath != "/v2/asset" && requestPath != "/v2/asset/")
                 return false;
