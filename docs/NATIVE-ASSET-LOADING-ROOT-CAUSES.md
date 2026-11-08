@@ -131,6 +131,25 @@ The browser produced concrete failures:
 | `/img/icons/home.png` and related | Separate website icon path mismatch; the icon directory mostly contains SVG names rather than these PNG names. |
 | WebSocket disconnect after connection accepted | Separate gameplay transport/server life-cycle issue; not evidence of an asset-loader failure. |
 
+## Pre-seed an existing Novetus shareddata directory
+
+If you have the original Novetus `shareddata` folder (or a folder containing
+`shareddata/`), run:
+
+```powershell
+cd D:\\RBXBanland
+node tools/seed-novetus-assets.mjs --source "D:\\Path\\To\\Novetus\\shareddata"
+node tools/audit-asset-coverage.mjs
+```
+
+The importer adds only existing source bytes to the numeric asset library,
+legacy named-texture archive, and local character-customization archive.
+It does not overwrite an existing file, invent missing files, or contact
+external servers. Review `server/native/asset-seed-report.json` afterward.
+Existing imported maps and your database are unchanged. Keep the source
+archive backed up. The seeder skips unknown extensionless binary formats
+rather than guessing their type.
+
 ## Recommended production strategy: seed first, proxy second
 
 1. Run `node tools/audit-asset-coverage.mjs` after importing maps. The report identifies numeric references for the XML files the scanner can inspect.
