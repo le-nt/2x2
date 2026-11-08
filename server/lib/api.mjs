@@ -183,11 +183,8 @@ export function createApi({ db, cfg, catalog, places, secure }) {
       loginLimiter.hit(ip); userLimiter.hit(ukey);
       fail(401, "Wrong username or password.");
     }
-    const enforcement = q("SELECT action,until_at FROM admin_actions WHERE target_id=? ORDER BY id DESC LIMIT 1").get(u.id);
-    if (enforcement && (enforcement.action === "Delete" ||
-        (enforcement.action.startsWith("Ban_") && enforcement.until_at > Date.now()))) {
-      fail(403, "This account is currently restricted.");
-    }
+    // Restricted users may establish a session solely to view their moderation notice.
+    // server/server.mjs intercepts that session before any gameplay or private API route.
     userLimiter.reset(ukey);
     startSession(res, u.id);
     q("DELETE FROM sessions WHERE expires_at < ?").run(Date.now());
