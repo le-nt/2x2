@@ -17,7 +17,8 @@ new=[
  'server/lib/legacy-shared-assets.mjs',
  'tests/native-asset-prefetch.test.mjs',
  'tests/legacy-shared-assets.test.mjs',
- 'tools/find-legacy-files.py'
+ 'tools/find-legacy-files.py',
+ 'tools/audit-native-place-scripts.py'
 ]
 updates={}
 for rel in new:
