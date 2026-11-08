@@ -115,3 +115,29 @@ This is a compatibility and observability patch, **not a universal solution**:
 
 Do not overwrite a modified local engine checkout without reviewing the diff.
 Keep an independent backup of a working `site/native-client` build.
+
+## Diagnosed from 2026-11-08 browser console
+
+The browser produced concrete failures:
+
+| Requested reference | Root cause / treatment |
+|---|---|
+| `https://www.projectpizza.net/api/asset?id=105897927` | The obsolete host is not 2x2's authoritative content service; the browser also reported an engine trust-check failure. Request-time and XML rewrites now point known Project Pizda numeric asset links to `/native/asset?id=105897927`. |
+| `rbxasset://../../../shareddata/SBCR/2761723` | Numeric archive path was not covered by the previous `shareddata/assets` rewriting. Redirects to `/native/asset?id=2761723`; 2x2's checked-in library contains `2761723.mesh`. |
+| `rbxasset://Textures/SpawnLocation.png` | Archived client case matches Windows but not Emscripten's case-sensitive `/content` filesystem. Built-in texture lookup normalizes the known `Textures/` prefix. |
+| `rbxasset://../../../shareddata/textures/BillboardNukesForKids.png` | Non-numeric local archived file; cannot be recovered from Roblox by assuming an asset ID. Native routes only safe basenames through `/native/legacy-texture?name=...` using known checked-in legacy/engine texture directories. If absent, it remains absent. |
+| `rbxasset://../../../shareddata/charcustom/faces/ItsGoTime.png` | Native route `/native/content?path=faces/ItsGoTime.png`, with checked-in catalog face fallback if original `clients/shareddata` isn't present. |
+| `/native/Game/LuaWebService/HandleSocialRequest.ashx` | Separate unimplemented social/group API; an asset proxy cannot fix it. |
+| `/img/icons/home.png` and related | Separate website icon path mismatch; the icon directory mostly contains SVG names rather than these PNG names. |
+| WebSocket disconnect after connection accepted | Separate gameplay transport/server life-cycle issue; not evidence of an asset-loader failure. |
+
+## Recommended production strategy: seed first, proxy second
+
+1. Run `node tools/audit-asset-coverage.mjs` after importing maps. The report identifies numeric references for the XML files the scanner can inspect.
+2. Populate the local asset-library from the source archives you have rights to use, including legacy `shareddata` directories and complete native client content files. Keep original filenames and exact formats.
+3. If your trusted AyaEX instance has its asset API enabled, set server-only `AYA_ASSET_FALLBACK_URL` and `AYA_ASSET_FALLBACK_ACCESS_KEY`. This enables the existing on-demand fallback through authorized sources.
+4. Use `node tools/audit-asset-coverage.mjs --download` to cache auditable missing numeric IDs before users load those maps.
+5. During gameplay, route all supported numeric references to the 2x2 server; it serves the preseeded archive or attempts an authorized bounded fetch and caches success.
+6. Never treat authentication denial or an unsupported mesh decoder as proof of a deleted asset.
+
+These changes do not require browser clients to reach the discontinued Project Pizda host. They are **not yet a guarantee of total asset coverage**: maps with binary model references, private/deleted items, missing historical billboard textures and nonstandard file formats remain separate tasks. Build and browser-test the C++ patch before deploying it.
