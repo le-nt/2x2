@@ -33,6 +33,18 @@ test('signed CDN location never receives API credentials',async()=>{
   assert.deepEqual(result.bytes,Buffer.from([9,8]));
   assert.deepEqual(seen[1].headers,{});
 });
+test('official contentdelivery.roblox.com signed location loads without sending credentials',async()=>{
+  const requests=[];
+  const fetchImpl=async(url,options)=>{
+    requests.push({url,headers:options.headers});
+    if(requests.length===1)return Response.json({location:'https://contentdelivery.roblox.com/v1/asset?token=example'});
+    return new Response(Buffer.from([5,6,7]),{headers:{'content-type':'application/octet-stream'}});
+  };
+  const result=await fetchRobloxOpenCloudAsset('1029523',{key:'secret',fetchImpl});
+  assert.deepEqual(result.bytes,Buffer.from([5,6,7]));
+  assert.equal(requests.length,2);
+  assert.deepEqual(requests[1].headers,{});
+});
 test('untrusted redirects and unauthorized requests fail closed',async()=>{
   const redirect=await fetchRobloxOpenCloudAsset('123',{key:'key',
     fetchImpl:async()=>new Response(null,{status:302,headers:{location:'https://evil.example/asset'}})});
