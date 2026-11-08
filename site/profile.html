@@ -49,7 +49,7 @@
     <section class="ProfileHero">
       <div class="ProfileAvatar"><div id="Av"></div></div>
       <div>
-        <h1>${RB.esc(p.username)} <span class="Pill${p.online ? " live" : ""}">${p.online ? "Online" : "Offline"}</span></h1>
+        <h1>${RB.esc(p.username)} ${RB.staffBadge(p.staffRole, 32)} <span class="Pill${p.online ? " live" : ""}">${p.online ? "Online" : "Offline"}</span></h1>
         <div class="ProfileStatus">${p.status ? "&ldquo;" + RB.esc(p.status) + "&rdquo;" : "No status yet."}</div>
         ${p.lastPlace ? `<div class="DetailHighlighted">Playing <a href="game.html?id=${encodeURIComponent(p.lastPlace.placeId)}">${RB.esc(p.lastPlace.name)}</a> (${RB.ago(p.lastPlace.at)})</div>` : ""}
         <div class="Blurb" style="margin-top:10px">${p.blurb ? RB.rich(p.blurb) : "This user hasn't written anything about themselves yet."}</div>
@@ -65,7 +65,7 @@
       <div class="ShelfHead"><h2>${self ? "Your" : RB.esc(p.username) + "'s"} friends (${p.friendCount})</h2>${self ? '<a href="friends.html">See all</a>' : ""}</div>
       ${p.friends.length ? `<div class="StandardBox"><div class="FriendGrid">${p.friends.map((f, i) => `
         <div class="Friend"><a class="Thumb" href="profile.html?u=${encodeURIComponent(f.username)}" data-av="${i}" aria-label="${RB.esc(f.username)}"></a>
-          <span class="Dot${f.online ? " on" : ""}"></span>${RB.userLink(f.username)}</div>`).join("")}</div></div>`
+          <span class="Dot${f.online ? " on" : ""}"></span>${RB.userLink(f.username, "", f.staffRole)}</div>`).join("")}</div></div>`
         : `<div class="StandardBox"><div class="Empty">${self ? 'No friends yet. <a href="friends.html">Find some</a>.' : "No friends yet."}</div></div>`}
     </section>
 
