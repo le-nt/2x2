@@ -195,7 +195,7 @@ namespace RBX {
             if (assetId[i] < '0' || assetId[i] > '9') return false;
         std::string url = baseUrl;
         if (url[url.size() - 1] != '/') url += '/';
-        id = ContentId(url + "asset/?id=" + assetId);
+        id = ContentId(url + "content-asset?id=" + assetId);
         return true;
     }
 	extern void ThrowLastError(const char* message);
@@ -693,7 +693,18 @@ namespace RBX {
 			}
 		}
 
+		// Keep place downloads (/native/asset?id=<place>) separate from
+		// actual media (/native/content-asset?id=<asset>), preventing ID clashes.
+		const bool isNativeBase = baseUrl.find("/native") != std::string::npos;
+		const bool numericAssetId = isNativeBase && id.isAssetId();
+		const std::string numericValue = numericAssetId ? id.getAssetId() : "";
 		id.convertAssetId(baseUrl, DataModel::get(this)->getUniverseId());
+		if (numericAssetId && !numericValue.empty())
+		{
+			std::string assetBase = baseUrl;
+			if (assetBase[assetBase.size()-1] != '/') assetBase += '/';
+			id = ContentId(assetBase + "content-asset?id=" + numericValue);
+		}
 		if (!redirectLegacyAssetToBase(id, baseUrl))
 			redirectLegacySharedFileToBase(id, baseUrl);
 		id.convertToLegacyContent(baseUrl);
