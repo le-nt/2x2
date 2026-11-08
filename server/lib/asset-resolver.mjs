@@ -200,6 +200,21 @@ export function createAssetResolver({serverDir, siteDir, publicOrigin = ''}) {
           try { bytes = await downloadBytes('https://assetdelivery.roblox.com/v1/asset/?id=' + id, {roblox:true}); }
           catch (error) { console.warn('[2x2 assets] Roblox lookup failed for', id, error.message); }
         }
+        // Optional server-side Open Cloud fallback. Never expose the API key
+        // to the browser; only accept Roblox's HTTPS asset CDN as the body URL.
+        if (!bytes && process.env.ROBLOX_OPEN_CLOUD_KEY) {
+          try {
+            const metadata = await fetch('https://apis.roblox.com/asset-delivery-api/v1/assetId/' + id, {
+              headers:{'X-API-Key':process.env.ROBLOX_OPEN_CLOUD_KEY},
+              redirect:'error',signal:AbortSignal.timeout(12000)
+            });
+            if (metadata.ok) {
+              const location = (await metadata.json()).location;
+              if (typeof location === 'string' && trustedRobloxRedirect(new URL(location)))
+                bytes = await downloadBytes(location, {roblox:true});
+            }
+          } catch (error) { console.warn('[2x2 assets] Open Cloud lookup failed for', id, error.message); }
+        }
         if (!bytes) {
           if (upstreamMissing.size >= MISS_LIMIT) upstreamMissing.delete(upstreamMissing.keys().next().value);
           upstreamMissing.set(id, Date.now() + UPSTREAM_MISS_TTL);
