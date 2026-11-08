@@ -140,6 +140,17 @@ function detectExtension(file) {
 
 export function createAssetResolver({serverDir, siteDir, publicOrigin = ''}) {
   const cacheDir = path.join(serverDir, 'native', 'asset-cache');
+  const seedDir = path.join(serverDir, 'native', 'asset-seed');
+  // On-demand successful lookups can be retained indefinitely, within a cap.
+  const persistDownloads = process.env.ASSET_PERSIST_DOWNLOADS !== '0';
+  const archiveMaxBytes = Math.max(0,Math.min(1000,Number(process.env.ASSET_ARCHIVE_MAX_GB || 20))) * 1024 ** 3;
+  let archiveBytes = 0;
+  try {
+    for(const name of fs.readdirSync(seedDir)) {
+      const p=path.join(seedDir,name);
+      if(fs.statSync(p).isFile())archiveBytes += fs.statSync(p).size;
+    }
+  } catch {}
   const roots = [
     // Permanently seeded, exact-ID archive is always preferred over mutable cache.
     {dir:path.join(serverDir,'native','asset-seed'), prefix:''},
@@ -234,6 +245,22 @@ export function createAssetResolver({serverDir, siteDir, publicOrigin = ''}) {
         missing.delete(id);
         upstreamMissing.delete(id);
         failureReasons.delete(id);
+        // Persistent best-effort archive, separate from the evictable cache.
+        // Store original bytes under the numeric ID; never overwrite an
+        // existing seed and never allow archiving to break asset delivery.
+        if (persistDownloads && archiveBytes + bytes.length <= archiveMaxBytes) {
+          try {
+            fs.mkdirSync(seedDir,{recursive:true});
+            const destination=path.join(seedDir,id);
+            if(!fs.existsSync(destination) && !extensions.some(ext => ext && fs.existsSync(path.join(seedDir,id+ext)))) {
+              fs.copyFileSync(final,destination,fs.constants.COPYFILE_EXCL);
+              archiveBytes += bytes.length;
+            }
+          } catch(error) {
+            if(error.code !== 'EEXIST')
+              console.warn('[2x2 assets] Could not persist asset',id,error.message);
+          }
+        }
         trimCache(cacheDir, cacheMax, final);
         console.log('[2x2 assets] Cached upstream asset', id, bytes.length, 'bytes');
         return lookup(id);
