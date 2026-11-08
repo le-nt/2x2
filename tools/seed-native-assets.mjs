@@ -10,7 +10,7 @@
  */
 import fs from 'node:fs';
 import path from 'node:path';
-import os from 'node:os';
+import {spawnSync} from 'node:child_process';
 import crypto from 'node:crypto';
 import {fileURLToPath} from 'node:url';
 import {createAssetResolver} from '../server/lib/asset-resolver.mjs';
@@ -34,6 +34,7 @@ function flags(argv) {
   return options;
 }
 const opts=flags(process.argv.slice(2));
+const python=process.env.RBX_PYTHON||(process.platform==='win32'?'py':'python3');
 const serverDir=path.join(root,'server');
 const nativeDir=path.join(serverDir,'native');
 const mapDir=path.join(nativeDir,'maps');
@@ -98,6 +99,20 @@ function atomicJson(file,data) {
   try { fs.writeFileSync(temp,JSON.stringify(data,null,2)+'\n');fs.renameSync(temp,file); }
   finally {try{fs.unlinkSync(temp);}catch{}}
 }
+function inspectReferences(file,bytes) {
+  const first=scanAssetReferences(bytes);
+  if(first.coverage!=='binary_strings_partial')return first;
+  const binaryScanner=path.join(root,'tools','scan-binary-asset-ids.py');
+  const args=process.platform==='win32'&&python==='py'?['-3',binaryScanner,file]:[binaryScanner,file];
+  const run=spawnSync(python,args,{encoding:'utf8',timeout:30000,maxBuffer:4*1024*1024,windowsHide:true});
+  if(run.status!==0) return {...first,coverage:'binary_partial_decoder_unavailable',error:(run.stderr||run.error?.code||'decoder_unavailable').slice(0,180)};
+  try {
+    const decoded=JSON.parse(run.stdout);
+    return {...first,ids:[...new Set([...first.ids,...decoded.ids.filter(validAssetId)])].sort((a,b)=>Number(a)-Number(b)),
+      coverage:decoded.unsupportedProperties.length?'binary_decoded_partial':'binary_decoded',
+      unsupportedProperties:decoded.unsupportedProperties};
+  } catch(error){return {...first,coverage:'binary_partial_decoder_invalid_response'};}
+}
 function archiveAsset(record,found) {
   const content=fs.readFileSync(found.file);
   if (!content.length || content.length>64*1024*1024) throw Error('Invalid archive size');
@@ -129,10 +144,10 @@ for(const [placeId,entry] of Object.entries(places)) {
   const file=safeMap(entry.file);
   if (!file) {diagnostics.push({place:placeId,reason:'map_missing_or_outside_root'});stats.unscannedPlaces++;continue;}
   try {
-    const parsed=scanAssetReferences(fs.readFileSync(file));
-    if(parsed.coverage!=='xml_text')diagnostics.push({place:placeId,reason:parsed.coverage});
+    const parsed=inspectReferences(file,fs.readFileSync(file));
+    if(!['xml_text','binary_decoded'].includes(parsed.coverage))diagnostics.push({place:placeId,reason:parsed.coverage,unsupported:parsed.unsupportedProperties?.slice(0,12)});
     stats.scannedPlaces++;
-    if(parsed.coverage!=='xml_text')stats.unscannedPlaces++;
+    if(!['xml_text','binary_decoded'].includes(parsed.coverage))stats.unscannedPlaces++;
     for(const id of parsed.ids)remember(id,placeId,0,null);
   }catch(error){diagnostics.push({place:placeId,reason:error.code||error.message});}
 }
@@ -160,11 +175,9 @@ while(queue.length) {
       const bytes=archiveAsset(record,found);
       record.status=downloaded?'downloaded':'local';
       delete record.reason;
-      record.scan=scanAssetReferences(bytes,{maxBytes:64*1024*1024}).coverage;
-      if(record.kind==='model'||record.scan==='xml_text') {
-        const deps=scanAssetReferences(bytes,{maxBytes:64*1024*1024});
-        record.dependencies=deps.ids.filter(id=>id!==record.id);
-      } else record.dependencies=[];
+      const deps=record.kind==='model'||record.kind==='text' ? inspectReferences(found.file,bytes) : null;
+      record.scan=deps?.coverage||'not_a_model';
+      record.dependencies=(deps?.ids||[]).filter(id=>id!==record.id);
     } catch(error) {
       record.status='error';record.reason=error.code||error.message;record.dependencies=[];
     }
