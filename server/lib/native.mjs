@@ -12,6 +12,7 @@ import { issue,verify,equal,clientTicket,safeRelative } from './native-security.
 import {createNativeChat} from './native-chat.mjs';
 import {rewriteLegacyAssetUrls} from './asset-resolver.mjs';
 import {inspectAvatarDependencies} from './native-avatar-deps.mjs';
+import {loadLegacyTextureMap,legacyTextureAssetId} from './legacy-texture-map.mjs';
 
 const json=(res,status,value)=>{res.writeHead(status,{'Content-Type':'application/json','Cache-Control':'no-store'});res.end(JSON.stringify(value));};
 const xmlEscape=value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;'}[c]));
@@ -27,6 +28,7 @@ export function createNative({db,cfg,root,port,sessionUser,isGated,assetResolver
  const charRoot=path.join(root,'../clients/shareddata/charcustom');
  const legacyTexturesRoot=path.join(root,'native-legacy-assets/textures');
  const engineTexturesRoot=path.join(root,'../services/engine/.assets/content/textures');
+ const legacyTextureIds=loadLegacyTextureMap(path.join(serverDir,'native/legacy-texture-ids.json'));
  const catalogFacesRoot=path.join(root,'img/catalog/faces');
  const mapRoot=path.join(serverDir,'native/maps');
  // Optional on-demand place repair. Original maps and the registry are never modified.
@@ -197,6 +199,12 @@ export function createNative({db,cfg,root,port,sessionUser,isGated,assetResolver
     file=beneath(legacyTexturesRoot,name) ||
          beneath(engineTexturesRoot,name);
     kind=path.extname(file||'');
+    // Only use Cloud when a verified numeric asset ID is explicitly mapped.
+    // The local built-in resource always takes precedence.
+    if(!file){
+     const mapped=legacyTextureAssetId(name,legacyTextureIds);
+     if(mapped){const asset=await assetResolver?.resolve(mapped);if(asset){file=asset.file;kind=asset.ext;}}
+    }
    }
   }else if(/^\/native\/(?:asset|content-asset)\/?$/.test(p)){
    const assetId=url.searchParams.get('id');
