@@ -16,8 +16,8 @@ async function api(path,method="GET",body){
 async function perform(fn){try{showMessage("");await fn();}catch(e){showMessage(e.message,true);}}
 function can(role){return ROLES.indexOf(state.role)>=ROLES.indexOf(role);}
 function showPage(name){
-  state.page=name;$("title").textContent=({dashboard:"Dashboard",users:"User moderation",forums:"Forum moderation",banner:"Sitewide banner",infrastructure:"Server monitor",features:"Site features",staff:"Staff roles",audit:"Audit log"})[name]||"2x2 Administration";
-  for(const p of ["dashboard","users","forums","banner","infrastructure","features","staff","audit"])$(p).hidden=p!==name;
+  state.page=name;$("title").textContent=({dashboard:"Dashboard",users:"User moderation",appeals:"Appeals",forums:"Forum moderation",banner:"Sitewide banner",infrastructure:"Server monitor",features:"Site features",staff:"Staff roles",audit:"Audit log"})[name]||"2x2 Administration";
+  for(const p of ["dashboard","users","appeals","forums","banner","infrastructure","features","staff","audit"])$(p).hidden=p!==name;
   for(const b of document.querySelectorAll("#nav button"))b.classList.toggle("active",b.dataset.page===name);
 }
 async function init(){
@@ -29,7 +29,7 @@ async function init(){
   $("authHelp").textContent=state.enrolled?"Enter your authenticator code to start a six-hour staff session.":"Verify your password, then enroll an authenticator app before using the admin panel.";
   for(const b of document.querySelectorAll("#nav button[data-min]"))b.hidden=!can(b.dataset.min);
   if(state.verified){showPage(state.page);await loadPage(state.page);}
-  else for(const p of ["dashboard","users","forums","banner","infrastructure","features","staff","audit"])$(p).hidden=true;
+  else for(const p of ["dashboard","users","appeals","forums","banner","infrastructure","features","staff","audit"])$(p).hidden=true;
 }
 async function loadPage(p){
   if(p==="dashboard"){
@@ -40,6 +40,7 @@ async function loadPage(p){
     }
     $("expiry").textContent="Session expires: "+fmt(d.sessionExpires);
   }else if(p==="users")await findUsers();
+  else if(p==="appeals")await loadAppeals();
   else if(p==="forums")await findThreads();
   else if(p==="banner")await loadBanner();
   else if(p==="infrastructure")await loadInfra();
@@ -85,6 +86,26 @@ async function addNote(){
   if(!state.target)throw Error("Select a user.");
   await api("/users/"+state.target+"/notes","POST",{note:$("note").value});
   $("note").value="";await viewUser(state.target);showMessage("Note added.");
+}
+async function loadAppeals(){
+  const d=await api("/appeals?status="+encodeURIComponent($("appealFilter").value));
+  $("appealList").replaceChildren();
+  if(!d.appeals.length)$("appealList").append(el("p","No appeals found.","muted"));
+  for(const a of d.appeals){
+    const box=el("div","","panel");box.append(el("h3",a.username+" (#"+a.user_id+") — "+a.status));
+    box.append(el("p",fmt(a.created_at)+" • Moderation action #"+a.action_id,"muted"));
+    box.append(el("p",a.message));
+    if(a.status==="pending"){
+      const input=document.createElement("textarea");input.rows=2;input.placeholder="Staff response to the player";input.maxLength=2000;
+      const send=el("button","Mark reviewed");
+      send.onclick=()=>perform(async()=>{
+        await api("/appeals/"+a.id,"POST",{response:input.value});
+        await loadAppeals();showMessage("Appeal response saved.");
+      });
+      box.append(input,send);
+    }else box.append(el("p","Staff response: "+a.response));
+    $("appealList").append(box);
+  }
 }
 async function findThreads(){
   const d=await api("/forums?q="+encodeURIComponent($("threadQuery").value.trim()));
@@ -172,6 +193,7 @@ $("logout").onclick=()=>perform(async()=>{await api("/logout","POST");state.page
 for(const b of document.querySelectorAll("#nav button"))b.onclick=()=>perform(async()=>{showPage(b.dataset.page);await loadPage(b.dataset.page);});
 $("findUsers").onclick=()=>perform(findUsers);
 $("findThreads").onclick=()=>perform(findThreads);
+$("refreshAppeals").onclick=()=>perform(loadAppeals);
 
 $("userQuery").addEventListener("keydown",e=>{if(e.key==="Enter")perform(findUsers);});
 $("moderate").onclick=()=>perform(moderate);
