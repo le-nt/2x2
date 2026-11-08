@@ -16,8 +16,8 @@ async function api(path,method="GET",body){
 async function perform(fn){try{showMessage("");await fn();}catch(e){showMessage(e.message,true);}}
 function can(role){return ROLES.indexOf(state.role)>=ROLES.indexOf(role);}
 function showPage(name){
-  state.page=name;$("title").textContent=({dashboard:"Dashboard",users:"User moderation",appeals:"Appeals",forums:"Forum moderation",banner:"Sitewide banner",infrastructure:"Server monitor",features:"Site features",staff:"Staff roles",audit:"Audit log"})[name]||"2x2 Administration";
-  for(const p of ["dashboard","users","appeals","forums","banner","infrastructure","features","staff","audit"])$(p).hidden=p!==name;
+  state.page=name;$("title").textContent=({dashboard:"Dashboard",users:"User moderation",appeals:"Appeals",forums:"Forum moderation",banner:"Sitewide banner",infrastructure:"Server monitor",assets:"Asset inspector",features:"Site features",staff:"Staff roles",audit:"Audit log"})[name]||"2x2 Administration";
+  for(const p of ["dashboard","users","appeals","forums","banner","infrastructure","assets","features","staff","audit"])$(p).hidden=p!==name;
   for(const b of document.querySelectorAll("#nav button"))b.classList.toggle("active",b.dataset.page===name);
 }
 async function init(){
@@ -29,7 +29,7 @@ async function init(){
   $("authHelp").textContent=state.enrolled?"Enter your authenticator code to start a six-hour staff session.":"Verify your password, then enroll an authenticator app before using the admin panel.";
   for(const b of document.querySelectorAll("#nav button[data-min]"))b.hidden=!can(b.dataset.min);
   if(state.verified){showPage(state.page);await loadPage(state.page);}
-  else for(const p of ["dashboard","users","appeals","forums","banner","infrastructure","features","staff","audit"])$(p).hidden=true;
+  else for(const p of ["dashboard","users","appeals","forums","banner","infrastructure","assets","features","staff","audit"])$(p).hidden=true;
 }
 async function loadPage(p){
   if(p==="dashboard"){
@@ -44,6 +44,7 @@ async function loadPage(p){
   else if(p==="forums")await findThreads();
   else if(p==="banner")await loadBanner();
   else if(p==="infrastructure")await loadInfra();
+  else if(p==="assets")await inspectAssets();
   else if(p==="features")await loadFlags();
   else if(p==="staff")await loadStaff();
   else if(p==="audit")await loadAudit();
@@ -124,6 +125,17 @@ async function findThreads(){
     ac.append(save);tr.append(lc,pc,ac);$("threadResults").append(tr);
   }
 }
+async function inspectAssets(){
+  const d=await api("/assets?id="+encodeURIComponent($("assetId").value.trim()));
+  $("assetCount").textContent=d.cachedCount+" files in local asset library"+(d.query?" • "+d.files.length+" matching "+d.query:"");
+  $("assetResults").replaceChildren();
+  for(const item of d.files){
+    const tr=document.createElement("tr");
+    for(const v of [item.name,(item.size/1024).toFixed(1)+" KiB",fmt(item.modifiedAt)])tr.append(el("td",v));
+    $("assetResults").append(tr);
+  }
+  if(!d.files.length)$("assetResults").append(el("tr","No matching assets found."));
+}
 async function loadInfra(){
   const d=await api("/infrastructure");
   $("infraMetrics").replaceChildren();
@@ -201,6 +213,7 @@ $("addNote").onclick=()=>perform(addNote);
 $("saveStaff").onclick=()=>perform(saveStaff);
 $("saveBanner").onclick=()=>perform(saveBanner);
 $("refreshInfra").onclick=()=>perform(loadInfra);
+$("inspectAsset").onclick=()=>perform(inspectAssets);
 $("moreAudit").onclick=()=>perform(async()=>{state.auditPage++;await loadAudit();});
 perform(init);
 })();
