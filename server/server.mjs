@@ -11,6 +11,7 @@ import { fileURLToPath } from "node:url";
 import { loadConfig } from "./lib/config.mjs";
 import { openDb } from "./lib/db.mjs";
 import { createApi } from "./lib/api.mjs";
+import { createAdmin } from "./lib/admin.mjs";
 import { gatePage } from "./lib/gate.mjs";
 import { createGame } from "./lib/game.mjs";
 import { hmac, safeEqual, sha256, parseCookies, cookie, RateLimiter } from "./lib/auth.mjs";
@@ -26,6 +27,7 @@ const catalog = JSON.parse(fs.readFileSync(path.join(here, "catalog.json"), "utf
 const places = new Map(JSON.parse(fs.readFileSync(path.join(root, "data", "maps.json"), "utf8")).maps.map((m) => [m.id, m]));
 const secure = !!cfg.secureCookies;
 const api = createApi({ db, cfg, catalog, places, secure });
+const admin = createAdmin({ db, cfg, secure });
 const game = createGame({ db, root }); // game agent: avatar overlay zips, multiplayer servers
 
 const GATE_COOKIE = "rbxgate";
@@ -90,7 +92,7 @@ function sessionUser(cookies) {
   if (!tok) return { user: null, sessionHash: null };
   const h = sha256(tok);
   const user = db.prepare(`SELECT u.* FROM sessions s JOIN users u ON u.id = s.user_id WHERE s.token_hash = ? AND s.expires_at > ?`).get(h, Date.now());
-  return { user: user || null, sessionHash: user ? h : null };
+  return { user: user && !admin.activeBan(user.id) ? user : null, sessionHash: user && !admin.activeBan(user.id) ? h : null };
 }
 
 const assetResolver = createAssetResolver({serverDir:here,siteDir:root,publicOrigin:cfg.native?.publicOrigin || ''});
@@ -187,11 +189,16 @@ async function handler(req, res) {
     return assetResolver.handle(req, res, url);
   }
   // ---- API ----
+  if (urlPath.startsWith("/api/admin/")) {
+    const { user, sessionHash } = sessionUser(cookies);
+    return admin.handle(req, res, url, user, sessionHash, cookies, ip);
+  }
   if (ads(req,res,url)) return;
   if (urlPath.startsWith("/api/")) {
     const { user, sessionHash } = sessionUser(cookies);
     return api({ req, res, url, user, sessionHash, ip });
   }
+  if (urlPath === "/cs" || urlPath === "/cs/") { res.writeHead(302, { Location: "/admin.html", "Cache-Control": "no-store" }).end(); return; }
   if (game(req, res, urlPath)) return;
   if (req.method !== "GET" && req.method !== "HEAD") { res.writeHead(405).end(); return; }
   serveStatic(req, res, urlPath);
