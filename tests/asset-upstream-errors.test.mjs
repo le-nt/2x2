@@ -76,4 +76,7 @@ test('trusted AyaEX upstream receives configured server key (not browser credent
   assert.ok(hit);
   assert.equal(incomingKey,'test-only-asset-key');
   assert.deepEqual(fs.readFileSync(hit.file),Buffer.from([1,2,3,4]));
+  const preserved=path.join(temp,'server/native/asset-seed/8833991');
+  assert.deepEqual(fs.readFileSync(preserved),Buffer.from([1,2,3,4]),'upstream bytes preserved permanently');
+  assert.equal(resolver.lookup('8833991').file,preserved,'next lookup prefers permanent archive');
 });
