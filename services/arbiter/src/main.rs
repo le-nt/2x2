@@ -17,6 +17,7 @@ mod auth;
 mod rcc;
 mod responses;
 mod routes;
+mod udp_relay;
 mod version;
 
 #[derive(Debug)]
