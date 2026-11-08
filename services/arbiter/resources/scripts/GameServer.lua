@@ -60,9 +60,29 @@ settings().Network.WaitingForCharacterLogRate = 100
 settings().Diagnostics:LegacyScriptMode()
 
 local scriptContext = game:GetService("ScriptContext")
-pcall(function()
+-- Native lifecycle logging distinguishes a compile failure from a script that
+-- starts and later errors. The engine retains its original stack traces.
+settings().Lua.AreScriptStartsReported = true
+local attributedErrorCount = 0
+scriptContext.Error:connect(function(message, stackTrace, sourceScript)
+    attributedErrorCount = attributedErrorCount + 1
+    if attributedErrorCount > 256 then
+        if attributedErrorCount == 257 then
+            log_warn("[2x2 lua] Attributed error report limit reached; native exception logging continues")
+        end
+        return
+    end
+    local path = sourceScript and sourceScript:GetFullName() or "<unknown>"
+    log_warn("[2x2 lua error] " .. game:GetService("HttpService"):JSONEncode({
+        placeId = PlaceId, context = "server", scriptPath = path,
+        message = string.sub(tostring(message), 1, 4096),
+        stackTrace = string.sub(tostring(stackTrace), 1, 8192)
+    }))
+end)
+local starterOk, starterError = pcall(function()
 	scriptContext:AddStarterScript(37801172)
 end)
+if not starterOk then log_warn("Server starter script failed: " .. tostring(starterError)) end
 -- scriptContext:AddStarterScript(37801172)
 scriptContext.ScriptsDisabled = true
 

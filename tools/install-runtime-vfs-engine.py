@@ -1,0 +1,70 @@
+#!/usr/bin/env python3
+"""Install only audited native files after matching exact baseline hashes.
+
+Dry run by default. Existing native build outputs are copied into the backup
+before source changes. Never touches deployed site/native-client or databases.
+"""
+import argparse
+import hashlib
+import json
+import shutil
+from pathlib import Path
+
+FILES = {
+    'ClientShared/RobloxServicesTools.cpp':('8caf73deaa3f54375266d74dde19dd3f3acd5a4abfb768a7cdc4930fb51081fd',
+                                          'f9d3ad5e7831d90ec37e4ec3bd31c8bebc7a8423f31ec84b03ae920497cc513e'),
+    'App/util/ContentProvider.cpp':'3ec71e07c44b320f144b37269458fc440e181e2f9b585fc1376ca4c80d9e6feb',
+    'App/script/ScriptContext.cpp':'5a63eab0c3d5865ac0e2112e0728e3d671c1fb3f51980a8dc7071bc808204a56',
+    'RCCService/RCCService.cpp':('3a3590fc6cbb1d0075ed00a2ac5547c72d7458d0af9f80f3a7af059d38bd933a',
+                                '103f29836a26e27dc257c64d1f0b56b47347bf6b6ddad7903c3ce6979719c4cf',
+                                'dab10750c893180d3cfa061bc05c7fd10bdb558949becc9d93ae758f518de43a'),
+}
+
+def sha(file):return hashlib.sha256(file.read_bytes()).hexdigest()
+
+def main():
+    p=argparse.ArgumentParser(description=__doc__)
+    p.add_argument('--engine',type=Path,required=True)
+    p.add_argument('--source',type=Path,default=Path(__file__).resolve().parents[1]/'services/engine')
+    p.add_argument('--backup',type=Path,required=True)
+    p.add_argument('--apply',action='store_true')
+    a=p.parse_args();engine=a.engine.resolve(strict=True);source=a.source.resolve(strict=True)
+    changes=[]
+    for relative,expected in FILES.items():
+        old=engine/relative;new=source/relative
+        current=sha(old);target=sha(new)
+        if current==target:continue
+        if current not in expected:raise ValueError('Unreviewed native source changes: '+relative)
+        changes.append({'relativePath':relative,'before':current,'after':target})
+    print(json.dumps({'apply':a.apply,'changes':changes}))
+    if not a.apply or not changes:return
+    backup=a.backup.resolve()
+    backup.mkdir(parents=True,exist_ok=False)
+    records=[]
+    # Complete rollback bytes first; source replacement happens only afterward.
+    for relative in FILES:
+        file=engine/relative;destination=backup/'source'/relative
+        destination.parent.mkdir(parents=True,exist_ok=True)
+        shutil.copy2(file,destination)
+        records.append({'path':str(file),'backup':str(destination),'sha256':sha(file)})
+    for build,executable in [('emscripten-release','UniversalClient'),('linux-rcc-release','RCCService')]:
+        folder=engine/'build'/build/executable
+        for file in sorted(folder.glob(executable+'*')):
+            if not file.is_file():continue
+            destination=backup/'build'/build/executable/file.name
+            destination.parent.mkdir(parents=True,exist_ok=True)
+            shutil.copy2(file,destination)
+            if sha(file)!=sha(destination):raise ValueError('Build backup checksum mismatch')
+            records.append({'path':str(file),'backup':str(destination),'sha256':sha(file)})
+    (backup/'manifest.json').write_text(json.dumps({'files':records,'changes':changes},indent=2)+'\n')
+    for change in changes:
+        relative=change['relativePath']
+        # Refuse a concurrent source modification after the preflight.
+        if sha(engine/relative)!=change['before']:raise ValueError('Native source changed during backup')
+    for change in changes:
+        relative=change['relativePath']
+        shutil.copy2(source/relative,engine/relative)
+        if sha(engine/relative)!=change['after']:raise ValueError('Installed source checksum mismatch')
+    print('Backed up and installed audited source files: '+str(backup))
+
+if __name__=='__main__':main()

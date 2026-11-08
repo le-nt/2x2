@@ -115,7 +115,7 @@ static void startupRCC(int port, const std::string& contentpath, bool crashUploa
 
 	char buffer[64];
 	sprintf_s(buffer, 64, "Service Started on port %d", port); 
-	RBX::StandardOut::singleton()->print(RBX::MESSAGE_SENSITIVE, buffer);
+	RBX::StandardOut::singleton()->print(RBX::MESSAGE_INFO, buffer);
 }
 
 void process_request_func(RCCServiceSoapService* param)
@@ -222,7 +222,7 @@ void ReadAccessKey()
 		{
 			RBX::Http::accessKey = std::string(envKey);
 			RBX::StandardOut::singleton()->printf(
-				RBX::MESSAGE_SENSITIVE, "Got access key: %s", RBX::Http::accessKey.c_str());
+				RBX::MESSAGE_INFO, "Server access key configured (redacted)");
 		}
 		else
 		{
@@ -233,7 +233,7 @@ void ReadAccessKey()
 	else
 	{
 		RBX::StandardOut::singleton()->printf(
-			RBX::MESSAGE_SENSITIVE, "Current access key: %s", RBX::Http::accessKey.c_str());
+			RBX::MESSAGE_INFO, "Server access key already configured (redacted)");
 	}
 }
 
@@ -249,6 +249,7 @@ public:
 protected:
 	void onMessage(const RBX::StandardOutMessage& message)
 	{
+		if (message.type == RBX::MESSAGE_SENSITIVE) return;
 		std::lock_guard<std::mutex> lock(mutex);
 
 		const char* colorCode;

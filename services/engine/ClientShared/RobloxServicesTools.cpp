@@ -17,6 +17,16 @@ std::string trim_trailing_slashes(const std::string &path)
 
 static std::string BuildGenericApiUrl(const std::string &baseUrl, const std::string &serviceNameIn, const std::string &path, const std::string &key, const char* scheme = "https")
 {
+#if defined(RBX_RCC_SECURITY)
+    // RCC metadata requests belong to its configured 2x2 server. The legacy
+    // domain builder drops ports and /native and invents service subdomains.
+    // Keep missing endpoints explicit at that server rather than querying a
+    // different host. This does not fabricate security versions or hashes.
+    const char* internalBase = std::getenv("RBX_INTERNAL_BASE_URL");
+    if (internalBase && *internalBase)
+        return trim_trailing_slashes(internalBase) + "/" +
+            (serviceNameIn == "clientsettingscdn" ? "settings/" : "") + path;
+#endif
     std::string serviceName(serviceNameIn);
     if (serviceName != "")
     {

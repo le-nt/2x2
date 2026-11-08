@@ -90,6 +90,23 @@ using namespace RBX;
 using namespace RBX::Lua;
 using namespace boost::posix_time;
 
+// Opt-in lifecycle diagnostics shared by RCC and UniversalClient. Preserve
+// existing exception/stack reporting and never log script source or credentials.
+static void reportScriptLifecycle(ScriptContext* context, BaseScript* script, const char* phase)
+{
+    if (!LuaSettings::singleton().areScriptStartsReported) return;
+    DataModel* model = DataModel::get(context);
+    std::string scriptPath = script ? script->getFullName() : "<unknown>";
+    boost::replace_all(scriptPath, "\n", " ");
+    boost::replace_all(scriptPath, "\r", " ");
+    boost::replace_all(scriptPath, "\"", "'");
+    if (scriptPath.size() > 1024) scriptPath.resize(1024);
+    StandardOut::singleton()->printf(MESSAGE_INFO,
+        "[2x2 lua] phase=%s place=%d context=%s script=\"%s\"",
+        phase, model ? model->getPlaceID() : 0,
+        Network::Players::backendProcessing(context) ? "server" : "client", scriptPath.c_str());
+}
+
 REFLECTION_BEGIN();
 static Reflection::EventDesc<ScriptContext, void(shared_ptr<Instance>, std::string, shared_ptr<Instance>)> event_camelCaseViolation(&ScriptContext::camelCaseViolation, "CamelCaseViolation", "object", "member", "script", RBX::Security::RobloxScript);
 REFLECTION_END();
@@ -3012,6 +3029,7 @@ void ScriptContext::reportError(lua_State* thread)
 	}
 	
 	shared_ptr<BaseScript> scriptPtr = RobloxExtraSpace::get(thread)->script.lock();
+	reportScriptLifecycle(this, scriptPtr.get(), "error");
 	
 	if (!errorSignal.empty())
 	{
@@ -3270,6 +3288,7 @@ void ScriptContext::startScript(ScriptStart scriptStart)
 
 			if (luaFailedLoad)
 			{
+				reportScriptLifecycle(this, script.get(), "compile_failed");
 				reportError(thread);
 				Continuations* continuations = RobloxExtraSpace::get(thread)->continuations.get();
 				if (continuations && continuations->error)
@@ -3278,7 +3297,9 @@ void ScriptContext::startScript(ScriptStart scriptStart)
 			}
 			else
 			{
+				reportScriptLifecycle(this, script.get(), "compiled");
 				script->starting(thread);
+				reportScriptLifecycle(this, script.get(), "starting");
 
 				resume(safeThread, 0);
 			}
