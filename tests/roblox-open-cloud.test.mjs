@@ -72,3 +72,18 @@ test('new RBXL importer registers an uncatalogued map and emits coverage',t=>{
   const report=JSON.parse(fs.readFileSync(path.join(root,'server/native/asset-reports/modern-custom.json')));
   assert.equal(report.assets[0].id,'456789');
 });
+
+test('malformed imports preserve the registry and never publish a map',t=>{
+  const root=fs.mkdtempSync(path.join(os.tmpdir(),'2x2-import-invalid-'));
+  t.after(()=>fs.rmSync(root,{recursive:true,force:true}));
+  fs.mkdirSync(path.join(root,'server/native/maps'),{recursive:true});
+  const registry=path.join(root,'server/native/places.json');
+  const original=JSON.stringify({format:1,places:{}});fs.writeFileSync(registry,original);
+  const input=path.join(root,'broken.rbxlx');fs.writeFileSync(input,'<roblox><Item>');
+  const run=spawnSync(process.execPath,[path.join(repo,'tools/import-any-native.mjs'),
+    '--root',root,'--file',input,'--id','broken','--offline'],{encoding:'utf8',timeout:20000});
+  assert.notEqual(run.status,0);assert.match(run.stderr,/Place validation failed/);
+  assert.equal(fs.readFileSync(registry,'utf8'),original);
+  assert.deepEqual(fs.readdirSync(path.join(root,'server/native/maps')),[]);
+  assert.ok(!fs.existsSync(registry+'.import.lock'));
+});

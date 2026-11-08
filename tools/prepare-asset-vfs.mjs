@@ -30,7 +30,7 @@ export async function prepareAssetVfs(projectRoot) {
   if(process.env.RBX_ASSET_VFS_CONFIG)return loadAssetVfs();
   const configFile=path.join(projectRoot,'server/native/asset-vfs-config.json');
   if(!fs.existsSync(configFile)) {
-    const roots=discoverArchiveRoots(projectRoot);
+    const roots=discoverArchiveRoots(projectRoot).map(r=>({...r,path:path.relative(path.dirname(configFile),r.path).split(path.sep).join('/')}));
     fs.mkdirSync(path.dirname(configFile),{recursive:true});
     // First importer wins; never replace administrator configuration.
     try{fs.writeFileSync(configFile,JSON.stringify({schemaVersion:1,autoDiscoverKnownRoots:true,manifest:'asset-vfs-manifest.json',roots},null,2)+'\n',{flag:'wx'});}
@@ -43,7 +43,7 @@ export async function prepareAssetVfs(projectRoot) {
     const existing=new Set(roots.map(r=>r.id));
     for(const root of discoverArchiveRoots(projectRoot))if(!existing.has(root.id))roots.push(root);
     // Keep loader configuration synchronized with the inventoried roots.
-    if(roots.length!==config.roots.length)atomicJson(configFile,{...config,roots});
+    if(roots.length!==config.roots.length)atomicJson(configFile,{...config,roots:roots.map(r=>({...r,path:path.relative(base,r.path).split(path.sep).join('/')}))});
   }
   const manifest=await inventoryArchives(roots,config.limits);
   atomicJson(path.resolve(base,config.manifest),manifest);

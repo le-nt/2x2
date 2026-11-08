@@ -8,6 +8,7 @@ on:
       - 'server/lib/asset-vfs.mjs'
       - 'server/lib/asset-discovery.mjs'
       - 'tools/inventory-asset-vfs.mjs'
+      - 'tools/prepare-asset-vfs.mjs'
       - 'tools/analyze-place.py'
       - 'tools/rbxl_binary_inventory.py'
       - 'tools/scan-binary-asset-ids.py'
@@ -49,6 +50,7 @@ jobs:
           node --check server/lib/asset-resolver.mjs
           node --check server/lib/asset-vfs.mjs
           node --check tools/inventory-asset-vfs.mjs
+          node --check tools/prepare-asset-vfs.mjs
           node --check server/lib/roblox-open-cloud.mjs
           node --check tools/seed-native-assets.mjs
           node --check tools/import-any-native.mjs

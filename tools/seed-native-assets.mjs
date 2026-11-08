@@ -48,6 +48,7 @@ const indexPath=path.join(nativeDir,opts.place ? 'asset-index.'+opts.place+'.jso
 const resolver=createAssetResolver({serverDir,siteDir:path.join(root,'site')});
 const archiveVfs=await prepareAssetVfs(root);
 const resourcesByPlace=new Map();
+const analysesByPlace=new Map();
 const places=JSON.parse(fs.readFileSync(path.join(nativeDir,'places.json'),'utf8')).places;
 if (opts.place && !Object.hasOwn(places,opts.place)) throw Error('Unknown place ID: '+opts.place);
 
@@ -108,18 +109,28 @@ function atomicJson(file,data) {
 }
 function inspectReferences(file,bytes) {
   const first=scanAssetReferences(bytes);
-  if(first.coverage!=='binary_strings_partial')return first;
-  const binaryScanner=path.join(defaultRoot,'tools','scan-binary-asset-ids.py');
-  const args=process.platform==='win32'&&python==='py'?['-3',binaryScanner,file]:[binaryScanner,file];
-  const run=spawnSync(python,args,{encoding:'utf8',timeout:30000,maxBuffer:4*1024*1024,windowsHide:true});
-  if(run.status!==0) return {...first,coverage:'binary_partial_decoder_unavailable',error:(run.stderr||run.error?.code||'decoder_unavailable').slice(0,180)};
+  if(!looksLikeRobloxModel(bytes))return {...first,coverage:'text_literals'};
+  const analyzer=path.join(defaultRoot,'tools','analyze-place.py');
+  const args=process.platform==='win32'&&python==='py'?['-3',analyzer,file]:[analyzer,file];
+  const run=spawnSync(python,args,{encoding:'utf8',timeout:30000,maxBuffer:16*1024*1024,windowsHide:true});
+  if(run.status!==0) return {...first,coverage:'model_analysis_failed',error:(run.stderr||run.error?.code||'analyzer_unavailable').slice(0,180)};
   try {
     const decoded=JSON.parse(run.stdout);
-    return {...first,ids:[...new Set([...first.ids,...decoded.ids.filter(validAssetId)])].sort((a,b)=>Number(a)-Number(b)),
-      coverage:'binary_decoded_partial',
+    return {...first,ids:[...new Set([...first.ids,...decoded.assetIds.filter(validAssetId)])].sort((a,b)=>Number(a)-Number(b)),
+      coverage:decoded.format==='binary'?'binary_decoded_partial':'xml_text',analysis:decoded,
       resourceReferences:decoded.resourceReferences||[],
-      unsupportedProperties:decoded.unsupportedProperties};
-  } catch(error){return {...first,coverage:'binary_partial_decoder_invalid_response'};}
+      unsupportedProperties:decoded.unsupportedBinaryProperties};
+  } catch(error){return {...first,coverage:'model_analyzer_invalid_response'};}
+}
+function rememberResources(placeId,references,parentAsset=null) {
+  if(!resourcesByPlace.has(placeId))resourcesByPlace.set(placeId,new Map());
+  const resources=resourcesByPlace.get(placeId);
+  for(const reference of references) {
+    if(!canonicalResource(reference)||resources.has(reference))continue;
+    if(resources.size>=opts.maxAssets){cappedPlaces.add(placeId);break;}
+    const result=archiveVfs?.resolve(reference)||{status:'not_inventoried'};
+    resources.set(reference,{reference,parentAsset,status:result.status,sha256:result.sha256||null,rootId:result.rootId||null});
+  }
 }
 function archiveAsset(record,found) {
   const content=fs.readFileSync(found.file);
@@ -154,10 +165,8 @@ for(const [placeId,entry] of Object.entries(places)) {
   try {
     const mapBytes=fs.readFileSync(file);
     const parsed=inspectReferences(file,mapBytes);
-    resourcesByPlace.set(placeId,[...new Set([...scanResourceReferences(mapBytes).references,...(parsed.resourceReferences||[])])].filter(ref=>canonicalResource(ref)).map(reference=>{
-      const result=archiveVfs?.resolve(reference)||{status:'not_inventoried'};
-      return {reference,status:result.status,sha256:result.sha256||null,rootId:result.rootId||null};
-    }));
+    analysesByPlace.set(placeId,parsed.analysis||null);
+    rememberResources(placeId,[...scanResourceReferences(mapBytes).references,...(parsed.resourceReferences||[])]);
     if(!['xml_text','binary_decoded'].includes(parsed.coverage))diagnostics.push({place:placeId,reason:parsed.coverage,unsupported:parsed.unsupportedProperties?.slice(0,12)});
     stats.scannedPlaces++;
     if(!['xml_text','binary_decoded'].includes(parsed.coverage))stats.unscannedPlaces++;
@@ -190,13 +199,17 @@ while(queue.length) {
       delete record.reason;
       const deps=record.kind==='model'||record.kind==='text' ? inspectReferences(found.file,bytes) : null;
       record.scan=deps?.coverage||'not_a_model';
-      if(deps && !['xml_text','binary_decoded'].includes(deps.coverage))
-        diagnostics.push({place:task.placeId,asset:record.id,reason:deps.coverage});
+      record.resourceReferences=deps?.resourceReferences||(record.kind==='text'?scanResourceReferences(bytes).references:[]);
       record.dependencies=(deps?.ids||[]).filter(id=>id!==record.id);
     } catch(error) {
       record.status='error';record.reason=error.code||error.message;record.dependencies=[];
     }
   }
+  rememberResources(task.placeId,record.resourceReferences||[],task.id);
+  if(!['not_a_model','xml_text','text_literals'].includes(record.scan))
+    diagnostics.push({place:task.placeId,asset:record.id,reason:record.scan||'model_not_scanned'});
+  if(task.depth===opts.maxDepth && record.dependencies?.some(id=>!visited.has(task.placeId+':'+id)))
+    cappedPlaces.add(task.placeId);
   if(task.depth<opts.maxDepth && record.dependencies) {
     for(const dep of record.dependencies) {
       if(dep===task.id)continue;
@@ -221,11 +234,12 @@ for(const [placeId,linked] of perPlace) {
   for(const r of subset)statuses[r.status]=(statuses[r.status]||0)+1;
   atomicJson(path.join(reportsDir,placeId+'.json'),{
     schemaVersion:1,generatedAt,placeId,game:places[placeId]?.name||placeId,
-    resourceReferences:resourcesByPlace.get(placeId)||[],
+    resourceReferences:[...(resourcesByPlace.get(placeId)?.values()||[])],
+    placeAnalysis:analysesByPlace.get(placeId)||null,
     resourceCoverage:archiveVfs?'manifest_lookup':'not_inventoried',
     gameplayStatus:'not_tested',
     discoveredAssets:subset.length,statuses,
-    complete:!cappedPlaces.has(placeId) && !diagnostics.some(d=>d.place===placeId) && subset.every(r=>r.status==='local'||r.status==='downloaded') && (resourcesByPlace.get(placeId)||[]).every(r=>r.status==='resolved'),
+    complete:!cappedPlaces.has(placeId) && !diagnostics.some(d=>d.place===placeId) && subset.every(r=>r.status==='local'||r.status==='downloaded') && [...(resourcesByPlace.get(placeId)?.values()||[])].every(r=>r.status==='resolved'),
     truncated:cappedPlaces.has(placeId),
     // 'complete' describes scanned references only: dynamic script IDs remain unknown.
     limitations:'Static scanning can miss dynamically computed IDs, compressed binary properties, and runtime-generated dependencies.',

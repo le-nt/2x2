@@ -106,6 +106,19 @@ test('native protocol shares 2x2 identity, requires the key, and gates WebSocket
   assert.equal(lua.status,200);assert.match(await lua.text(),/linked Lua delivered/);
   assert.equal((await request('/native/asset?id=34854608',{headers:{AccessKey:'wrong'}},'')).status,401);
   assert.equal((await request('/native/asset?id=999999999',{headers:{AccessKey:key}},'')).status,404);
+  // New imports become visible to an already running server; an invalid
+  // replacement registry must not destroy its last valid catalog.
+  const registryFile=path.join(tmp,'server/native/places.json');
+  const updated=JSON.parse(fs.readFileSync(registryFile));
+  fs.writeFileSync(path.join(tmp,'server/native/maps/new.rbxl'),'<roblox version="4"></roblox>');
+  updated.places['new-import']={id:3,file:'new.rbxl'};
+  fs.writeFileSync(registryFile+'.tmp',JSON.stringify(updated));fs.renameSync(registryFile+'.tmp',registryFile);
+  await new Promise(resolve=>setTimeout(resolve,1100));
+  const imported=await request('/api/native/launch?id=new-import');assert.equal(imported.status,200);assert.equal((await imported.json()).placeId,3);
+  const broken={...updated,places:{...updated.places,duplicate:{id:3,file:'new.rbxl'}}};
+  fs.writeFileSync(registryFile+'.tmp',JSON.stringify(broken));fs.renameSync(registryFile+'.tmp',registryFile);
+  await new Promise(resolve=>setTimeout(resolve,1100));
+  assert.equal((await request('/api/native/launch?id=new-import')).status,200);
   const socketURL=new URL(info.WebSocketAddress);
   async function handshake(cookie,origin){return new Promise((resolve,reject)=>{
    const req=http.request(base+socketURL.pathname+socketURL.search,{headers:{Cookie:cookie,Origin:origin,Connection:'Upgrade',Upgrade:'websocket','Sec-WebSocket-Version':'13','Sec-WebSocket-Key':'dGhlIHNhbXBsZSBub25jZQ=='}});

@@ -73,3 +73,32 @@ test('full archive orchestrator creates a prioritized missing-ID recovery report
   assert.equal(missing.assets[0].id,'999654321');
   assert.ok(!fs.existsSync(path.join(dir,'server/native/asset-seed/999654321')));
 });
+
+test('new imports automatically inventory nested model resources, decoded XML values, and depth limits',t=>{
+  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'2x2-vfs-ingestion-'));
+  t.after(()=>fs.rmSync(dir,{recursive:true,force:true}));
+  const maps=path.join(dir,'server/native/maps'),lib=path.join(dir,'server/native/asset-library');
+  const content=path.join(dir,'clients/2009E/content/textures');
+  for(const folder of [maps,lib,content])fs.mkdirSync(folder,{recursive:true});
+  fs.writeFileSync(path.join(maps,'map.rbxl'),'<roblox><Item><string>rbxassetid://&#49;2345</string></Item></roblox>');
+  fs.writeFileSync(path.join(lib,'12345.rbxmx'),'<roblox><Item><url>rbxasset://Textures/SpawnLocation.png</url><url>rbxassetid://98765</url></Item></roblox>');
+  fs.writeFileSync(path.join(lib,'98765.png'),'dependency bytes');
+  fs.writeFileSync(path.join(content,'SpawnLocation.png'),'original historical bytes');
+  fs.writeFileSync(path.join(dir,'server/native/places.json'),JSON.stringify({places:{fixture:{file:'map.rbxl',id:1}}}));
+  const args=[path.join(projectRoot,'tools/seed-native-assets.mjs'),'--root',dir,'--place','fixture'];
+  const run=spawnSync(process.execPath,args,{encoding:'utf8',timeout:20000});
+  assert.equal(run.status,0,run.stderr);
+  const file=path.join(dir,'server/native/asset-reports/fixture.json');
+  let report=JSON.parse(fs.readFileSync(file));
+  assert.equal(report.statuses.local,2);
+  assert.equal(report.resourceReferences[0].status,'resolved');
+  assert.equal(report.resourceReferences[0].parentAsset,'12345');
+  assert.equal(report.gameplayStatus,'not_tested');assert.equal(report.complete,true);
+  const config=JSON.parse(fs.readFileSync(path.join(dir,'server/native/asset-vfs-config.json')));
+  assert.ok(config.roots.every(root=>!path.isAbsolute(root.path)),'generated configuration works on Windows and Linux mounts');
+  assert.equal(spawnSync(process.execPath,[...args,'--max-depth','0'],{encoding:'utf8',timeout:20000}).status,0);
+  report=JSON.parse(fs.readFileSync(file));assert.equal(report.complete,false);assert.equal(report.truncated,true);
+  fs.writeFileSync(path.join(maps,'map.rbxl'),'<roblox><Item>');
+  assert.equal(spawnSync(process.execPath,args,{encoding:'utf8',timeout:20000}).status,0);
+  assert.equal(JSON.parse(fs.readFileSync(file)).complete,false,'invalid XML cannot be called completely scanned');
+});
