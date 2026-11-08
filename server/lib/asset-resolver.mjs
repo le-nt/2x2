@@ -111,12 +111,12 @@ export function rewriteLegacyAssetUrls(xml, publicOrigin) {
   // Rewrite asset references only; keep external URLs and non-XML binaries intact.
   const target = id => origin + (origin.endsWith('/native') ? '/asset?id=' : '/api/asset?id=') + id;
   return xml
-    .replace(/https?:\/\/(?:www\.)?roblox\.com\/asset\/?\?id=([1-9]\d{0,15})(?=[^0-9]|$)/gi,
+    .replace(/https?:\/\/(?:(?:www\.)?roblox\.com\/asset\/?|(?:www\.)?projectpizza\.net\/api\/asset\/?)\?id=([1-9]\d{0,15})(?=[^0-9]|$)/gi,
       (match, id) => validId(id) ? target(id) : match)
     // Old archived places use rbxasset://../../../shareddata/assets/<id>.
     // This is a local-file locator, so the HTTP URL redirect in the engine
     // cannot rewrite it. Translate only the exact numeric shareddata pattern.
-    .replace(/h?rbxasset:\/\/(?:\.\.\/)*shareddata\/assets\/([1-9]\d{0,15})(?![A-Za-z0-9._/-])/gi,
+    .replace(/h?rbxasset:\/\/(?:\.\.\/)*shareddata\/(?:assets|SBCR)\/([1-9]\d{0,15})(?![A-Za-z0-9._/-])/gi,
       (match, id) => validId(id) ? target(id) : match);
 }
 
