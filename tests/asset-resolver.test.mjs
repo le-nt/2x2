@@ -120,3 +120,20 @@ test('on-demand Aya-compatible fallback caches mesh bytes and deduplicates reque
   assert.equal(requests, 1);
   assert.equal(fs.readFileSync(path.join(tmp,'server/native/asset-cache/7281929')).toString('utf8'),upstreamBytes.toString('utf8'));
 });
+
+test('archived shareddata paths redirect to the native asset endpoint',async()=>{
+  const {rewriteLegacyAssetUrls}=await import('../server/lib/asset-resolver.mjs');
+  const xml='<roblox><url>rbxasset://../../../shareddata/assets/1029523</url><url>rbxasset://../../../shareddata/assets/1034290</url></roblox>';
+  assert.equal(rewriteLegacyAssetUrls(xml,'https://2x2.test/native'),
+    '<roblox><url>https://2x2.test/native/asset?id=1029523</url><url>https://2x2.test/native/asset?id=1034290</url></roblox>');
+  assert.match(rewriteLegacyAssetUrls(xml,'https://2x2.test'),/https:\/\/2x2\.test\/api\/asset\?id=1029523/);
+});
+test('archived teapot fallback is local and only matches its exact asset ID',()=>{
+  const legacy = path.join(tmp,'site/native-legacy-assets/fonts');
+  fs.mkdirSync(legacy,{recursive:true});
+  fs.writeFileSync(path.join(legacy,'teapot.mesh'),'version 1.00\\n');
+  const local = createAssetResolver({serverDir:path.join(tmp,'server'),siteDir:path.join(tmp,'site')});
+  assert.equal(local.lookup('1029523')?.ext,'.mesh');
+  assert.equal(fs.readFileSync(local.lookup('1029523').file,'utf8'),'version 1.00\\n');
+  assert.equal(local.lookup('1029524'),null);
+});
