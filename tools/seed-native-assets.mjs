@@ -16,13 +16,14 @@ import {fileURLToPath} from 'node:url';
 import {createAssetResolver} from '../server/lib/asset-resolver.mjs';
 import {scanAssetReferences,looksLikeRobloxModel,validAssetId} from '../server/lib/asset-discovery.mjs';
 
-const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
+const defaultRoot=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 function flags(argv) {
-  const options={download:false,maxFetch:250,maxAssets:10000,maxDepth:4,place:null};
+  const options={download:false,maxFetch:250,maxAssets:10000,maxDepth:4,place:null,root:null};
   for (let i=0;i<argv.length;i++) {
     const arg=argv[i];
     if (arg==='--download') options.download=true;
     else if (arg==='--place') options.place=argv[++i];
+    else if (arg==='--root') options.root=argv[++i];
     else if (['--max-fetch','--max-assets','--max-depth'].includes(arg)) {
       const n=Number(argv[++i]);
       if (!Number.isSafeInteger(n)||n<0) throw Error('Invalid value for '+arg);
@@ -34,6 +35,7 @@ function flags(argv) {
   return options;
 }
 const opts=flags(process.argv.slice(2));
+const root=opts.root?path.resolve(opts.root):defaultRoot;
 const python=process.env.RBX_PYTHON||(process.platform==='win32'?'py':'python3');
 const serverDir=path.join(root,'server');
 const nativeDir=path.join(serverDir,'native');
