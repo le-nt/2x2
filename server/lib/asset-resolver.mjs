@@ -108,8 +108,15 @@ export function rewriteLegacyAssetUrls(xml, publicOrigin) {
     origin = url.origin + (url.pathname === '/native' ? '/native' : '');
   } catch { return xml; }
   // Rewrite asset references only; keep external URLs and non-XML binaries intact.
-  return xml.replace(/https?:\/\/(?:www\.)?roblox\.com\/asset\/?\?id=([1-9]\d{0,15})(?=[^0-9]|$)/gi,
-    (match, id) => validId(id) ? origin + (origin.endsWith('/native') ? '/asset?id=' : '/api/asset?id=') + id : match);
+  const target = id => origin + (origin.endsWith('/native') ? '/asset?id=' : '/api/asset?id=') + id;
+  return xml
+    .replace(/https?:\/\/(?:www\.)?roblox\.com\/asset\/?\?id=([1-9]\d{0,15})(?=[^0-9]|$)/gi,
+      (match, id) => validId(id) ? target(id) : match)
+    // Old archived places use rbxasset://../../../shareddata/assets/<id>.
+    // This is a local-file locator, so the HTTP URL redirect in the engine
+    // cannot rewrite it. Translate only the exact numeric shareddata pattern.
+    .replace(/h?rbxasset:\/\/(?:\.\.\/)*shareddata\/assets\/([1-9]\d{0,15})(?![A-Za-z0-9._/-])/gi,
+      (match, id) => validId(id) ? target(id) : match);
 }
 
 // AyaEX libraries may store an asset as just its numeric ID with no extension.
@@ -157,6 +164,13 @@ export function createAssetResolver({serverDir, siteDir, publicOrigin = ''}) {
     for (const {dir,prefix} of roots) for (const ext of extensions) {
       const hit = safeFile(dir, prefix + id + ext);
       if (hit) { missing.delete(id); return {...hit, ext: ext || detectExtension(hit.file)}; }
+    }
+    // Dodge the Teapots of Doom uses a 2007 shareddata mesh ID that is no
+    // longer in the numeric asset library. The project already archives the
+    // classic teapot mesh, so serve that exact local resource as a fallback.
+    if (id === '1029523') {
+      const teapot = safeFile(path.join(siteDir, 'native-legacy-assets', 'fonts'), 'teapot.mesh');
+      if (teapot) { missing.delete(id); return {...teapot,ext:'.mesh'}; }
     }
     // FIFO cache: bounds filesystem work for broken references without locking
     // out newly imported assets indefinitely.
