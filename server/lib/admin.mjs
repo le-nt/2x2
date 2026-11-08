@@ -244,11 +244,11 @@ export function createAdmin({ db, cfg, secure, serverDir }) {
       if(p==="/assets"&&method==="GET"){
         requireRole("AssetManager");
         const id=String(url.searchParams.get("id")||"").trim();
-        if(id && !/^\\d{1,20}$/.test(id))throw [400,"Enter a numeric Roblox asset ID."];
+        if(id && !/^\d{1,20}$/.test(id))throw [400,"Enter a numeric Roblox asset ID."];
         const dir=path.join(serverDir||process.cwd(),"native","asset-library");
         let entries=[];
         try{entries=fs.readdirSync(dir,{withFileTypes:true}).filter(e=>e.isFile());}catch{}
-        const files=entries.filter(e=>/^\\d+\\.(rbxm|rbxmx|mesh|png|jpg|jpeg|webp|xml|bin)$/i.test(e.name));
+        const files=entries.filter(e=>/^\d+\.(rbxm|rbxmx|mesh|png|jpg|jpeg|webp|xml|bin)$/i.test(e.name));
         const hits=id?files.filter(e=>e.name.split(".")[0]===id):files.slice(0,75);
         return ok({cachedCount:files.length,query:id,files:hits.map(e=>{
           const st=fs.statSync(path.join(dir,e.name));return {name:e.name,size:st.size,modifiedAt:st.mtimeMs};
