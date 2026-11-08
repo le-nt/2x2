@@ -236,6 +236,22 @@ export function createAdmin({ db, cfg, secure }) {
         q("INSERT INTO admin_notes(user_id,moderator_id,note,created_at) VALUES (?,?,?,?)").run(id,user.id,note,Date.now());
         audit(user,"USER_NOTE",id,"Note added");return ok({ok:true});
       }
+      if(p==="/forums"&&method==="GET"){
+        requireRole("ForumModerator");
+        const search=String(url.searchParams.get("q")||"").trim().slice(0,80);
+        const like="%"+search.replace(/[\\%_]/g,"\\      if(p==="/audit"&&method==="GET"){")+"%";
+        return ok({threads:q("SELECT t.id,t.title,t.locked,t.pinned,t.created_at,b.name AS board,u.username AS author FROM threads t JOIN boards b ON b.id=t.board_id JOIN users u ON u.id=t.user_id WHERE t.title LIKE ? ESCAPE '\\' ORDER BY t.id DESC LIMIT 60").all(like)});
+      }
+      const forumMatch=/^\\/forums\\/(\\d+)$/.exec(p);
+      if(forumMatch&&method==="POST"){
+        requireRole("ForumModerator");
+        const id=validId(forumMatch[1]);
+        if(typeof body.locked!=="boolean"||typeof body.pinned!=="boolean")throw [400,"Supply locked and pinned booleans."];
+        const result=q("UPDATE threads SET locked=?, pinned=? WHERE id=?").run(body.locked?1:0,body.pinned?1:0,id);
+        if(!result.changes)throw [404,"Thread not found."];
+        audit(user,"FORUM_THREAD",id,JSON.stringify({locked:body.locked,pinned:body.pinned}));
+        return ok({ok:true});
+      }
       if(p==="/audit"&&method==="GET"){
         requireRole("Administrator");
         const page=Math.max(1,Math.min(1000,parseInt(url.searchParams.get("page"),10)||1));
