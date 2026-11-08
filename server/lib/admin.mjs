@@ -275,7 +275,7 @@ export function createAdmin({ db, cfg, secure }) {
         requireRole("SuperAdmin");
         const id=validId(body.userId), next=String(body.role);
         if(!q("SELECT 1 FROM users WHERE id=?").get(id))throw [404,"User not found."];
-        if(id===1||(cfg.admins||[]).some(a=>q("SELECT username FROM users WHERE id=?").get(id)?.username?.toLowerCase()===a.toLowerCase()))
+        if(id===1||q("SELECT username FROM users WHERE id=?").get(id)?.username?.toLowerCase()==="2x2"||(cfg.admins||[]).some(a=>q("SELECT username FROM users WHERE id=?").get(id)?.username?.toLowerCase()===a.toLowerCase()))
           throw [403,"Bootstrap administrators are configured outside the database."];
         if(next==="Unprivileged"){
           q("DELETE FROM admin_staff WHERE user_id=?").run(id);
