@@ -21,7 +21,7 @@
       <div class="PageHead">
         <div>
           <h1 class="PageTitle">Games</h1>
-          <p class="PageSub">Explore the complete Novetus map pack: classic eras, legacy variants, and exclusives.</p>
+          <p class="PageSub">Browse the Novetus archive by year, edition, or name. Original and legacy versions are preserved.</p>
         </div>
         <input type="search" id="Search" class="BrowseSearch" placeholder="Search games" aria-label="Search games">
       </div>
@@ -37,8 +37,15 @@
           <button type="button" class="Chip" data-sort="name">A to Z</button>
           <button type="button" class="Chip" data-sort="smallest">Quickest to load</button>
         </div>
-        <div class="ChipLabel" id="EraLabel">Era</div>
-        <div class="Chips" id="EraList" role="group" aria-labelledby="EraLabel"></div>
+        <div class="ChipLabel" id="YearLabel">Year</div>
+        <div class="Chips" id="YearList" role="group" aria-labelledby="YearLabel" style="flex-wrap:wrap"></div>
+        <div class="ChipLabel" id="EditionLabel">Collection</div>
+        <div class="Chips" id="EditionList" role="group" aria-labelledby="EditionLabel">
+          <button type="button" class="Chip" data-edition="all">All collections</button>
+          <button type="button" class="Chip" data-edition="standard">Novetus maps</button>
+          <button type="button" class="Chip" data-edition="legacy">Legacy maps</button>
+          <button type="button" class="Chip" data-edition="extras">Exclusives &amp; dev</button>
+        </div>
       </div>
 
       <div class="ListMeta"><span class="Title" id="ListTitle">Most popular</span><span class="Label" id="ListCount"></span></div>
@@ -52,69 +59,142 @@
 <script>
 (async function () {
   RB.mount("Games");
-  const maps = await RB.places();
-  const capabilityIndex = await RB.capabilities();
 
-  const state = { sort: RB.param("sort") || "popular", era: RB.param("era") || "all", q: RB.param("q") || "" };
+  const listElement = document.getElementById("GameList");
+  const countElement = document.getElementById("ListCount");
+  const titleElement = document.getElementById("ListTitle");
+  const searchElement = document.getElementById("Search");
+  const sortButtons = [...document.querySelectorAll("[data-sort]")];
+  const yearElement = document.getElementById("YearList");
+  const editionElement = document.getElementById("EditionList");
+  const validSorts = new Set(["popular", "featured", "newest", "playing", "mine", "name", "smallest"]);
+  const validEditions = new Set(["all", "standard", "legacy", "extras"]);
+  const params = new URLSearchParams(location.search);
+  const legacyEra = params.get("era") || "";
+  // Preserve old links such as ?era=2016 and ?era=Legacy%202016.
+  const legacyYear = legacyEra.match(/(?:^|\s)(20\d{2})/);
+  const state = {
+    sort: validSorts.has(params.get("sort")) ? params.get("sort") : "popular",
+    year: params.get("year") || (legacyYear ? legacyYear[1] : "all"),
+    edition: validEditions.has(params.get("edition")) ? params.get("edition") : (legacyEra.startsWith("Legacy ") ? "legacy" : "all"),
+    q: params.get("q") || ""
+  };
   const featured = ["crossroads", "sword-fight-on-the-heights", "rocket-arena", "happy-home-in-robloxia", "chaos-canyon", "haunted-mansion"];
   const isFeatured = (m) => featured.some((f) => m.id.includes(f));
+  const toYear = (m) => Number(m.year);
+  const isArchiveYear = (year) => Number.isInteger(year) && year >= 2000 && year <= new Date().getFullYear();
+  const editionOf = (m) => {
+    const era = String(m.era || "").toLowerCase();
+    if (era.startsWith("legacy novetus exclusive") || era.startsWith("legacy dev") || era.startsWith("legacy universal") ||
+        era.startsWith("novetus exclusive") || era === "dev") return "extras";
+    if (era.startsWith("legacy ")) return "legacy";
+    return "standard";
+  };
 
-  const eras = [...new Set(maps.map((m) => m.era))].sort();
-  document.getElementById("EraList").innerHTML =
-    `<button type="button" class="Chip" data-era="all">All eras</button>` + eras.map((e) => `<button type="button" class="Chip" data-era="${RB.esc(e)}">${RB.esc(e)}</button>`).join("");
-  document.getElementById("Search").value = state.q;
-
-  function render() {
-    const q = state.q.toLowerCase();
-    let list = maps.filter((m) =>
-      (state.era === "all" || m.era === state.era) &&
-      (!q || (m.name + " " + m.description).toLowerCase().includes(q)) &&
-      (state.sort !== "featured" || isFeatured(m)) &&
-      (state.sort !== "playing" || m.playing.length) &&
-      (state.sort !== "mine" || m.mine));
-    const sorters = {
-      popular: (a, b) => b.visits - a.visits,
-      featured: (a, b) => b.visits - a.visits,
-      newest: (a, b) => b.year - a.year || b.visits - a.visits,
-      playing: (a, b) => b.playing.length - a.playing.length,
-      mine: (a, b) => b.mine - a.mine,
-      name: (a, b) => a.name.localeCompare(b.name),
-      smallest: (a, b) => a.zipKB - b.zipKB,
-    };
-    list.sort(sorters[state.sort] || sorters.popular);
-
-    const titles = { popular: "Most popular", featured: "Featured", newest: "Newest places", playing: "Friends playing now", mine: "Your recent places", name: "A to Z", smallest: "Quickest to load" };
-    document.getElementById("ListTitle").textContent =
-      (titles[state.sort] || titles.popular) + (state.era !== "all" ? ` (${state.era})` : "") + (state.q ? ` matching "${state.q}"` : "");
-    document.getElementById("ListCount").textContent = `${list.length} game${list.length === 1 ? "" : "s"}`;
-
-    document.getElementById("GameList").innerHTML = list.length ? list.map((m) => {
-      const inventory = capabilityIndex.get(m.id);
-      const inventoryNote = inventory && inventory.status === "inventoried"
-        ? `<span title="Original objects found; execution unverified">${RB.num(inventory.toolCount)} tools · ${RB.num(inventory.scriptCount)} scripts</span>`
-        : "";
-      const meta = `<span>${RB.esc(m.era)}</span><span>${RB.compact(m.visits)} visits</span>` + inventoryNote +
-        (state.sort === "smallest" ? `<span>${RB.num(m.zipKB)} KB</span>` : m.mine ? `<span>You: ${m.mine}x</span>` : "");
-      return RB.gameCard(m, meta);
-    }).join("") : `<div class="Empty" style="grid-column:1/-1">${state.sort === "playing" ? "Nobody is playing right now. Be the first." : "No games found. Try a different search or era."}</div>`;
-
-    for (const a of document.querySelectorAll("[data-sort]")) a.classList.toggle("active", a.dataset.sort === state.sort);
-    for (const a of document.querySelectorAll("[data-era]")) a.classList.toggle("active", a.dataset.era === state.era);
-    const qs = new URLSearchParams();
-    if (state.sort !== "popular") qs.set("sort", state.sort);
-    if (state.era !== "all") qs.set("era", state.era);
-    if (state.q) qs.set("q", state.q);
-    history.replaceState(null, "", qs.toString() ? "?" + qs : location.pathname);
+  let maps;
+  try {
+    maps = await RB.places();
+    if (!Array.isArray(maps)) throw new Error("Invalid map catalog");
+  } catch (error) {
+    listElement.innerHTML = '<div class="Empty">The games catalog could not be loaded. Refresh the page to try again.</div>';
+    countElement.textContent = "Unable to load games";
+    console.error("[2x2 Games] Catalog load failed:", error);
+    return;
   }
 
-  document.querySelector(".Browse").addEventListener("click", (e) => {
-    const a = e.target.closest("[data-sort],[data-era]");
+  const capabilityIndex = await RB.capabilities().catch(() => new Map());
+  const archiveYears = [...new Set(maps.map(toYear).filter(isArchiveYear))].sort((a, b) => a - b);
+  const hasExtras = maps.some((m) => !isArchiveYear(toYear(m)));
+  const allowedYears = new Set(["all", ...archiveYears.map(String), ...(hasExtras ? ["other"] : [])]);
+  if (!allowedYears.has(state.year)) state.year = "all";
+
+  function makeChip(group, label, value, attribute, count) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "Chip";
+    button.dataset[attribute] = value;
+    button.textContent = count === undefined ? label : label + " (" + count + ")";
+    group.appendChild(button);
+  }
+
+  makeChip(yearElement, "All years", "all", "year", maps.length);
+  for (const year of archiveYears) {
+    makeChip(yearElement, String(year), String(year), "year", maps.filter((m) => toYear(m) === year).length);
+  }
+  if (hasExtras) {
+    makeChip(yearElement, "Other / undated", "other", "year", maps.filter((m) => !isArchiveYear(toYear(m))).length);
+  }
+
+  searchElement.value = state.q;
+  function render() {
+    const q = state.q.toLocaleLowerCase();
+    const list = maps.filter((m) => {
+      if (state.year !== "all" && (state.year === "other" ? isArchiveYear(toYear(m)) : String(m.year) !== state.year)) return false;
+      if (state.edition !== "all" && editionOf(m) !== state.edition) return false;
+      if (q && ![m.name, m.description, m.era, m.id, m.year].some((value) => String(value ?? "").toLocaleLowerCase().includes(q))) return false;
+      if (state.sort === "featured" && !isFeatured(m)) return false;
+      if (state.sort === "playing" && !(m.playing || []).length) return false;
+      if (state.sort === "mine" && !m.mine) return false;
+      return true;
+    });
+    const num = (value) => Number(value) || 0;
+    const sorters = {
+      popular: (a, b) => num(b.visits) - num(a.visits),
+      featured: (a, b) => num(b.visits) - num(a.visits),
+      newest: (a, b) => num(b.year) - num(a.year) || num(b.visits) - num(a.visits),
+      playing: (a, b) => (b.playing || []).length - (a.playing || []).length,
+      mine: (a, b) => num(b.mine) - num(a.mine),
+      name: (a, b) => String(a.name).localeCompare(String(b.name)),
+      smallest: (a, b) => num(a.zipKB) - num(b.zipKB)
+    };
+    list.sort((a, b) => (sorters[state.sort] || sorters.popular)(a, b) || String(a.name).localeCompare(String(b.name)) || String(a.id).localeCompare(String(b.id)));
+
+    const titles = { popular: "Most popular", featured: "Featured", newest: "Newest places", playing: "Friends playing now", mine: "Your recent places", name: "A to Z", smallest: "Quickest to load" };
+    const yearLabel = state.year === "all" ? "" : state.year === "other" ? " / Other" : " / " + state.year;
+    titleElement.textContent = titles[state.sort] + yearLabel;
+    countElement.textContent = list.length + " of " + maps.length + " games";
+    listElement.innerHTML = list.length ? list.map((m) => {
+      const inventory = capabilityIndex.get(m.id);
+      const inventoryNote = inventory && inventory.status === "inventoried"
+        ? '<span title="Original objects found; execution unverified">' + RB.num(inventory.toolCount) + " tools · " + RB.num(inventory.scriptCount) + " scripts</span>"
+        : "";
+      const meta = "<span>" + RB.esc(m.era) + "</span><span>" + RB.compact(m.visits) + " visits</span>" + inventoryNote +
+        (state.sort === "smallest" ? "<span>" + RB.num(m.zipKB) + " KB</span>" : m.mine ? "<span>You: " + RB.num(m.mine) + "x</span>" : "");
+      return RB.gameCard(m, meta);
+    }).join("") : '<div class="Empty" style="grid-column:1/-1">' +
+      (state.sort === "playing" ? "Nobody is playing right now." :
+       state.sort === "mine" ? "You have not visited any games in this selection yet." :
+       "No games match these filters. Try another year, collection, or search.") + "</div>";
+
+    for (const a of sortButtons) {
+      a.classList.toggle("active", a.dataset.sort === state.sort);
+      a.setAttribute("aria-pressed", String(a.dataset.sort === state.sort));
+    }
+    for (const a of yearElement.querySelectorAll("[data-year]")) {
+      a.classList.toggle("active", a.dataset.year === state.year);
+      a.setAttribute("aria-pressed", String(a.dataset.year === state.year));
+    }
+    for (const a of editionElement.querySelectorAll("[data-edition]")) {
+      a.classList.toggle("active", a.dataset.edition === state.edition);
+      a.setAttribute("aria-pressed", String(a.dataset.edition === state.edition));
+    }
+    const next = new URLSearchParams();
+    if (state.sort !== "popular") next.set("sort", state.sort);
+    if (state.year !== "all") next.set("year", state.year);
+    if (state.edition !== "all") next.set("edition", state.edition);
+    if (state.q) next.set("q", state.q);
+    history.replaceState(null, "", location.pathname + (next.size ? "?" + next.toString() : ""));
+  }
+
+  document.querySelector(".Browse").addEventListener("click", (event) => {
+    const a = event.target.closest("button[data-sort],button[data-year],button[data-edition]");
     if (!a) return;
     if (a.dataset.sort) state.sort = a.dataset.sort;
-    if (a.dataset.era) state.era = a.dataset.era;
+    if (a.dataset.year) state.year = a.dataset.year;
+    if (a.dataset.edition) state.edition = a.dataset.edition;
     render();
   });
-  document.getElementById("Search").addEventListener("input", (e) => { state.q = e.target.value.trim(); render(); });
+  searchElement.addEventListener("input", () => { state.q = searchElement.value.trim(); render(); });
   render();
 })();
 </script>
