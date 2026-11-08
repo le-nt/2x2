@@ -16,8 +16,8 @@ async function api(path,method="GET",body){
 async function perform(fn){try{showMessage("");await fn();}catch(e){showMessage(e.message,true);}}
 function can(role){return ROLES.indexOf(state.role)>=ROLES.indexOf(role);}
 function showPage(name){
-  state.page=name;$("title").textContent=({dashboard:"Dashboard",users:"User moderation",features:"Site features",staff:"Staff roles",audit:"Audit log"})[name]||"2x2 Administration";
-  for(const p of ["dashboard","users","features","staff","audit"])$(p).hidden=p!==name;
+  state.page=name;$("title").textContent=({dashboard:"Dashboard",users:"User moderation",forums:"Forum moderation",features:"Site features",staff:"Staff roles",audit:"Audit log"})[name]||"2x2 Administration";
+  for(const p of ["dashboard","users","forums","features","staff","audit"])$(p).hidden=p!==name;
   for(const b of document.querySelectorAll("#nav button"))b.classList.toggle("active",b.dataset.page===name);
 }
 async function init(){
@@ -29,7 +29,7 @@ async function init(){
   $("authHelp").textContent=state.enrolled?"Enter your authenticator code to start a six-hour staff session.":"Verify your password, then enroll an authenticator app before using the admin panel.";
   for(const b of document.querySelectorAll("#nav button[data-min]"))b.hidden=!can(b.dataset.min);
   if(state.verified){showPage(state.page);await loadPage(state.page);}
-  else for(const p of ["dashboard","users","features","staff","audit"])$(p).hidden=true;
+  else for(const p of ["dashboard","users","forums","features","staff","audit"])$(p).hidden=true;
 }
 async function loadPage(p){
   if(p==="dashboard"){
@@ -40,6 +40,7 @@ async function loadPage(p){
     }
     $("expiry").textContent="Session expires: "+fmt(d.sessionExpires);
   }else if(p==="users")await findUsers();
+  else if(p==="forums")await findThreads();
   else if(p==="features")await loadFlags();
   else if(p==="staff")await loadStaff();
   else if(p==="audit")await loadAudit();
@@ -82,6 +83,23 @@ async function addNote(){
   if(!state.target)throw Error("Select a user.");
   await api("/users/"+state.target+"/notes","POST",{note:$("note").value});
   $("note").value="";await viewUser(state.target);showMessage("Note added.");
+}
+async function findThreads(){
+  const d=await api("/forums?q="+encodeURIComponent($("threadQuery").value.trim()));
+  $("threadResults").replaceChildren();
+  for(const t of d.threads){
+    const tr=document.createElement("tr");
+    for(const v of [t.title,t.board,t.author])tr.append(el("td",v));
+    const locked=document.createElement("input");locked.type="checkbox";locked.checked=Boolean(t.locked);
+    const pinned=document.createElement("input");pinned.type="checkbox";pinned.checked=Boolean(t.pinned);
+    const lc=document.createElement("td"),pc=document.createElement("td"),ac=document.createElement("td");
+    lc.append(locked);pc.append(pinned);
+    const save=el("button","Save");save.onclick=()=>perform(async()=>{
+      await api("/forums/"+t.id,"POST",{locked:locked.checked,pinned:pinned.checked});
+      showMessage("Thread moderation saved.");
+    });
+    ac.append(save);tr.append(lc,pc,ac);$("threadResults").append(tr);
+  }
 }
 async function loadFlags(){
   const d=await api("/features");$("flags").replaceChildren();
@@ -128,6 +146,8 @@ $("verify").onclick=()=>perform(async()=>{
 $("logout").onclick=()=>perform(async()=>{await api("/logout","POST");state.page="dashboard";await init();});
 for(const b of document.querySelectorAll("#nav button"))b.onclick=()=>perform(async()=>{showPage(b.dataset.page);await loadPage(b.dataset.page);});
 $("findUsers").onclick=()=>perform(findUsers);
+$("findThreads").onclick=()=>perform(findThreads);
+
 $("userQuery").addEventListener("keydown",e=>{if(e.key==="Enter")perform(findUsers);});
 $("moderate").onclick=()=>perform(moderate);
 $("addNote").onclick=()=>perform(addNote);
