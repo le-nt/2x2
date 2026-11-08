@@ -109,7 +109,7 @@ export function rewriteLegacyAssetUrls(xml, publicOrigin) {
     origin = url.origin + (url.pathname === '/native' ? '/native' : '');
   } catch { return xml; }
   // Rewrite asset references only; keep external URLs and non-XML binaries intact.
-  const target = id => origin + (origin.endsWith('/native') ? '/asset?id=' : '/api/asset?id=') + id;
+  const target = id => origin + (origin.endsWith('/native') ? '/content-asset?id=' : '/api/asset?id=') + id;
   return xml
     .replace(/https?:\/\/(?:(?:www\.)?roblox\.com\/asset\/?|(?:www\.)?projectpizza\.net\/api\/asset\/?)\?id=([1-9]\d{0,15})(?=[^0-9]|$)/gi,
       (match, id) => validId(id) ? target(id) : match)
