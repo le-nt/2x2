@@ -44,7 +44,7 @@ Run `node --test tests/admin.test.mjs` and `node tests/smoke.mjs` with Node 22+ 
 
 ## Moderation notice behavior
 
-A new moderation action is recorded in SQLite. Normal signed-in website requests are redirected to `/not-approved.html` while a warning awaits acknowledgement or a ban/deletion is active. The shared page shell checks for notices every 15 seconds. The user sees the moderator's public reason and timestamp. Warning acknowledgements are recorded by action ID. A restricted user may sign in solely to read the notice, log out, or submit one appeal; other authenticated API and game-launch access is blocked. Active native game sessions already connected before the action may need additional runtime disconnection integration.
+A new moderation action is recorded in SQLite. Normal signed-in website requests are redirected to `/not-approved.html` while a warning awaits acknowledgement or a ban/deletion is active. The shared page shell checks for notices every 15 seconds. The user sees the moderator's public reason and timestamp. Warning acknowledgements are recorded by action ID. A restricted user may sign in solely to read the notice, log out, or submit one appeal; other authenticated API and game-launch access is blocked. The native WebSocket bridge already periodically rechecks website session authorization and closes connections when it detects a restriction (up to approximately 15 seconds); whether the remote RCCService also despawns the player should be confirmed in a multiplayer test.
 
 ## Banner settings
 
