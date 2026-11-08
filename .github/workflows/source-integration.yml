@@ -20,6 +20,7 @@ on:
       - 'tests/asset-resolver.test.mjs'
       - 'tests/asset-upstream-errors.test.mjs'
       - 'tools/audit-asset-coverage.mjs'
+      - 'tools/seed-novetus-assets.mjs'
       - 'services/engine/App/util/ContentProvider.cpp'
       - 'tests/test_engine_core_sources.py'
       - 'services/engine/.assets/content/scripts/**'
@@ -50,6 +51,7 @@ jobs:
       - name: Administrator syntax checks
         run: |
           node --check tools/audit-asset-coverage.mjs
+          node --check tools/seed-novetus-assets.mjs
           node --check server/lib/asset-resolver.mjs
           node --check server/lib/native.mjs
           node --check server/server.mjs
