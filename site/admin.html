@@ -32,6 +32,7 @@ table{border-collapse:collapse;width:100%}td,th{padding:10px;text-align:left;bor
 <button data-page="forums">Forum moderation</button>
 <button data-page="banner" data-min="Administrator">Sitewide banner</button>
 <button data-page="infrastructure" data-min="Administrator">Server monitor</button>
+<button data-page="assets" data-min="AssetManager">Asset inspector</button>
 <button data-page="features" data-min="SuperAdmin">Site features</button>
 <button data-page="staff" data-min="SuperAdmin">Staff roles</button>
 <button data-page="audit" data-min="Administrator">Audit log</button>
@@ -94,6 +95,11 @@ table{border-collapse:collapse;width:100%}td,th{padding:10px;text-align:left;bor
 <div class="scroller"><table><thead><tr><th>Title</th><th>Board</th><th>Author</th><th>Locked</th><th>Pinned</th><th></th></tr></thead><tbody id="threadResults"></tbody></table></div>
 </div>
 </section>
+<section id="assets" hidden>
+<div class="panel"><h2>Cached asset inspector</h2><p class="muted">Read-only local asset library diagnostics. Search by numeric Roblox asset ID to check if it is cached.</p>
+<div class="row"><input id="assetId" inputmode="numeric" placeholder="Asset ID (blank for recent cache sample)" maxlength="20"><button id="inspectAsset">Inspect</button></div>
+<p id="assetCount" class="muted"></p><div class="scroller"><table><thead><tr><th>Local filename</th><th>Size</th><th>Modified</th></tr></thead><tbody id="assetResults"></tbody></table></div>
+</div></section>
 <section id="infrastructure" hidden>
 <div class="panel"><h2>Server and Arbiter monitor</h2><p class="muted">Read-only diagnostics for this Node server and registered native game jobs.</p>
 <div class="grid" id="infraMetrics"></div><p><button class="secondary" id="refreshInfra">Refresh status</button></p>
