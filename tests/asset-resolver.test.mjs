@@ -87,3 +87,36 @@ test('legacy /asset aliases resolve locally and preserve HEAD responses', async 
   assert.equal((await fetch(base+'/asset/malicious?id=34854607')).status,404);
   assert.equal((await fetch(base+'/asset/?id=../../secret')).status,400);
 });
+
+test('on-demand Aya-compatible fallback caches mesh bytes and deduplicates requests', async t => {
+  const {createServer} = await import('node:http');
+  const upstreamBytes = Buffer.from('version 1.00\\nVertices: 0\\n', 'utf8');
+  let requests = 0;
+  const upstream = createServer((req, res) => {
+    requests++;
+    assert.equal(req.url, '/asset/?id=7281929');
+    res.writeHead(200, {'Content-Type':'application/octet-stream'}).end(upstreamBytes);
+  });
+  await new Promise(resolve => upstream.listen(0, '127.0.0.1', resolve));
+  t.after(async () => { upstream.closeAllConnections(); await new Promise(resolve => upstream.close(resolve)); });
+  const previousAya = process.env.AYA_ASSET_FALLBACK_URL;
+  const previousRoblox = process.env.ROBLOX_ASSET_FETCH;
+  process.env.AYA_ASSET_FALLBACK_URL = 'http://127.0.0.1:' + upstream.address().port;
+  process.env.ROBLOX_ASSET_FETCH = '0';
+  t.after(() => {
+    if (previousAya === undefined) delete process.env.AYA_ASSET_FALLBACK_URL;
+    else process.env.AYA_ASSET_FALLBACK_URL = previousAya;
+    if (previousRoblox === undefined) delete process.env.ROBLOX_ASSET_FETCH;
+    else process.env.ROBLOX_ASSET_FETCH = previousRoblox;
+  });
+  const local = createAssetResolver({serverDir:path.join(tmp,'server'),siteDir:path.join(tmp,'site')});
+  assert.equal(local.lookup('7281929'), null);
+  const [a,b] = await Promise.all([local.resolve('7281929'),local.resolve('7281929')]);
+  assert.equal(requests, 1);
+  assert.deepEqual(fs.readFileSync(a.file), upstreamBytes);
+  assert.equal(a.file,b.file);
+  assert.equal(local.lookup('7281929')?.file, a.file);
+  assert.equal((await local.resolve('7281929')).file,a.file);
+  assert.equal(requests, 1);
+  assert.equal(fs.readFileSync(path.join(tmp,'server/native/asset-cache/7281929')).toString('utf8'),upstreamBytes.toString('utf8'));
+});

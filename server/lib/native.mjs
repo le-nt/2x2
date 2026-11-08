@@ -176,7 +176,7 @@ export function createNative({db,cfg,root,port,sessionUser,isGated,assetResolver
    file=preparedMaps.get(entry?.id)||hasMap(entry);kind=file?'.rbxl':undefined;
    // Place IDs retain priority; every other numeric ID can resolve to a cached
    // mesh, texture, model, audio file, or exact linked Lua dependency.
-   if(!file){const asset=assetResolver?.lookup(assetId);if(asset){file=asset.file;kind=asset.ext;}}
+   if(!file){const asset=await assetResolver?.resolve(assetId);if(asset){file=asset.file;kind=asset.ext;}}
   }
   else if(p==='/native/Game/LoadPlaceInfo.ashx'){
    const id=Number(url.searchParams.get('PlaceId'));if(!places.has(id))return json(res,404,{error:'Unknown place.'});

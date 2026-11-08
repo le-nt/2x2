@@ -1,13 +1,81 @@
 // Offline Roblox asset resolver. AyaEX-inspired local-first lookup, bounded
-// negative cache, and XML-only URL substitution. No upstream/network fallback.
+// negative cache, and XML-only URL substitution. Bounded on-demand upstream fallback.
 import fs from 'node:fs';
 import path from 'node:path';
+import crypto from 'node:crypto';
 
 const extensions = ['.rbxm', '.rbxmx', '.mesh', '.png', '.jpg', '.jpeg', '.dds', '.wav', '.mp3', '.ogg', '.txt', '.lua', ''];
 const types = {'.rbxm':'application/octet-stream','.rbxmx':'application/xml','.mesh':'application/octet-stream','.png':'image/png','.jpg':'image/jpeg','.jpeg':'image/jpeg','.dds':'application/octet-stream','.wav':'audio/wav','.mp3':'audio/mpeg','.ogg':'audio/ogg','.txt':'text/plain; charset=utf-8','.lua':'text/plain; charset=utf-8'};
 const MAX_FILE = 64 * 1024 * 1024;
 const MISS_TTL = 15000;
 const MISS_LIMIT = 2048;
+const MAX_DOWNLOAD = 32 * 1024 * 1024;
+const MAX_CONCURRENT = 6;
+const MAX_WAITING = 120;
+const UPSTREAM_MISS_TTL = 5 * 60 * 1000;
+function upstreamURL(base, id) {
+  if (!base) return null;
+  try {
+    const url = new URL(base);
+    if (!['https:', 'http:'].includes(url.protocol) || url.username || url.password ||
+        url.search || url.hash || (url.protocol === 'http:' && !['localhost', '127.0.0.1', '::1', '[::1]'].includes(url.hostname)))
+      return null;
+    url.pathname = url.pathname.replace(/\/+$/, '') + '/asset/';
+    url.searchParams.set('id', id);
+    return url;
+  } catch { return null; }
+}
+function trustedRobloxRedirect(url) {
+  return url.protocol === 'https:' && !url.username && !url.password &&
+    (url.hostname === 'assetdelivery.roblox.com' || url.hostname.endsWith('.rbxcdn.com'));
+}
+async function downloadBytes(startURL, {roblox = false} = {}) {
+  let url = new URL(startURL);
+  const abort = AbortSignal.timeout(12000);
+  for (let redirects = 0; redirects < 4; redirects++) {
+    if (roblox && !trustedRobloxRedirect(url)) return null;
+    const response = await fetch(url, {redirect:'manual', signal:abort});
+    if ([301,302,303,307,308].includes(response.status)) {
+      const location = response.headers.get('location');
+      if (!location) return null;
+      const next = new URL(location, url);
+      if (roblox ? !trustedRobloxRedirect(next) : next.origin !== url.origin) return null;
+      url = next;
+      continue;
+    }
+    if (!response.ok || !response.body) return null;
+    const length = Number(response.headers.get('content-length') || 0);
+    if (!Number.isFinite(length) || length > MAX_DOWNLOAD) return null;
+    const parts = [];
+    let total = 0;
+    for await (const chunk of response.body) {
+      total += chunk.length;
+      if (total > MAX_DOWNLOAD) return null;
+      parts.push(chunk);
+    }
+    if (!total) return null;
+    const result = Buffer.concat(parts, total);
+    const prefix = result.subarray(0, 128).toString('utf8');
+    if (/^\s*(?:<!doctype html|<html\b|\{\s*"(?:errors|error|message)"\s*:)/i.test(prefix)) return null;
+    return result;
+  }
+  return null;
+}
+function trimCache(dir, limit, keep) {
+  try {
+    const entries = fs.readdirSync(dir)
+      .filter(name => /^[1-9]\d{0,15}$/.test(name))
+      .map(name => { const file = path.join(dir,name), stat = fs.statSync(file); return {file,stat}; })
+      .filter(e => e.stat.isFile()).sort((a,b) => a.stat.mtimeMs - b.stat.mtimeMs);
+    let size = entries.reduce((total,e) => total + e.stat.size, 0);
+    for (const e of entries) {
+      if (size <= limit) break;
+      if (e.file === keep) continue;
+      fs.unlinkSync(e.file);
+      size -= e.stat.size;
+    }
+  } catch (error) { console.warn('[2x2 assets] Cache cleanup failed:', error.message); }
+}
 function validId(value) { return typeof value === 'string' && /^[1-9][0-9]{0,15}$/.test(value) && Number.isSafeInteger(Number(value)); }
 function safeFile(base, name) {
   try {
@@ -40,8 +108,15 @@ export function rewriteLegacyAssetUrls(xml, publicOrigin) {
     origin = url.origin + (url.pathname === '/native' ? '/native' : '');
   } catch { return xml; }
   // Rewrite asset references only; keep external URLs and non-XML binaries intact.
-  return xml.replace(/https?:\/\/(?:www\.)?roblox\.com\/asset\/?\?id=([1-9]\d{0,15})(?=[^0-9]|$)/gi,
-    (match, id) => validId(id) ? origin + (origin.endsWith('/native') ? '/asset?id=' : '/api/asset?id=') + id : match);
+  const target = id => origin + (origin.endsWith('/native') ? '/asset?id=' : '/api/asset?id=') + id;
+  return xml
+    .replace(/https?:\/\/(?:www\.)?roblox\.com\/asset\/?\?id=([1-9]\d{0,15})(?=[^0-9]|$)/gi,
+      (match, id) => validId(id) ? target(id) : match)
+    // Old archived places use rbxasset://../../../shareddata/assets/<id>.
+    // This is a local-file locator, so the HTTP URL redirect in the engine
+    // cannot rewrite it. Translate only the exact numeric shareddata pattern.
+    .replace(/h?rbxasset:\/\/(?:\.\.\/)*shareddata\/assets\/([1-9]\d{0,15})(?![A-Za-z0-9._/-])/gi,
+      (match, id) => validId(id) ? target(id) : match);
 }
 
 // AyaEX libraries may store an asset as just its numeric ID with no extension.
@@ -63,13 +138,24 @@ function detectExtension(file) {
 }
 
 export function createAssetResolver({serverDir, siteDir, publicOrigin = ''}) {
+  const cacheDir = path.join(serverDir, 'native', 'asset-cache');
   const roots = [
     {dir:path.join(serverDir,'native','asset-library'), prefix:''},
     {dir:path.join(siteDir,'data','scenes','assets'), prefix:'assets_'},
     {dir:path.join(serverDir,'native','asset-recovery','scripts'), prefix:''},
     ...(process.env.AYA_ASSETS_DIR ? [{dir:path.resolve(process.env.AYA_ASSETS_DIR),prefix:''}] : []),
+    {dir:cacheDir, prefix:''},
   ];
   const missing = new Map();
+  const upstreamMissing = new Map();
+  const pending = new Map();
+  const waiters = [];
+  let active = 0;
+  const acquire = () => active < MAX_CONCURRENT
+    ? (active++, Promise.resolve(release))
+    : waiters.length < MAX_WAITING ? new Promise(resolve => waiters.push(resolve)) : Promise.resolve(null);
+  function release() { const next = waiters.shift(); if (next) next(release); else active--; }
+  const cacheMax = Math.max(MAX_DOWNLOAD, Math.min(8 * 1024 ** 3, Number(process.env.ASSET_CACHE_MAX_MB || 1024) * 1024 ** 2 || 1024 ** 3));
   function lookup(id) {
     if (!validId(id)) return null;
     const expiration = missing.get(id);
@@ -79,11 +165,62 @@ export function createAssetResolver({serverDir, siteDir, publicOrigin = ''}) {
       const hit = safeFile(dir, prefix + id + ext);
       if (hit) { missing.delete(id); return {...hit, ext: ext || detectExtension(hit.file)}; }
     }
+    // Dodge the Teapots of Doom uses a 2007 shareddata mesh ID that is no
+    // longer in the numeric asset library. The project already archives the
+    // classic teapot mesh, so serve that exact local resource as a fallback.
+    if (id === '1029523') {
+      const teapot = safeFile(path.join(siteDir, 'native-legacy-assets', 'fonts'), 'teapot.mesh');
+      if (teapot) { missing.delete(id); return {...teapot,ext:'.mesh'}; }
+    }
     // FIFO cache: bounds filesystem work for broken references without locking
     // out newly imported assets indefinitely.
     if (missing.size >= MISS_LIMIT) missing.delete(missing.keys().next().value);
     missing.set(id, Date.now() + MISS_TTL);
     return null;
+  }
+  async function resolve(id) {
+    if (!validId(id)) return null;
+    const local = lookup(id);
+    if (local) return local;
+    if ((upstreamMissing.get(id) || 0) > Date.now()) return null;
+    if (pending.has(id)) return pending.get(id);
+    const task = (async () => {
+      const done = await acquire();
+      if (!done) return null;
+      try {
+        const cached = lookup(id);
+        if (cached) return cached;
+        const aya = upstreamURL(process.env.AYA_ASSET_FALLBACK_URL, id);
+        let bytes = null;
+        if (aya) {
+          try { bytes = await downloadBytes(aya); }
+          catch (error) { console.warn('[2x2 assets] Aya lookup failed for', id, error.message); }
+        }
+        if (!bytes && process.env.ROBLOX_ASSET_FETCH !== '0') {
+          try { bytes = await downloadBytes('https://assetdelivery.roblox.com/v1/asset/?id=' + id, {roblox:true}); }
+          catch (error) { console.warn('[2x2 assets] Roblox lookup failed for', id, error.message); }
+        }
+        if (!bytes) {
+          if (upstreamMissing.size >= MISS_LIMIT) upstreamMissing.delete(upstreamMissing.keys().next().value);
+          upstreamMissing.set(id, Date.now() + UPSTREAM_MISS_TTL);
+          return null;
+        }
+        fs.mkdirSync(cacheDir, {recursive:true});
+        const final = path.join(cacheDir, id);
+        const temporary = path.join(cacheDir, '.' + id + '-' + crypto.randomUUID() + '.tmp');
+        try {
+          fs.writeFileSync(temporary, bytes, {flag:'wx'});
+          fs.renameSync(temporary, final);
+        } finally { try { fs.unlinkSync(temporary); } catch {} }
+        missing.delete(id);
+        upstreamMissing.delete(id);
+        trimCache(cacheDir, cacheMax, final);
+        console.log('[2x2 assets] Cached upstream asset', id, bytes.length, 'bytes');
+        return lookup(id);
+      } finally { done(); }
+    })();
+    pending.set(id, task);
+    try { return await task; } finally { pending.delete(id); }
   }
   function handle(req, res, url) {
     if (!['/api/asset', '/asset', '/asset/'].includes(url.pathname)) return false;
@@ -96,7 +233,7 @@ export function createAssetResolver({serverDir, siteDir, publicOrigin = ''}) {
         .end(JSON.stringify({error:'Invalid asset ID.'}));
       return true;
     }
-    const found = lookup(id);
+    void resolve(id).then(found => {
     if (!found) {
       res.writeHead(404, {'Content-Type':'application/json','Cache-Control':'no-store'})
         .end(JSON.stringify({error:'Asset not present in local asset library.',id,
@@ -118,7 +255,12 @@ export function createAssetResolver({serverDir, siteDir, publicOrigin = ''}) {
     if (req.method === 'HEAD') res.end();
     else if (data) res.end(data);
     else fs.createReadStream(found.file).on('error', () => res.destroy()).pipe(res);
+    }).catch(error => {
+      console.error('[2x2 assets] Asset retrieval failed:', error.message);
+      if (!res.headersSent) res.writeHead(502, {'Content-Type':'application/json','Cache-Control':'no-store'}).end(JSON.stringify({error:'Asset retrieval failed.'}));
+      else res.destroy();
+    });
     return true;
   }
-  return {lookup,handle};
+  return {lookup,resolve,handle};
 }
