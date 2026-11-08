@@ -94,9 +94,19 @@ function rawSessionUser(cookies) {
   const user = db.prepare(`SELECT u.* FROM sessions s JOIN users u ON u.id = s.user_id WHERE s.token_hash = ? AND s.expires_at > ?`).get(h, Date.now());
   return { user: user || null, sessionHash: user ? h : null };
 }
+function qAppeal(actionId,userId){
+  return db.prepare("SELECT status,response,created_at,reviewed_at FROM admin_appeals WHERE action_id=? AND user_id=?").get(actionId,userId)||null;
+}
 function sessionUser(cookies) {
   const result=rawSessionUser(cookies);
   return result.user && admin.latestNotice(result.user.id) ? {user:null,sessionHash:null} : result;
+}
+async function readSmallJson(req) {
+  const parts=[];let size=0;
+  for await(const part of req){size+=part.length;if(size>4096)throw Error("Request too large.");parts.push(part);}
+  const result=JSON.parse(Buffer.concat(parts).toString("utf8")||"{}");
+  if(!result||Array.isArray(result)||typeof result!=="object")throw Error("Invalid request.");
+  return result;
 }
 function sameOriginJson(req) {
   if(!/^application\/json\b/i.test(req.headers["content-type"]||""))return false;
@@ -198,8 +208,23 @@ async function handler(req, res) {
   const notice = rawAccount.user ? admin.latestNotice(rawAccount.user.id) : null;
   if (urlPath === "/api/not-approved" && req.method === "GET") {
     res.writeHead(rawAccount.user?200:401,{"Content-Type":"application/json","Cache-Control":"no-store"});
-    res.end(JSON.stringify({notice:notice||null,username:rawAccount.user?.username||null}));
+    const appeal=notice?qAppeal(notice.id,rawAccount.user.id):null;
+    res.end(JSON.stringify({notice:notice||null,username:rawAccount.user?.username||null,appeal}));
+
     return;
+  }
+  if(urlPath==="/api/not-approved/appeal"&&req.method==="POST"){
+    if(!sameOriginJson(req)){res.writeHead(403).end();return;}
+    if(!rawAccount.user||!notice){res.writeHead(403).end();return;}
+    try {
+      const input=await readSmallJson(req);
+      const message=String(input.message||"").trim();
+      if(message.length<12||message.length>2000){res.writeHead(400,{"Content-Type":"application/json"}).end('{"error":"Appeal must be 12–2000 characters."}');return;}
+      const existing=qAppeal(notice.id,rawAccount.user.id);
+      if(existing){res.writeHead(409,{"Content-Type":"application/json"}).end('{"error":"An appeal has already been submitted for this action."}');return;}
+      db.prepare("INSERT INTO admin_appeals(action_id,user_id,message,created_at) VALUES (?,?,?,?)").run(notice.id,rawAccount.user.id,message,Date.now());
+      res.writeHead(200,{"Content-Type":"application/json","Cache-Control":"no-store"}).end('{"ok":true}');return;
+    } catch(e){res.writeHead(400,{"Content-Type":"application/json"}).end(JSON.stringify({error:"Could not submit appeal."}));return;}
   }
   if (urlPath === "/api/not-approved/ack" && req.method === "POST") {
     if(!sameOriginJson(req)){res.writeHead(403).end();return;}
