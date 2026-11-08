@@ -1,6 +1,8 @@
 // Native Node/SQLite administrator API for 2x2. No SvelteKit/Bun dependency.
 // A website session + staff role + TOTP challenge are required for privileged actions.
 import crypto from "node:crypto";
+import fs from "node:fs";
+import path from "node:path";
 import { sha256, randomToken, cookie, verifyPassword, RateLimiter } from "./auth.mjs";
 
 const ROLES = ["Unprivileged", "ForumModerator", "AssetManager", "Moderator", "Administrator", "SuperAdmin"];
@@ -71,7 +73,7 @@ function sameOrigin(req, cfg) {
     return (parsed.protocol === "https:" || parsed.protocol === "http:") && hosts.includes(parsed.host);
   } catch { return false; }
 }
-export function createAdmin({ db, cfg, secure }) {
+export function createAdmin({ db, cfg, secure, serverDir }) {
   db.exec(`
     CREATE TABLE IF NOT EXISTS admin_staff (user_id INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
       role TEXT NOT NULL CHECK (role IN ('ForumModerator','AssetManager','Moderator','Administrator','SuperAdmin')));
@@ -238,6 +240,19 @@ export function createAdmin({ db, cfg, secure }) {
         q("UPDATE admin_appeals SET status='reviewed',response=?,reviewed_by=?,reviewed_at=? WHERE id=?").run(response,user.id,Date.now(),id);
         audit(user,"APPEAL_REVIEW",id,response);
         return ok({ok:true});
+      }
+      if(p==="/assets"&&method==="GET"){
+        requireRole("AssetManager");
+        const id=String(url.searchParams.get("id")||"").trim();
+        if(id && !/^\\d{1,20}$/.test(id))throw [400,"Enter a numeric Roblox asset ID."];
+        const dir=path.join(serverDir||process.cwd(),"native","asset-library");
+        let entries=[];
+        try{entries=fs.readdirSync(dir,{withFileTypes:true}).filter(e=>e.isFile());}catch{}
+        const files=entries.filter(e=>/^\\d+\\.(rbxm|rbxmx|mesh|png|jpg|jpeg|webp|xml|bin)$/i.test(e.name));
+        const hits=id?files.filter(e=>e.name.split(".")[0]===id):files.slice(0,75);
+        return ok({cachedCount:files.length,query:id,files:hits.map(e=>{
+          const st=fs.statSync(path.join(dir,e.name));return {name:e.name,size:st.size,modifiedAt:st.mtimeMs};
+        })});
       }
       if(p==="/infrastructure"&&method==="GET"){
         requireRole("Administrator");
