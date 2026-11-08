@@ -951,6 +951,22 @@ namespace RBX
 			filePath = assetFolderPath / pathName;
             if (!boost::filesystem::exists(filePath, ec))
             {
+#ifdef EMSCRIPTEN
+                // The original Windows client has case-insensitive paths, but
+                // the Emscripten /content filesystem is case-sensitive.
+                // Older maps frequently request rbxasset://Textures/...
+                // while our archived content is under /content/textures/.
+                // Only normalize this known built-in directory; do not
+                // lowercase arbitrary filenames or external shareddata paths.
+                const std::string relativeName(pathName);
+                if (relativeName.size() > 9 &&
+                    boost::algorithm::iequals(relativeName.substr(0, 9), "textures/"))
+                {
+                    filePath = assetFolderPath / "textures" / relativeName.substr(9);
+                    if (boost::filesystem::exists(filePath, ec))
+                        return pathToString(filePath);
+                }
+#endif
 				return "";
             }
 		}
