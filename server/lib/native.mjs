@@ -106,6 +106,18 @@ export function createNative({db,cfg,root,port,sessionUser,isGated,assetResolver
   const p=url.pathname;
   if(p==='/api/native/version')return json(res,200,{version:'2x2-native-map-pack-v1',registeredPlaces:places.size});
   if(p==='/api/native/status'){if(!user)return json(res,401,{error:'Log in first.'});return json(res,200,{engine:'Project Pizda / UniversalClient',clientInstalled:clientReady(),arbiterConfigured:configured(),importedPlaces:[...places.values()].filter(hasMap).length,publicOrigin});}
+  if(p==='/api/native/asset-coverage'){
+   if(!user)return json(res,401,{error:'Log in first.'});
+   const classic=url.searchParams.get('id')||'';
+   if(!/^[a-z0-9-]{1,150}$/.test(classic))return json(res,400,{error:'Invalid game ID.'});
+   if(![...places.values()].some(entry=>entry.classic===classic))
+    return json(res,404,{error:'Unknown game.'});
+   const reportFile=path.join(serverDir,'native','asset-reports',classic+'.json');
+   try{
+    const report=JSON.parse(fs.readFileSync(reportFile,'utf8'));
+    return json(res,200,report);
+   }catch{return json(res,404,{error:'Asset coverage report unavailable. Run the seeder for this game.'});}
+  }
   if(p==='/api/native/launch'){
    if(req.method!=='GET')return json(res,405,{error:'Use GET.'});
    if(!user)return json(res,401,{error:'Log in first.'});
