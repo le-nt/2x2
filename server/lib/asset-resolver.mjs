@@ -175,6 +175,12 @@ export function createAssetResolver({serverDir, siteDir, publicOrigin = ''}) {
   const cacheMax = Math.max(MAX_DOWNLOAD, Math.min(8 * 1024 ** 3, Number(process.env.ASSET_CACHE_MAX_MB || 1024) * 1024 ** 2 || 1024 ** 3));
   function lookup(id) {
     if (!validId(id)) return null;
+    // Newly seeded files must become visible immediately, even when this ID
+    // previously had a short-lived negative lookup entry.
+    for(const ext of extensions) {
+      const seed=safeFile(seedDir,id+ext);
+      if(seed) { missing.delete(id); return {...seed,ext:ext||detectExtension(seed.file)}; }
+    }
     const expiration = missing.get(id);
     if (expiration && expiration > Date.now()) return null;
     if (expiration) missing.delete(id);
