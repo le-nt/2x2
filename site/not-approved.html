@@ -24,7 +24,11 @@ a{color:#1460a9}#error{color:#a11;min-height:1em}#reviewed{font-weight:bold}
 <div id="moderatorReason"></div>
 <p>Please abide by the <a href="about.html">2x2 Community Guidelines</a> so that 2x2 can be fun for users of all ages.</p>
 <p id="duration"></p>
-<p>If you wish to appeal, please contact the 2x2 moderation team through the usual support channels.</p>
+<details id="appealBox" style="margin-top:18px"><summary style="cursor:pointer;color:#1460a9">Appeal this moderation decision</summary>
+<p>Explain why this action should be reviewed. One appeal can be submitted for each moderation action.</p>
+<textarea id="appealText" rows="5" maxlength="2000" style="width:100%;padding:9px;border:1px solid #aaa;font:14px Arial,sans-serif"></textarea>
+<p><button id="sendAppeal">Submit Appeal</button></p>
+<p id="appealStatus"></p></details>
 <p class="actions"><button id="ack" hidden>Reactivate My Account</button><button id="logout">Logout</button></p>
 <p id="error" role="alert"></p>
 </main>
