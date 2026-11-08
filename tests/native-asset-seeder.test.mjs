@@ -57,3 +57,19 @@ test('offline seeder recursively archives model dependencies and writes per-plac
   assert.equal(repeat.status,0,repeat.stderr);
   assert.equal(JSON.parse(fs.readFileSync(path.join(dir,'server/native/asset-index.json'))).stats.assetReferences,2);
 });
+
+test('full archive orchestrator creates a prioritized missing-ID recovery report without network by default',t=>{
+  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'2x2-native-fullseed-'));
+  t.after(()=>fs.rmSync(dir,{recursive:true,force:true}));
+  const maps=path.join(dir,'server/native/maps');
+  fs.mkdirSync(maps,{recursive:true});
+  fs.writeFileSync(path.join(maps,'map.rbxl'),'<roblox><Item>rbxassetid://999654321</Item></roblox>');
+  fs.writeFileSync(path.join(dir,'server/native/places.json'),JSON.stringify({places:{fixture:{file:'map.rbxl',name:'Fixture',id:27}}}));
+  const run=spawnSync(process.execPath,[path.join(projectRoot,'tools/seed-full-archive.mjs'),'--root',dir],{encoding:'utf8',timeout:20000});
+  assert.equal(run.status,0,run.stderr);
+  const missing=JSON.parse(fs.readFileSync(path.join(dir,'server/native/asset-recovery/missing-assets.json'),'utf8'));
+  assert.equal(missing.assets.length,1);
+  assert.deepEqual(missing.assets[0].examplePlaces,['fixture']);
+  assert.equal(missing.assets[0].id,'999654321');
+  assert.ok(!fs.existsSync(path.join(dir,'server/native/asset-seed/999654321')));
+});
