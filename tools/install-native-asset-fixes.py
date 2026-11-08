@@ -79,26 +79,27 @@ def cpp(s):
 patch('services/engine/App/util/Emscripten/HttpPlatformImpl.cpp',cpp)
 
 def content(s):
- s=once(s,
-  '''        else if (lowerRelative.compare(0, texture.size(), texture) == 0)
-        {
-            route = "legacy-texture?name=";
-            name = relative.substr(texture.size());
-        }
-        else return false;''',
-  '''        else if (lowerRelative.compare(0, texture.size(), texture) == 0)
-        {
-            route = "legacy-texture?name=";
-            name = relative.substr(texture.size());
-        }
+ # This helper was deployed in multiple 2x2 builds. Treat any already-present
+ # legacy-shared route as applied; don't depend on whitespace or exact comments.
+ if 'route = "legacy-shared?path=";' in s:
+  print('ALREADY PATCHED: ContentProvider legacy-shared route')
+  return s
+ import re
+ pattern=(r'(else\s+if\s*\(\s*lowerRelative\.compare\(0,\s*texture\.size\(\),\s*texture\)\s*==\s*0\s*\)'
+          r'\s*\{\s*route\s*=\s*"legacy-texture\?name=";\s*name\s*=\s*relative\.substr\(texture\.size\(\)\);\s*\})'
+          r'(\s*else\s+return\s+false;)')
+ matches=list(re.finditer(pattern,s))
+ if len(matches)!=1:
+  raise SystemExit('Local ContentProvider layout differs; no files modified. Paste the redirectLegacySharedFileToBase function for a targeted patch.')
+ addition=("""
         else if (lowerRelative.compare(0, 11, "shareddata/") == 0)
         {
-            // The server resolves these paths inside configured archive roots.
+            // Resolve archived relative files from approved local archive roots.
             route = "legacy-shared?path=";
             name = relative.substr(11);
-        }
-        else return false;''')
- return s
+        }""")
+ m=matches[0]
+ return s[:m.start()]+m.group(1)+addition+m.group(2)+s[m.end():]
 patch('services/engine/App/util/ContentProvider.cpp',content)
 
 with tempfile.TemporaryDirectory(prefix='2x2-native-asset-') as tmp:
