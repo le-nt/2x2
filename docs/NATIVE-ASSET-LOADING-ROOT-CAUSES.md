@@ -253,3 +253,42 @@ This workflow does **not** automatically provision Cloudflare R2 or a
 third-party proxy. Those require service credentials, ownership/access
 permissions and hosting configuration. Seeded files remain on 2x2's
 local disk unless an operator explicitly replicates them to other storage.
+
+
+### One-command full archive seeding
+
+`tools/seed-full-archive.mjs` ties the pieces together. Its default mode
+is entirely offline: it runs recursive seeding and produces a missing-assets
+report compatible with the existing SHA-verified Novetus GitHub importer.
+
+```powershell
+cd D:\RBXBanland
+node tools/seed-full-archive.mjs
+```
+
+To explicitly permit fetching up to 100 files from the public Novetus
+assetdelivery archive **before** contacting any configured live proxy:
+
+```powershell
+node tools/seed-full-archive.mjs --novetus 100
+```
+
+This checks GitHub's file metadata and SHA, stages files, safely imports
+only recognized asset formats into `asset-library`, then repeats seeding.
+It can be run again as new files become available.
+
+If you operate an authorized Aya-compatible source, first configure
+`AYA_ASSET_FALLBACK_URL` and `AYA_ASSET_FALLBACK_ACCESS_KEY`
+server-side. Then opt in to up to 100 remaining proxy requests:
+
+```powershell
+node tools/seed-full-archive.mjs --novetus 100 --proxy 100
+```
+
+Use `--place <game-id>` for one title, or omit for the full imported catalog.
+Neither seeder automatically schedules itself; operators can rerun it
+without stopping a game server because seed file writes are additive and
+coverage reports are written atomically. To provide broad ongoing coverage
+without a manual command, schedule this script with your system scheduler
+after confirming upstream permissions and storage budgets. Be mindful of
+external rate limits.
