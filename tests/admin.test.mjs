@@ -69,6 +69,18 @@ test("admin port requires role and TOTP, audits enforcement and controls live fl
   assert.equal(admin.activeBan(2),null);
   assert.equal((await send(owner,"POST","/features/registration",{enabled:false},{rbxcsa:token})).status,200);
   assert.equal(db.prepare("SELECT enabled FROM site_features WHERE key='registration'").get().enabled,0);
+  const banner=await send(owner,"POST","/banner",{message:"Hello from 2x2!",enabled:true},{rbxcsa:token});
+  assert.equal(banner.status,200);
+  assert.equal(db.prepare("SELECT message FROM site_banner WHERE id=1").get().message,"Hello from 2x2!");
+  const warn=await send(owner,"POST","/users/2/action",{action:"Warn",reason:"Please follow the rules."},{rbxcsa:token});
+  assert.equal(warn.status,200);
+  assert.equal(admin.latestNotice(2)?.kind,"warning");
+  const pending=admin.latestNotice(2);
+  db.prepare("INSERT INTO admin_ack(action_id,user_id,acknowledged_at) VALUES (?,?,?)").run(pending.id,2,Date.now());
+  assert.equal(admin.latestNotice(2),null);
+  const ban=await send(owner,"POST","/users/2/action",{action:"Ban_1Day",reason:"Additional rules violation."},{rbxcsa:token});
+  assert.equal(ban.status,200);
+  assert.equal(admin.latestNotice(2)?.kind,"ban");
   assert.equal((await send(owner,"GET","/audit",undefined,{rbxcsa:token})).status,200);
   assert.ok(db.prepare("SELECT COUNT(*) AS n FROM admin_audit").get().n>=4);
   assert.equal((await send(owner,"POST","/logout",{}, {rbxcsa:token})).status,200);
