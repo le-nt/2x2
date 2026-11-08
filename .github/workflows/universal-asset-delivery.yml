@@ -1,0 +1,39 @@
+name: Universal asset delivery
+on:
+  push:
+    branches: [feature/universal-roblox-asset-pipeline]
+  pull_request:
+    paths:
+      - 'server/lib/asset-resolver.mjs'
+      - 'server/lib/roblox-open-cloud.mjs'
+      - 'tools/import-any-native.mjs'
+      - 'tools/import-native.py'
+      - 'tools/seed-native-assets.mjs'
+      - 'tests/roblox-open-cloud.test.mjs'
+      - 'tests/native-asset-seeder.test.mjs'
+      - 'tests/asset-resolver.test.mjs'
+      - 'tests/asset-upstream-errors.test.mjs'
+      - '.github/workflows/universal-asset-delivery.yml'
+jobs:
+  asset-tests:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Validate source syntax
+        run: |
+          node --check server/lib/asset-resolver.mjs
+          node --check server/lib/roblox-open-cloud.mjs
+          node --check tools/seed-native-assets.mjs
+          node --check tools/import-any-native.mjs
+          python -m py_compile tools/import-native.py
+      - name: Run offline regression tests
+        run: node --test tests/roblox-open-cloud.test.mjs tests/native-asset-seeder.test.mjs tests/asset-resolver.test.mjs tests/asset-upstream-errors.test.mjs
