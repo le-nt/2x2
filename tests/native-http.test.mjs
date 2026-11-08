@@ -53,7 +53,13 @@ test('native protocol shares 2x2 identity, requires the key, and gates WebSocket
   fs.writeFileSync(path.join(tmp,'server/config.json'),JSON.stringify(cfg));
   child=spawn(process.execPath,[path.join(tmp,'server/server.mjs'),String(appPort)],{env:{...process.env,ROBLOX_ASSET_FETCH:'0',RBX_ASSET_VFS_CONFIG:path.join(tmp,'vfs-config.json')}});child.stdout.on('data',c=>logs+=c);child.stderr.on('data',c=>logs+=c);
   const base=`http://127.0.0.1:${appPort}`;
-  let ready=false;for(let i=0;i<100;i++){try{await fetch(base);ready=true;break;}catch{await new Promise(r=>setTimeout(r,30));}}assert.ok(ready,logs);
+  let ready=false;const startupDeadline=Date.now()+10000;
+  while(Date.now()<startupDeadline){
+   assert.equal(child.exitCode,null,'Server exited during startup: '+logs);
+   try{const response=await fetch(base,{signal:AbortSignal.timeout(500)});await response.body?.cancel();ready=true;break;}
+   catch{await new Promise(r=>setTimeout(r,30));}
+  }
+  assert.ok(ready,'Server did not become ready within 10 seconds: '+logs);
   let cookies='';
   async function request(route,options={},cookie=cookies){return fetch(base+route,{redirect:'manual',...options,headers:{Cookie:cookie,...options.headers}});}
   assert.equal((await request('/native-client/manifest.json')).status,401);
