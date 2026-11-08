@@ -98,11 +98,70 @@ The native HTTP test copied all maps on Windows due to slash-specific filtering;
 this was corrected using path components. A stale ad-response assertion and
 Crossroads assertion were updated to match current API behavior and URL routing.
 
-Not yet verified: native engine rebuild, browser joins/gameplay, NPCs/weapons,
-client script startup, replication semantics, animation/audio decoding including
-FMOD 68, authorized live Open Cloud retrieval, R2, archive-container serving,
-fully decoded binary values, Lua-aware expression analysis, and per-game runtime
-discovery authorization/quotas. No game is marked gameplay verified.
+UniversalClient, Linux RCCService and Arbiter release builds succeeded in WSL.
+Only individually hash-checked native source files were installed there, after
+source and build-output backups. `tools/install-runtime-vfs-engine.py` reproduces
+that guarded installation; it is dry-run by default. The WSL/Windows services
+source differences were inspected; one was a trailing newline difference.
+The deployed `D:\RBXBanland\site\native-client` was not replaced.
+
+The isolated native fixture verifies that a real enabled Lua Script executes,
+a Disabled Script stays stopped, a syntax failure is distinguished from a later
+runtime exception, and errors retain script paths/stacks. A lowercased Rocket
+WAV reference containing spaces exercised the native archive HTTP fallback and
+delivered original SHA-256 `50e9dc73388304c9c35cd47360e0a47287e80ed2d034336170878755d9769898`.
+That is delivery evidence, not audio playback evidence.
+
+The probe also demonstrated a startup URL defect: the legacy metadata URL
+builder changed `127.0.0.1:<port>/native` into `https://www.0.1:<port>/...`.
+RCC now preserves the configured internal server URL. Absent metadata endpoints
+remain explicit failures; no security hashes or versions are fabricated.
+RCC previously printed its server access key through its sensitive logger;
+those messages are now redacted and sensitive messages excluded from stdout.
+
+Ten-second native server observations, without players:
+
+| Place / native ID | Compiled / starting events | Compile failures | Script errors |
+|---|---:|---:|---:|
+| Undead Coming / 6 | 8 / 8 | 0 | 0 |
+| Killbots / 205 | 43 / 43 | 0 | 1 |
+| Crossroads / 1 | 26 / 26 | 0 | 0 |
+| Teapots / 277 | 44 / 44 | 0 | 0 |
+
+Counts include engine starter scripts and repeated instance paths; they are not
+the static script count. LocalScripts in player-owned containers are not expected
+to start without a player. Killbots' error is
+`Workspace.SFOTHBase.Model.Elevator.Script:11`: the referenced `Levels` child is
+absent from the imported XML too. No synthetic Levels object was inserted.
+
+`tools/probe-rcc-runtime.py` reproduces these observations using a disposable
+worker, dummy credentials and a fixed loopback place server. Its resource fixture
+does not retrieve arbitrary assets or emulate all production endpoints.
+`tools/compare-compatibility-reports.mjs BEFORE.json AFTER.json` compares static
+dependency reports or native probe reports, flags changed place bytes, and keeps
+untested gameplay explicit.
+
+The combined inventory now records **11,151 files across 22 roots**, including
+WSL content, numeric asset stores and platform content. There are **2,480 files
+with known numeric IDs**, **495 conflicting relative paths** and **1,850 identical
+duplicate groups**. The scan completed without truncation or diagnostics.
+The WSL content directory contains the Rocket WAV; the Windows content directory
+differs. Numeric/platform inventory-only roots are not exposed as arbitrary HTTP
+files. The wider filename search inspected 60,457 files in the known D: archives.
+
+The main Linux regression run passed 44 tests; subsequent VFS tests additionally
+cover inventory-only roots and invalid configured manifests failing closed.
+Nine Python structural/binary tests passed. A broader optional legacy-loader
+source check fails on the unchanged PR #17 baseline: it expects an optional
+preload implementation that the existing emergency-rollback loader removed.
+That existing UI behavior was not rewritten to satisfy the stale assertion.
+
+Not yet verified: browser joins/gameplay, NPCs/weapons, client script startup,
+replication semantics, animation/audio decoding including FMOD 68, authorized
+live Open Cloud retrieval (no key in this execution environment), R2,
+archive-container serving, fully decoded binary values, Lua-aware expression
+analysis, and per-game runtime discovery authorization/quotas. No game is marked
+gameplay verified. Remaining work continues under the master goal.
 
 ## Reference inspection
 
@@ -125,5 +184,5 @@ was copied for this foundation. License files were read before considering reuse
   root. Existing 2x2 integration is preserved.
 - [Novetus distribution](https://bitl.itch.io/novetus) documents separate older
   releases; these releases have not all been downloaded or inventoried.
-- The intended Truss repository could not be positively identified from the
-  supplied name. Its implementation is not claimed as inspected.
+- The user confirmed Truss has no repository/site to inspect. Its ID-preserving
+  archival approach is conceptual guidance; no Truss source inspection is claimed.

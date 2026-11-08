@@ -39,9 +39,11 @@ export function createAssetVfs({manifest, roots, maxEntries = 250000}) {
   // roots is trusted server configuration; manifest absolute locations are
   // provenance only, never authority to read a path.
   const configured = new Map(roots.map(r => [r.id, r]));
+  if(configured.size!==roots.length)throw Error('Duplicate Asset VFS root IDs');
   const byKey = new Map();
   const verified = new Map();
   for (const entry of manifest.files) {
+    if(!['content','shareddata'].includes(entry.namespace))continue;
     const root = configured.get(entry.rootId);
     const ref = canonicalResource((entry.namespace === 'shareddata' ? 'shareddata/' : '') + entry.relativePath);
     if (!root || !ref || root.namespace !== entry.namespace || !/^[a-f0-9]{64}$/.test(entry.sha256) ||
@@ -92,7 +94,7 @@ export function loadAssetVfs(configPath = process.env.RBX_ASSET_VFS_CONFIG, proj
 // Reload inventories after imports without parsing multi-MiB manifests per
 // request. Configuration remains server-owned; clients cannot select roots.
 export function createAssetVfsProvider(projectRoot) {
-  let current=null, checked=0, fingerprint='';
+  let current=null, checked=0, fingerprint='',unavailable='vfs_not_configured';
   return {resolve(value,options) {
     if(Date.now()>=checked) {
       checked=Date.now()+1000;
@@ -103,8 +105,11 @@ export function createAssetVfsProvider(projectRoot) {
         const stat=fs.statSync(path.resolve(path.dirname(configFile),config.manifest));
         const next=[configFile,configStat.mtimeMs,configStat.size,stat.mtimeMs,stat.size].join(':');
         if(next!==fingerprint){current=loadAssetVfs(configFile);fingerprint=next;}
-      }catch{current=null;fingerprint='';}
+      }catch{
+        current=null;fingerprint='';
+        unavailable=process.env.RBX_ASSET_VFS_CONFIG||fs.existsSync(configFile)?'vfs_configuration_error':'vfs_not_configured';
+      }
     }
-    return current?.resolve(value,options)||{status:'vfs_not_configured'};
+    return current?.resolve(value,options)||{status:unavailable};
   }};
 }

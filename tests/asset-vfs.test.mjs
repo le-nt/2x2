@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import {canonicalResource,createAssetVfs} from '../server/lib/asset-vfs.mjs';
+import {canonicalResource,createAssetVfs,createAssetVfsProvider} from '../server/lib/asset-vfs.mjs';
 import {inventoryArchives} from '../tools/inventory-asset-vfs.mjs';
 
 function fixture(t) {
@@ -66,4 +66,23 @@ test('archive symlink escapes are rejected even after manifest generation',async
   const outside=path.join(dir,'outside.png');fs.writeFileSync(outside,'safe');fs.unlinkSync(file);
   try {fs.symlinkSync(outside,file);} catch(error) {if(error.code==='EPERM')return t.skip('Host disallows symlink creation');throw error;}
   assert.equal(createAssetVfs({manifest,roots}).resolve('textures/icon.png').status,'unavailable');
+});
+
+test('inventory-only numeric stores record provenance without exposing arbitrary files',async t=>{
+  const {roots,write}=fixture(t);
+  write(0,'12345.png','genuine asset bytes');write(0,'metadata.json','server metadata');write(0,'empty.fnt','');
+  const inventoryRoots=[{...roots[0],namespace:'inventory',assetIdLayout:'numeric'}];
+  const manifest=await inventoryArchives(inventoryRoots);
+  assert.equal(manifest.files.length,3);
+  assert.equal(manifest.files.find(e=>e.relativePath==='12345.png').assetId,'12345');
+  const vfs=createAssetVfs({manifest,roots:inventoryRoots});
+  assert.equal(vfs.resolve('12345.png').status,'unresolved');
+  assert.equal(vfs.resolve('metadata.json').status,'invalid_reference');
+});
+
+test('configured but broken manifests fail closed rather than falling back to unverified paths',t=>{
+  const {dir}=fixture(t);
+  fs.mkdirSync(path.join(dir,'server/native'),{recursive:true});
+  fs.writeFileSync(path.join(dir,'server/native/asset-vfs-config.json'),JSON.stringify({roots:[],manifest:'missing.json'}));
+  assert.equal(createAssetVfsProvider(dir).resolve('textures/icon.png').status,'vfs_configuration_error');
 });
