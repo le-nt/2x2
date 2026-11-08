@@ -152,6 +152,33 @@ local function getStaffBadgeIcon(player)
     return nil
 end
 
+-- Cosmetic-only role lookup. Failure must never break the player list.
+-- Legacy HttpRbxApiService URL resolution depends on the chosen client build;
+-- a server-replicated 2x2StaffRole StringValue remains the reliable fallback.
+local requestedStaffRoles = {}
+local function request2x2StaffRole(player)
+    local userId = tonumber(player.userId)
+    if not userId or userId < 1 or requestedStaffRoles[userId] then return end
+    requestedStaffRoles[userId] = true
+    if player:FindFirstChild("2x2StaffRole") then return end
+    spawn(function()
+        local success, payload = pcall(function()
+            return HttpRbxApiService:GetAsync("public/staff-badges?ids=" .. tostring(userId), true)
+        end)
+        if not success then return end
+        local parsed = nil
+        local valid = pcall(function() parsed = HttpService:JSONDecode(payload) end)
+        if not valid or type(parsed) ~= "table" or type(parsed.roles) ~= "table" then return end
+        local staffRole = parsed.roles[tostring(userId)]
+        if type(staffRole) ~= "string" or not STAFF_BADGE_ICONS[staffRole] then return end
+        if not player.Parent or player:FindFirstChild("2x2StaffRole") then return end
+        local marker = Instance.new("StringValue")
+        marker.Name = "2x2StaffRole"
+        marker.Value = staffRole
+        marker.Parent = player
+    end)
+end
+
 local ABUSES = {
 	"Swearing",
 	"Bullying",
@@ -1331,6 +1358,7 @@ local function createPlayerEntry(player, isTopStat)
     player.ChildAdded:connect(connectRoleMarker)
     local existingRoleMarker = player:FindFirstChild("2x2StaffRole")
     if existingRoleMarker then connectRoleMarker(existingRoleMarker) end
+    request2x2StaffRole(player)
 
 	local playerNameXSize = entryFrame.Size.X.Offset - currentXOffset
 	local playerName = createEntryNameText("PlayerName", name, playerNameXSize, currentXOffset)
