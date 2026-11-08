@@ -250,7 +250,8 @@ export function createAdmin({ db, cfg, secure }) {
         db.exec("BEGIN IMMEDIATE");
         try{
           q("INSERT INTO admin_actions(target_id,actor_id,action,reason,until_at,created_at) VALUES (?,?,?,?,?,?)").run(id,user.id,action,reason,until,Date.now());
-          if(action!=="Warn"&&action!=="Unban")q("DELETE FROM sessions WHERE user_id=?").run(id);
+          // Preserve the web session so the affected user can read their enforcement notice.
+          // The request gateway denies gameplay and authenticated API calls while restricted.
           audit(user,"MODERATION_"+action,id,reason);
           db.exec("COMMIT");
         }catch(e){db.exec("ROLLBACK");throw e;}
