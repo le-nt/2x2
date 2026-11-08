@@ -2,9 +2,13 @@ import {gunzipSync,gzipSync}from'node:zlib';import {test} from 'node:test';impor
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const listen=s=>new Promise(r=>s.listen(0,'127.0.0.1',()=>r(s.address().port)));
 const close=s=>new Promise(r=>s.close(r));
+import {inventoryArchives} from '../tools/inventory-asset-vfs.mjs';
 test('native protocol shares 2x2 identity, requires the key, and gates WebSocket upgrades',async()=>{
  const tmp=fs.mkdtempSync(path.join(os.tmpdir(),'2x2-native-'));
- fs.cpSync(path.join(root,'server'),path.join(tmp,'server'),{recursive:true,filter:f=>!f.includes('/native/')&&!f.endsWith('config.json')&&!f.includes('/data/')});
+ fs.cpSync(path.join(root,'server'),path.join(tmp,'server'),{recursive:true,filter:f=>{
+  const parts=path.relative(path.join(root,'server'),f).split(path.sep);
+  return !parts.includes('native')&&!parts.includes('data')&&!f.endsWith('config.json');
+ }});
  fs.mkdirSync(path.join(tmp,'site/data'),{recursive:true});fs.mkdirSync(path.join(tmp,'site/native-client'),{recursive:true});fs.mkdirSync(path.join(tmp,'server/native/maps'),{recursive:true});
  fs.copyFileSync(path.join(root,'site/data/maps.json'),path.join(tmp,'site/data/maps.json'));
  const classic=JSON.parse(fs.readFileSync(path.join(tmp,'site/data/maps.json'))).maps[0].id;
@@ -17,6 +21,11 @@ test('native protocol shares 2x2 identity, requires the key, and gates WebSocket
  fs.copyFileSync(path.join(root,'server/native/asset-library/34854607.png'),path.join(tmp,'server/native/asset-library/34854607.png'));
  fs.writeFileSync(path.join(tmp,'server/native/asset-recovery/scripts/1014476.lua'),'print("linked Lua delivered")\n');
  fs.writeFileSync(path.join(tmp,'server/native/places.json'),JSON.stringify({format:1,places:{[classic]:{id:1,file:'test.rbxl'},'binary-map':{id:2,file:'binary.rbxl'}}}));
+ const archive=path.join(tmp,'archive');fs.mkdirSync(path.join(archive,'sounds'),{recursive:true});
+ fs.writeFileSync(path.join(archive,'sounds/Rocket whoosh 01.wav'),'original wav bytes');
+ const archiveRoots=[{id:'test-archive',namespace:'content',path:archive}];
+ fs.writeFileSync(path.join(tmp,'vfs-manifest.json'),JSON.stringify(await inventoryArchives(archiveRoots)));
+ fs.writeFileSync(path.join(tmp,'vfs-config.json'),JSON.stringify({roots:archiveRoots,manifest:'vfs-manifest.json'}));
  const realPlaces=JSON.parse(fs.readFileSync(path.join(root,'server/native/places.json'))).places;
  const cross=realPlaces['2008m-crossroads'];
  if(cross){fs.copyFileSync(path.join(root,'server/native/maps',cross.file),path.join(tmp,'server/native/maps','crossroads.rbxl'));const fixture=JSON.parse(fs.readFileSync(path.join(tmp,'server/native/places.json')));fixture.places['2008m-crossroads']={id:294,file:'crossroads.rbxl'};fs.writeFileSync(path.join(tmp,'server/native/places.json'),JSON.stringify(fixture));}
@@ -42,7 +51,7 @@ test('native protocol shares 2x2 identity, requires the key, and gates WebSocket
   const workerPort=await listen(worker);const probe=http.createServer();appPort=await listen(probe);await close(probe);
   const cfg={accessToken:'the-entry-key',secret:'s'.repeat(64),native:{accessKey:key,signingKey:sign,arbiterOrigin:`http://127.0.0.1:${workerPort}`,publicOrigin:`http://127.0.0.1:${appPort}`}};
   fs.writeFileSync(path.join(tmp,'server/config.json'),JSON.stringify(cfg));
-  child=spawn(process.execPath,[path.join(tmp,'server/server.mjs'),String(appPort)],{env:{...process.env,ROBLOX_ASSET_FETCH:'0'}});child.stdout.on('data',c=>logs+=c);child.stderr.on('data',c=>logs+=c);
+  child=spawn(process.execPath,[path.join(tmp,'server/server.mjs'),String(appPort)],{env:{...process.env,ROBLOX_ASSET_FETCH:'0',RBX_ASSET_VFS_CONFIG:path.join(tmp,'vfs-config.json')}});child.stdout.on('data',c=>logs+=c);child.stderr.on('data',c=>logs+=c);
   const base=`http://127.0.0.1:${appPort}`;
   let ready=false;for(let i=0;i<100;i++){try{await fetch(base);ready=true;break;}catch{await new Promise(r=>setTimeout(r,30));}}assert.ok(ready,logs);
   let cookies='';
@@ -54,7 +63,7 @@ test('native protocol shares 2x2 identity, requires the key, and gates WebSocket
   assert.equal((await request('/api/me',{headers:{AccessKey:key}})).status,401,'machine key cannot bypass the account API');
   const entry=await request('/?key='+cfg.accessToken);cookies=entry.headers.getSetCookie().map(x=>x.split(';')[0]).join('; ');assert.equal(entry.status,303);
   assert.equal((await request('/api/native/status')).status,401,'key is not a login');
-  assert.deepEqual(await(await request('/api/ads')).json(),{images:[]},'a missing ad folder is harmless');
+  assert.deepEqual((await(await request('/api/ads')).json()).images,[],'a missing ad folder is harmless');
   assert.equal((await(await request('/api/native/version')).json()).version,'2x2-native-map-pack-v1');
   const register=await request('/api/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:'NativeTester',password:'A_test_password!2'})});assert.equal(register.status,200);
   cookies+='; '+register.headers.getSetCookie().map(x=>x.split(';')[0]).join('; ');
@@ -67,7 +76,16 @@ test('native protocol shares 2x2 identity, requires the key, and gates WebSocket
   assert.equal((await request('/native/api/moderation/filtertext',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:'text=spoofed'})).status,403,'browser sessions cannot impersonate the worker filter');
   const launch=await(await request('/api/native/launch?id='+classic)).json();assert.equal(launch.placeId,1);assert.ok(launch.joinScriptUrl.startsWith(base+'/native/'));
   assert.equal((await request('/api/native/launch?id=unknown')).status,503);
-  if(cross){assert.equal(cross.file,'2008m-crossroads.rbxl','the repaired Crossroads map must be registered');const crossroadsLaunch=await request('/api/native/launch?id=2008m-crossroads');assert.equal(crossroadsLaunch.status,200);assert.equal((await crossroadsLaunch.json()).placeId,294);const delivered=await request('/native/asset?id=294',{headers:{AccessKey:key}},'');assert.deepEqual(Buffer.from(await delivered.arrayBuffer()),fs.readFileSync(path.join(root,'server/native/maps',cross.file)));}
+  if(cross){
+   assert.equal(cross.file,'2008m-crossroads.rbxl','the repaired Crossroads map must be registered');
+   const crossroadsLaunch=await request('/api/native/launch?id=2008m-crossroads');assert.equal(crossroadsLaunch.status,200);
+   assert.equal((await crossroadsLaunch.json()).placeId,294);
+   const delivered=await request('/native/asset?id=294',{headers:{AccessKey:key}},'');assert.equal(delivered.status,200);
+   const original=fs.readFileSync(path.join(root,'server/native/maps',cross.file));
+   const {rewriteLegacyAssetUrls}=await import('../server/lib/asset-resolver.mjs');
+   const expected=Buffer.from(rewriteLegacyAssetUrls(original.toString('utf8'),base+'/native'));
+   assert.equal(createHash('sha256').update(Buffer.from(await delivered.arrayBuffer())).digest('hex'),createHash('sha256').update(expected).digest('hex'),'Crossroads delivery preserves the map with expected URL routing');
+  }
   const poll='/native/game/placelauncher?placeId=1';let joining;
   for(let i=0;i<50;i++){const r=await request(poll,{method:'POST'});const data=await r.json();if(data.status===2){joining=data;break;}await new Promise(r=>setTimeout(r,25));}
   assert.ok(joining,logs);assert.equal(starts,1);
@@ -75,6 +93,10 @@ test('native protocol shares 2x2 identity, requires the key, and gates WebSocket
   const app=await request('/native/appearance/'+me.user.id);assert.equal(app.status,200);assert.ok((await app.text()).includes('/native/bodycolors/'+me.user.id));
   const binaryResponse=await request('/native/asset?id=2',{headers:{AccessKey:key}},'');assert.deepEqual(Buffer.from(await binaryResponse.arrayBuffer()),binary,'binary map bytes must not be decoded as UTF-8');
   const serviceMap=await request('/native/asset?id=1',{headers:{AccessKey:key}},'');assert.equal(serviceMap.status,200);assert.ok((await serviceMap.text()).startsWith('<roblox'));
+  const archived=await request('/native/archive-content?path='+encodeURIComponent('sounds/rocket whoosh 01.wav'),{headers:{AccessKey:key}},'');
+  assert.equal(archived.status,200);assert.equal(await archived.text(),'original wav bytes');
+  assert.equal((await request('/native/archive-content?path='+encodeURIComponent('../secret.wav'),{headers:{AccessKey:key}},'')).status,404);
+  assert.equal((await request('/native/archive-content?path=sounds/missing.wav',{headers:{AccessKey:'wrong'}},'')).status,401);
   const mesh=await request('/native/asset?id=34854608',{headers:{AccessKey:key}},'');
   assert.equal(mesh.status,200);assert.equal(await mesh.text(),'version 1.00\n');
   const overlay=await request('/api/asset?id=34854607',{headers:{AccessKey:key}},'');

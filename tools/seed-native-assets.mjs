@@ -14,7 +14,9 @@ import {spawnSync} from 'node:child_process';
 import crypto from 'node:crypto';
 import {fileURLToPath} from 'node:url';
 import {createAssetResolver} from '../server/lib/asset-resolver.mjs';
-import {scanAssetReferences,looksLikeRobloxModel,validAssetId} from '../server/lib/asset-discovery.mjs';
+import {scanAssetReferences,scanResourceReferences,looksLikeRobloxModel,validAssetId} from '../server/lib/asset-discovery.mjs';
+import {canonicalResource} from '../server/lib/asset-vfs.mjs';
+import {prepareAssetVfs} from './prepare-asset-vfs.mjs';
 
 const defaultRoot=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 function flags(argv) {
@@ -44,6 +46,8 @@ const seedDir=path.join(nativeDir,'asset-seed');
 const reportsDir=path.join(nativeDir,'asset-reports');
 const indexPath=path.join(nativeDir,opts.place ? 'asset-index.'+opts.place+'.json' : 'asset-index.json');
 const resolver=createAssetResolver({serverDir,siteDir:path.join(root,'site')});
+const archiveVfs=await prepareAssetVfs(root);
+const resourcesByPlace=new Map();
 const places=JSON.parse(fs.readFileSync(path.join(nativeDir,'places.json'),'utf8')).places;
 if (opts.place && !Object.hasOwn(places,opts.place)) throw Error('Unknown place ID: '+opts.place);
 
@@ -105,14 +109,15 @@ function atomicJson(file,data) {
 function inspectReferences(file,bytes) {
   const first=scanAssetReferences(bytes);
   if(first.coverage!=='binary_strings_partial')return first;
-  const binaryScanner=path.join(root,'tools','scan-binary-asset-ids.py');
+  const binaryScanner=path.join(defaultRoot,'tools','scan-binary-asset-ids.py');
   const args=process.platform==='win32'&&python==='py'?['-3',binaryScanner,file]:[binaryScanner,file];
   const run=spawnSync(python,args,{encoding:'utf8',timeout:30000,maxBuffer:4*1024*1024,windowsHide:true});
   if(run.status!==0) return {...first,coverage:'binary_partial_decoder_unavailable',error:(run.stderr||run.error?.code||'decoder_unavailable').slice(0,180)};
   try {
     const decoded=JSON.parse(run.stdout);
     return {...first,ids:[...new Set([...first.ids,...decoded.ids.filter(validAssetId)])].sort((a,b)=>Number(a)-Number(b)),
-      coverage:decoded.unsupportedProperties.length?'binary_decoded_partial':'binary_decoded',
+      coverage:'binary_decoded_partial',
+      resourceReferences:decoded.resourceReferences||[],
       unsupportedProperties:decoded.unsupportedProperties};
   } catch(error){return {...first,coverage:'binary_partial_decoder_invalid_response'};}
 }
@@ -147,7 +152,12 @@ for(const [placeId,entry] of Object.entries(places)) {
   const file=safeMap(entry.file);
   if (!file) {diagnostics.push({place:placeId,reason:'map_missing_or_outside_root'});stats.unscannedPlaces++;continue;}
   try {
-    const parsed=inspectReferences(file,fs.readFileSync(file));
+    const mapBytes=fs.readFileSync(file);
+    const parsed=inspectReferences(file,mapBytes);
+    resourcesByPlace.set(placeId,[...new Set([...scanResourceReferences(mapBytes).references,...(parsed.resourceReferences||[])])].filter(ref=>canonicalResource(ref)).map(reference=>{
+      const result=archiveVfs?.resolve(reference)||{status:'not_inventoried'};
+      return {reference,status:result.status,sha256:result.sha256||null,rootId:result.rootId||null};
+    }));
     if(!['xml_text','binary_decoded'].includes(parsed.coverage))diagnostics.push({place:placeId,reason:parsed.coverage,unsupported:parsed.unsupportedProperties?.slice(0,12)});
     stats.scannedPlaces++;
     if(!['xml_text','binary_decoded'].includes(parsed.coverage))stats.unscannedPlaces++;
@@ -180,6 +190,8 @@ while(queue.length) {
       delete record.reason;
       const deps=record.kind==='model'||record.kind==='text' ? inspectReferences(found.file,bytes) : null;
       record.scan=deps?.coverage||'not_a_model';
+      if(deps && !['xml_text','binary_decoded'].includes(deps.coverage))
+        diagnostics.push({place:task.placeId,asset:record.id,reason:deps.coverage});
       record.dependencies=(deps?.ids||[]).filter(id=>id!==record.id);
     } catch(error) {
       record.status='error';record.reason=error.code||error.message;record.dependencies=[];
@@ -209,8 +221,11 @@ for(const [placeId,linked] of perPlace) {
   for(const r of subset)statuses[r.status]=(statuses[r.status]||0)+1;
   atomicJson(path.join(reportsDir,placeId+'.json'),{
     schemaVersion:1,generatedAt,placeId,game:places[placeId]?.name||placeId,
+    resourceReferences:resourcesByPlace.get(placeId)||[],
+    resourceCoverage:archiveVfs?'manifest_lookup':'not_inventoried',
+    gameplayStatus:'not_tested',
     discoveredAssets:subset.length,statuses,
-    complete:!cappedPlaces.has(placeId) && !diagnostics.some(d=>d.place===placeId) && subset.every(r=>r.status==='local'||r.status==='downloaded'),
+    complete:!cappedPlaces.has(placeId) && !diagnostics.some(d=>d.place===placeId) && subset.every(r=>r.status==='local'||r.status==='downloaded') && (resourcesByPlace.get(placeId)||[]).every(r=>r.status==='resolved'),
     truncated:cappedPlaces.has(placeId),
     // 'complete' describes scanned references only: dynamic script IDs remain unknown.
     limitations:'Static scanning can miss dynamically computed IDs, compressed binary properties, and runtime-generated dependencies.',

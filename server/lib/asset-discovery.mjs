@@ -28,6 +28,20 @@ function collect(text, ids) {
     }
   }
 }
+export function scanResourceReferences(bytes, {maxBytes=128*1024*1024} = {}) {
+  const b=Buffer.from(bytes);
+  if(b.length>maxBytes)return {references:[],coverage:'skipped_oversize'};
+  const xml=isXmlRoblox(b), text=b.toString(xml?'utf8':'latin1');
+  const refs=new Set();
+  // Literal references only. Computed Lua expressions are never executed.
+  for(const match of text.matchAll(/h?rbxasset:\/\/[^\x00-\x1f<>"'\r\n]{1,1024}/gi)) {
+    // In Lua an enclosing quote terminates the literal; in XML a tag does.
+    // Preserve internal spaces in genuine historical filenames.
+    const value=match[0].trim().replace(/&amp;/g,'&').replace(/&quot;/g,'"').replace(/&apos;/g,"'");
+    refs.add(value);
+  }
+  return {references:[...refs].sort(),coverage:xml?'xml_literals':'binary_strings_partial'};
+}
 export function scanAssetReferences(bytes, {maxBytes=128*1024*1024} = {}) {
   const b=Buffer.from(bytes);
   if (b.length>maxBytes) return {ids:[],coverage:'skipped_oversize',bytes:b.length};

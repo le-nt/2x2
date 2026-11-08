@@ -98,6 +98,7 @@ def inspect_binary(path):
     names = {}
     source_info = {}
     assets = set()
+    resources = set()
     unsupported = set()
     linked_sources = {}
     with Path(path).open('rb') as f:
@@ -145,15 +146,13 @@ def inspect_binary(path):
                     if pname in ({'Name', 'Source'} | ASSET_PROPERTIES):
                         unsupported.add(cname+'.'+pname+'(type '+str(typ)+')')
                     continue
-                if pname not in ({'Name', 'Source'} | ASSET_PROPERTIES):
-                    continue
                 # PROP string values use consecutive length-prefixed strings.
                 for ref in ids:
                     val = r.string()
+                    resources.update(m.rstrip() for m in re.findall(r'h?rbxasset://[^\x00-\x1f<>\"\x27\r\n]{1,1024}', val, re.I))
                     # Scan every decoded string property that may contain asset IDs,
                     # including Source strings embedded in Scripts/LocalScripts.
-                    if pname != 'Name':
-                        assets.update(ASSET_RE.findall(val))
+                    assets.update(ASSET_RE.findall(val))
                     if pname == 'Name': names[ref] = val
                     elif pname == 'Source' and cname in SCRIPT_CLASSES:
                         encoded = val.encode('utf-8')
@@ -192,5 +191,6 @@ def inspect_binary(path):
             item['containerTool'] = next((n for k,n in reversed(chain[:-1]) if k in TOOL_CLASSES),None)
             scripts.append(item)
     return {'scripts':scripts, 'tools':tools, 'assetIds':sorted(assets, key=lambda x:(len(x),x)),
+            'resourceReferences':sorted(resources), 'analysisCoverage':'binary_string_properties_partial',
             'classCounts':dict(Counter(instances.values())),
             'unsupportedBinaryProperties':sorted(unsupported), 'binaryInstanceCount':len(instances)}

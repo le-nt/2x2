@@ -33,13 +33,25 @@ if(!stat.isFile()||stat.size>128*1024*1024||stat.size===0)throw Error('Map must 
 if(!/\.rbxlx?$/i.test(opts.file))throw Error('Input must be .rbxl or .rbxlx');
 const bytes=fs.readFileSync(opts.file);
 if(!looksLikeRobloxModel(bytes))throw Error('Not a recognizable Roblox XML/binary place file');
+const python=process.env.RBX_PYTHON||(process.platform==='win32'?'py':'python3');
+const analyzer=path.join(project,'tools/analyze-place.py');
+const analyzed=spawnSync(python,[analyzer,opts.file],{encoding:'utf8',timeout:30000,maxBuffer:16*1024*1024,windowsHide:true});
+if(analyzed.status!==0)throw Error('Place validation failed: '+(analyzed.stderr||analyzed.error?.code||'analyzer_failed').slice(0,240));
+const analysis=JSON.parse(analyzed.stdout);
+if(!analysis.valid)throw Error('Place analyzer did not confirm structural validity');
 const native=path.join(opts.root,'server/native');
 const maps=path.join(native,'maps');
 const registry=path.join(native,'places.json');
+// Serialize ID allocation and registry publication across importer processes.
+// A stale lock after interruption requires explicit operator inspection.
+const lockFile=registry+'.import.lock';
+const lock=fs.openSync(lockFile,'wx');
+try {
 const original=JSON.parse(fs.readFileSync(registry,'utf8'));
 if(!original.places||typeof original.places!=='object')throw Error('Invalid place registry');
 const places=original.places;
 const hash=crypto.createHash('sha256').update(bytes).digest('hex');
+if(analysis.sha256!==hash)throw Error('Input changed during analysis; retry import');
 const previous=places[opts.id];
 if(previous && previous.sha256 && previous.sha256!==hash)
   throw Error('Game ID already exists with different map bytes; choose another ID or import through an explicit update workflow');
@@ -67,3 +79,11 @@ const run=spawnSync(process.execPath,args,{cwd:opts.root,stdio:'inherit',windows
 if(run.status!==0)throw Error('Import saved, but asset seeding failed; rerun tools/seed-native-assets.mjs --place '+opts.id);
 console.log('Imported',opts.id,'native place ID',places[opts.id].id);
 console.log('Coverage: server/native/asset-reports/'+opts.id+'.json');
+const reportFile=path.join(native,'asset-reports',opts.id+'.json');
+const report=JSON.parse(fs.readFileSync(reportFile,'utf8'));
+report.placeAnalysis=analysis;
+report.compatibilityStatus=report.complete?'dependencies_resolved':'dependencies_partially_resolved';
+const reportTemp=reportFile+'.'+crypto.randomUUID()+'.tmp';
+try{fs.writeFileSync(reportTemp,JSON.stringify(report,null,2)+'\n',{flag:'wx'});fs.renameSync(reportTemp,reportFile);}
+finally{try{fs.unlinkSync(reportTemp);}catch{}}
+} finally {fs.closeSync(lock);fs.unlinkSync(lockFile);}

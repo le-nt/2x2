@@ -15,6 +15,7 @@ import {inspectAvatarDependencies} from './native-avatar-deps.mjs';
 import {loadLegacyTextureMap,legacyTextureAssetId} from './legacy-texture-map.mjs';
 import {createNativeAssetPrefetch} from './native-asset-prefetch.mjs';
 import {archiveRoots,findLegacyArchiveFile} from './legacy-shared-assets.mjs';
+import {createAssetVfsProvider} from './asset-vfs.mjs';
 
 const json=(res,status,value)=>{res.writeHead(status,{'Content-Type':'application/json','Cache-Control':'no-store'});res.end(JSON.stringify(value));};
 const xmlEscape=value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;'}[c]));
@@ -32,6 +33,7 @@ export function createNative({db,cfg,root,port,sessionUser,isGated,assetResolver
  const engineTexturesRoot=path.join(root,'../services/engine/.assets/content/textures');
  const legacyTextureIds=loadLegacyTextureMap(path.join(serverDir,'native/legacy-texture-ids.json'));
  const sharedRoots=archiveRoots(path.resolve(root,'..'));
+ const archiveVfs=createAssetVfsProvider(path.resolve(root,'..'));
  const assetPrefetch=createNativeAssetPrefetch({serverDir,assetResolver});
  const catalogFacesRoot=path.join(root,'img/catalog/faces');
  const mapRoot=path.join(serverDir,'native/maps');
@@ -58,13 +60,29 @@ export function createNative({db,cfg,root,port,sessionUser,isGated,assetResolver
    console.log(`[2x2 native] Prepared ${entry.classic}: ${counts.restored_linked_id||0} linked and ${counts.restored_crossroads_template||0} template scripts`);
   }catch(error){console.warn(`[2x2 native] Preparing ${entry.classic} failed; using original map: ${error.message}`);}
  }
- let mapping={};
- try{mapping=JSON.parse(fs.readFileSync(path.join(serverDir,'native/places.json'),'utf8')).places||{};}catch{}
  const places=new Map();
- for(const [classic,item] of Object.entries(mapping))if(Number.isSafeInteger(item.id)&&item.id>0&&item.id<2147483647&&safeRelative(item.file)){
-  if(places.has(item.id))throw Error('Duplicate native place ID: '+item.id);
-  places.set(item.id,{...item,classic});
+ let registryFingerprint='',registryCheck=0;
+ function refreshPlaces(){
+  if(Date.now()<registryCheck)return;
+  registryCheck=Date.now()+1000;
+  try {
+   const file=path.join(serverDir,'native/places.json'),stat=fs.statSync(file);
+   if(stat.size>8*1024*1024)throw Error('Place registry exceeds size limit');
+   const fingerprint=stat.mtimeMs+':'+stat.size;
+   if(fingerprint===registryFingerprint)return;
+   const mapping=JSON.parse(fs.readFileSync(file,'utf8')).places;
+   if(!mapping||Array.isArray(mapping)||typeof mapping!=='object')throw Error('Invalid place registry');
+   const next=new Map();
+   for(const [classic,item] of Object.entries(mapping)){
+    if(!/^[a-z0-9-]{1,150}$/.test(classic)||!Number.isSafeInteger(item.id)||item.id<=0||item.id>=2147483647||!safeRelative(item.file))throw Error('Invalid native place entry');
+    if(next.has(item.id))throw Error('Duplicate native place ID: '+item.id);
+    next.set(item.id,{...item,classic});
+   }
+   places.clear();for(const [id,item] of next)places.set(id,item);
+   registryFingerprint=fingerprint;
+  }catch(error){console.warn('[2x2 native] Registry reload failed:',error.message);}
  }
+ refreshPlaces();
  db.exec(`CREATE TABLE IF NOT EXISTS native_jobs (job_id TEXT PRIMARY KEY,place_id INTEGER NOT NULL,ready INTEGER NOT NULL DEFAULT 0,last_heartbeat INTEGER NOT NULL,players TEXT NOT NULL DEFAULT '[]',closed INTEGER NOT NULL DEFAULT 0)`);
  // A server restart invalidates transports; do not advertise old jobs as ready.
  db.prepare('UPDATE native_jobs SET closed=1').run();
@@ -109,9 +127,10 @@ export function createNative({db,cfg,root,port,sessionUser,isGated,assetResolver
  function appearance(id){const row=db.prepare('SELECT avatar FROM users WHERE id=?').get(id);let avatar={};try{avatar=JSON.parse(row?.avatar||'{}');}catch{}return avatar;}
  function appearanceURL(id){return `${base}/appearance/${id}`;}
  function avatarPaths(av){return inspectAvatarDependencies(charRoot,av).files;}
- function machineAllowed(url){return /^\/native\/(?:legacy-shared\/?$|legacy-texture\/?$|content-asset\/?$|asset\/?$|appearance\/\d+$|bodycolors\/\d+$|content$|api\/game\/players\/[1-9][0-9]{0,15}$|api\/moderation\/filtertext$|internal\/gameserver\/(?:heartbeat|shutdown)$|Game\/LoadPlaceInfo\.ashx)$/.test(url.pathname);}
+ function machineAllowed(url){return /^\/native\/(?:archive-content\/?$|legacy-shared\/?$|legacy-texture\/?$|content-asset\/?$|asset\/?$|appearance\/\d+$|bodycolors\/\d+$|content$|api\/game\/players\/[1-9][0-9]{0,15}$|api\/moderation\/filtertext$|internal\/gameserver\/(?:heartbeat|shutdown)$|Game\/LoadPlaceInfo\.ashx)$/.test(url.pathname);}
  function machine(req,url){return machineAllowed(url)&&!!n.accessKey&&equal(req.headers.accesskey,n.accessKey);}
  async function route(req,res,url,user,sessionHash){
+  refreshPlaces();
   const p=url.pathname;
   if(p==='/api/native/version')return json(res,200,{version:'2x2-native-map-pack-v1',registeredPlaces:places.size});
   if(p==='/api/native/status'){if(!user)return json(res,401,{error:'Log in first.'});return json(res,200,{engine:'Project Pizda / UniversalClient',clientInstalled:clientReady(),arbiterConfigured:configured(),importedPlaces:[...places.values()].filter(hasMap).length,publicOrigin});}
@@ -198,9 +217,17 @@ export function createNative({db,cfg,root,port,sessionUser,isGated,assetResolver
    if(!file && /^faces\/[A-Za-z0-9_-]+\.(?:png|jpe?g)$/i.test(rel||''))
     file=beneath(catalogFacesRoot,rel.slice('faces/'.length));
    kind=path.extname(file||'');
+  }else if(p==='/native/archive-content'){
+   const result=archiveVfs?.resolve(url.searchParams.get('path'));
+   if(result?.status!=='resolved')return json(res,result?.status==='conflict'?409:404,{error:'Archive resource unavailable.',reason:result?.status||'vfs_not_configured'});
+   file=result.file;kind=path.extname(file);
   }else if(p==='/native/legacy-shared'){
    // Local archive paths only; no arbitrary file browsing or network fallback.
-   file=findLegacyArchiveFile(sharedRoots,url.searchParams.get('path'));
+   const relative=url.searchParams.get('path');
+   const result=archiveVfs?.resolve('shareddata/'+relative);
+   if(result && !['resolved','unresolved','vfs_not_configured'].includes(result.status))
+    return json(res,result.status==='conflict'?409:404,{error:'Archive resource unavailable.',reason:result.status});
+   file=result?.file || findLegacyArchiveFile(sharedRoots,relative);
    kind=path.extname(file||'');
   }else if(p==='/native/legacy-texture'){
    const name=url.searchParams.get('name');
