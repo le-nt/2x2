@@ -90,7 +90,9 @@ def content(s):
           r'(\s*else\s+return\s+false;)')
  matches=list(re.finditer(pattern,s))
  if len(matches)!=1:
-  raise SystemExit('Local ContentProvider layout differs; no files modified. Paste the redirectLegacySharedFileToBase function for a targeted patch.')
+  # Keep all independent server fixes installable. Never guess how to edit C++.
+  print('SKIPPED: ContentProvider.cpp uses a different layout; native shareddata routing still needs manual review.')
+  return s
  addition=("""
         else if (lowerRelative.compare(0, 11, "shareddata/") == 0)
         {
@@ -127,5 +129,7 @@ with tempfile.TemporaryDirectory(prefix='2x2-native-asset-') as tmp:
    else:dest.unlink(missing_ok=True)
   raise
  print('INSTALLED',len(installed),'files; backup:',backup)
+ if 'route = "legacy-shared?path=";' not in (root/'services/engine/App/util/ContentProvider.cpp').read_text(encoding='utf-8-sig'):
+  print('WARNING: Shareddata C++ redirect not patched; do not expect historical filenames to load until this is fixed and WASM rebuilt.')
  print('Run: node --test tests/native-asset-prefetch.test.mjs tests/legacy-shared-assets.test.mjs')
  print('Recompile UniversalClient in WSL before C++ changes affect the browser.')
