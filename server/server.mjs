@@ -27,7 +27,7 @@ const catalog = JSON.parse(fs.readFileSync(path.join(here, "catalog.json"), "utf
 const places = new Map(JSON.parse(fs.readFileSync(path.join(root, "data", "maps.json"), "utf8")).maps.map((m) => [m.id, m]));
 const secure = !!cfg.secureCookies;
 const api = createApi({ db, cfg, catalog, places, secure });
-const admin = createAdmin({ db, cfg, secure });
+const admin = createAdmin({ db, cfg, secure, serverDir:here });
 const game = createGame({ db, root }); // game agent: avatar overlay zips, multiplayer servers
 
 const GATE_COOKIE = "rbxgate";
