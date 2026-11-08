@@ -35,8 +35,8 @@ function request(method, path, data) {
 }
 test("admin port requires role and TOTP, audits enforcement and controls live flags",async t=>{
   const dir=mkdtempSync(path.join(os.tmpdir(),"2x2-admin-"));
-  t.after(()=>rmSync(dir,{recursive:true,force:true}));
-  const db=openDb(dir);t.after(()=>db.close());
+  const db=openDb(dir);
+  t.after(()=>{db.close();rmSync(dir,{recursive:true,force:true});});
   const pw=await hashPassword("OwnerPassword42");
   db.prepare("INSERT INTO users(id,username,pw_hash,created_at) VALUES (1,'Owner',?,?)").run(pw,Date.now());
   db.prepare("INSERT INTO users(id,username,pw_hash,created_at) VALUES (2,'Player',?,?)").run(pw,Date.now());
