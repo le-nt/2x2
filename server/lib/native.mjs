@@ -14,6 +14,7 @@ import {rewriteLegacyAssetUrls} from './asset-resolver.mjs';
 import {inspectAvatarDependencies} from './native-avatar-deps.mjs';
 import {loadLegacyTextureMap,legacyTextureAssetId} from './legacy-texture-map.mjs';
 import {createNativeAssetPrefetch} from './native-asset-prefetch.mjs';
+import {archiveRoots,findLegacyArchiveFile} from './legacy-shared-assets.mjs';
 
 const json=(res,status,value)=>{res.writeHead(status,{'Content-Type':'application/json','Cache-Control':'no-store'});res.end(JSON.stringify(value));};
 const xmlEscape=value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;'}[c]));
@@ -30,6 +31,7 @@ export function createNative({db,cfg,root,port,sessionUser,isGated,assetResolver
  const legacyTexturesRoot=path.join(root,'native-legacy-assets/textures');
  const engineTexturesRoot=path.join(root,'../services/engine/.assets/content/textures');
  const legacyTextureIds=loadLegacyTextureMap(path.join(serverDir,'native/legacy-texture-ids.json'));
+ const sharedRoots=archiveRoots(path.resolve(root,'..'));
  const assetPrefetch=createNativeAssetPrefetch({serverDir,assetResolver});
  const catalogFacesRoot=path.join(root,'img/catalog/faces');
  const mapRoot=path.join(serverDir,'native/maps');
@@ -107,7 +109,7 @@ export function createNative({db,cfg,root,port,sessionUser,isGated,assetResolver
  function appearance(id){const row=db.prepare('SELECT avatar FROM users WHERE id=?').get(id);let avatar={};try{avatar=JSON.parse(row?.avatar||'{}');}catch{}return avatar;}
  function appearanceURL(id){return `${base}/appearance/${id}`;}
  function avatarPaths(av){return inspectAvatarDependencies(charRoot,av).files;}
- function machineAllowed(url){return /^\/native\/(?:legacy-texture\/?$|content-asset\/?$|asset\/?$|appearance\/\d+$|bodycolors\/\d+$|content$|api\/game\/players\/[1-9][0-9]{0,15}$|api\/moderation\/filtertext$|internal\/gameserver\/(?:heartbeat|shutdown)$|Game\/LoadPlaceInfo\.ashx)$/.test(url.pathname);}
+ function machineAllowed(url){return /^\/native\/(?:legacy-shared\/?$|legacy-texture\/?$|content-asset\/?$|asset\/?$|appearance\/\d+$|bodycolors\/\d+$|content$|api\/game\/players\/[1-9][0-9]{0,15}$|api\/moderation\/filtertext$|internal\/gameserver\/(?:heartbeat|shutdown)$|Game\/LoadPlaceInfo\.ashx)$/.test(url.pathname);}
  function machine(req,url){return machineAllowed(url)&&!!n.accessKey&&equal(req.headers.accesskey,n.accessKey);}
  async function route(req,res,url,user,sessionHash){
   const p=url.pathname;
@@ -195,6 +197,10 @@ export function createNative({db,cfg,root,port,sessionUser,isGated,assetResolver
    // is absent. Reuse only exact face filenames; do not guess other content.
    if(!file && /^faces\/[A-Za-z0-9_-]+\.(?:png|jpe?g)$/i.test(rel||''))
     file=beneath(catalogFacesRoot,rel.slice('faces/'.length));
+   kind=path.extname(file||'');
+  }else if(p==='/native/legacy-shared'){
+   // Local archive paths only; no arbitrary file browsing or network fallback.
+   file=findLegacyArchiveFile(sharedRoots,url.searchParams.get('path'));
    kind=path.extname(file||'');
   }else if(p==='/native/legacy-texture'){
    const name=url.searchParams.get('name');
