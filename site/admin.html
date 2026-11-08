@@ -30,6 +30,7 @@ table{border-collapse:collapse;width:100%}td,th{padding:10px;text-align:left;bor
 <button data-page="users">User moderation</button>
 <button data-page="forums">Forum moderation</button>
 <button data-page="banner" data-min="Administrator">Sitewide banner</button>
+<button data-page="infrastructure" data-min="Administrator">Server monitor</button>
 <button data-page="features" data-min="SuperAdmin">Site features</button>
 <button data-page="staff" data-min="SuperAdmin">Staff roles</button>
 <button data-page="audit" data-min="Administrator">Audit log</button>
@@ -88,6 +89,12 @@ table{border-collapse:collapse;width:100%}td,th{padding:10px;text-align:left;bor
 <div class="row"><input id="threadQuery" type="search" maxlength="80" placeholder="Search thread titles"><button id="findThreads">Search</button></div>
 <div class="scroller"><table><thead><tr><th>Title</th><th>Board</th><th>Author</th><th>Locked</th><th>Pinned</th><th></th></tr></thead><tbody id="threadResults"></tbody></table></div>
 </div>
+</section>
+<section id="infrastructure" hidden>
+<div class="panel"><h2>Server and Arbiter monitor</h2><p class="muted">Read-only diagnostics for this Node server and registered native game jobs.</p>
+<div class="grid" id="infraMetrics"></div><p><button class="secondary" id="refreshInfra">Refresh status</button></p>
+<h3>Active game jobs</h3><div class="scroller"><table><thead><tr><th>Job ID</th><th>Place</th><th>Ready</th><th>Players</th><th>Last heartbeat</th></tr></thead><tbody id="infraJobs"></tbody></table></div>
+<h3>Stale jobs</h3><p class="muted" id="staleCount"></p></div>
 </section>
 <section id="banner" hidden><div class="panel"><h2>Sitewide announcement banner</h2>
 <p class="muted">Display a short notice on the 2x2 website. Text is shown as plain text, not HTML.</p>
