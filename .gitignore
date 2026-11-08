@@ -52,3 +52,6 @@ site/native-client.previous-*/
 # Native client backup folders
 site/native-client.previous/
 site/native-client.previous-*/
+
+# On-demand downloaded Roblox asset cache
+server/native/asset-cache/
