@@ -4,6 +4,7 @@ const MAX = 32 * 1024 * 1024;
 export function trustedAssetCdn(url) {
   return url.protocol === 'https:' && !url.username && !url.password &&
     (url.hostname === 'assetdelivery.roblox.com' || url.hostname === 'apis.roblox.com' ||
+     url.hostname === 'contentdelivery.roblox.com' ||
      url.hostname === 'rbxcdn.com' || url.hostname.endsWith('.rbxcdn.com'));
 }
 function errorForStatus(status) {
