@@ -23,6 +23,15 @@ The resolver looks in:
 6. Optional `AYA_ASSET_FALLBACK_URL/asset/?id=<ID>`
 7. Roblox Asset Delivery, unless `ROBLOX_ASSET_FETCH=0`
 
+For a **self-hosted, trusted AyaEX instance**, configure
+`AYA_ASSET_FALLBACK_URL` as the root URL and
+`AYA_ASSET_FALLBACK_ACCESS_KEY` as its server-only `ASSET_KEY`.
+MercuryCore's `/asset/?id=` checks the `accesskey` header when no browser
+session is present. Keep this key in the Node server environment; never
+place it in website JavaScript or commit it to Git. The resolver only
+accepts HTTPS fallback origins, except loopback HTTP for local testing.
+Redirects cannot forward the key to a different origin.
+
 Public anonymous Roblox Asset Delivery requests generally require
 authentication since April 2025. A 401 means access was denied, *not* that
 the item is deleted. Simply changing to v2 does not bypass authorization.
