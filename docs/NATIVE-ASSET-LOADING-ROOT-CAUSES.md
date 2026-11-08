@@ -160,3 +160,89 @@ rather than guessing their type.
 6. Never treat authentication denial or an unsupported mesh decoder as proof of a deleted asset.
 
 These changes do not require browser clients to reach the discontinued Project Pizda host. They are **not yet a guarantee of total asset coverage**: maps with binary model references, private/deleted items, missing historical billboard textures and nonstandard file formats remain separate tasks. Build and browser-test the C++ patch before deploying it.
+
+
+## Complete offline seeding workflow (new)
+
+First import the local Novetus `shareddata` archive, if you have it.
+This preserves numeric assets in `assets/` and `SBCR/`, and also copies
+historical named textures and character files to their local 2x2 directories.
+Existing files are never overwritten:
+
+```powershell
+cd D:\RBXBanland
+node tools/seed-novetus-assets.mjs --source "D:\Novetus\shareddata"
+```
+
+Then run the place-file scanner and recursive seeder:
+
+```powershell
+node --test tests/native-asset-seeder.test.mjs tests/asset-resolver.test.mjs tests/asset-upstream-errors.test.mjs
+node tools/seed-native-assets.mjs
+```
+
+The default mode makes **no external network requests**. It scans
+`server/native/places.json`, inspects XML maps and uses the existing
+`tools/rbxl_binary_inventory.py` parser for binary RBXL properties and
+script source. For every discovered numeric ID it checks local libraries,
+copies available original bytes to `server/native/asset-seed/<id>.<ext>`,
+then walks available linked models to a depth of four, discovering
+additional IDs. It writes:
+
+- `server/native/asset-index.json` — IDs, source game IDs, dependencies,
+  SHA-256, sizes, formats, and resolution status.
+- `server/native/asset-reports/<game-id>.json` — per-game coverage,
+  unresolved IDs, and whether scanning was incomplete.
+
+You can seed just one game without touching other reports:
+
+```powershell
+node tools/seed-native-assets.mjs --place 2008m-crossroads
+```
+
+To fill missing IDs through configured upstream sources, **explicitly**
+enable downloads and set ceilings. For example:
+
+```powershell
+$env:AYA_ASSET_FALLBACK_URL = "https://YOUR-TRUSTED-ASSET-SERVICE.example"
+$env:AYA_ASSET_FALLBACK_ACCESS_KEY = "YOUR-SERVER-ONLY-ACCESS-KEY"
+node tools/seed-native-assets.mjs --download --max-fetch 100 --max-assets 10000 --max-depth 4
+```
+
+The access-key example is a placeholder, not a working public service.
+Do not commit or expose the secret. The existing resolver also tries
+anonymous Roblox Asset Delivery unless `ROBLOX_ASSET_FETCH=0`; in
+practice that may return 401. Only run upstream downloads for assets
+you are permitted to retrieve. The downloader has per-request byte,
+duration, concurrency, and overall-count safeguards. Re-running the
+seeder preserves previously archived bytes rather than overwriting them.
+
+The actual client accesses the permanent seeded directory **first**.
+For new builds, media IDs go to `/native/content-asset?id=<ID>` and
+place IDs continue using `/native/asset?id=<place-id>`, so collisions
+between numeric media IDs and numeric place IDs cannot cause the server
+to serve an RBXL where a mesh or image is expected. Existing historical
+Roblox and Project Pizda content URLs are intercepted by the engine's
+`ContentProvider`, not sent directly to dead external hosts. This is a
+**native C++ change**, so it is not active until UniversalClient is
+rebuilt and its manifest updated. The Node route changes require a
+server restart.
+
+Authenticated users can inspect a generated report via
+`/api/native/asset-coverage?id=<game-id>`.
+
+### Interpretation and limitations
+
+Do **not** treat the per-game `complete` field as a proof that the game
+renders or works offline: it only covers recognized static references.
+The binary decoder supports some property types and can report
+unsupported properties; Lua code that computes asset IDs at runtime
+cannot be completely discovered by static scanning. A delivered file
+may still be unreadable by the old client (format incompatibility).
+Assets that are private, removed, or absent from accessible archives
+cannot be recovered solely from their ID.
+
+This workflow does **not** automatically provision Cloudflare R2 or a
+third-party proxy. Those require service credentials, ownership/access
+permissions and hosting configuration. Seeded files remain on 2x2's
+local disk unless an operator explicitly replicates them to other storage.
