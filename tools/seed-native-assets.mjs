@@ -53,6 +53,7 @@ const diagnostics=[];
 const stats={scannedPlaces:0,unscannedPlaces:0,assetReferences:0,local:0,downloaded:0,missing:0,skipped:0,modelDependencies:0,upstreamAttempts:0};
 const queue=[];
 const visited=new Set();
+const cappedPlaces=new Set();
 let totalUnique=0;
 
 function remember(id,placeId,depth,parent) {
@@ -60,7 +61,7 @@ function remember(id,placeId,depth,parent) {
   if (!perPlace.has(placeId)) perPlace.set(placeId,new Set());
   perPlace.get(placeId).add(id);
   if (!ids.has(id)) {
-    if (totalUnique>=opts.maxAssets) {stats.skipped++;return;}
+    if (totalUnique>=opts.maxAssets) {stats.skipped++;cappedPlaces.add(placeId);return;}
     ids.set(id,{id,places:new Set(),parents:new Set(),status:'pending',depth,sha256:null,size:null,extension:null});
     totalUnique++;
   }
@@ -209,7 +210,8 @@ for(const [placeId,linked] of perPlace) {
   atomicJson(path.join(reportsDir,placeId+'.json'),{
     schemaVersion:1,generatedAt,placeId,game:places[placeId]?.name||placeId,
     discoveredAssets:subset.length,statuses,
-    complete:subset.length>0 && !diagnostics.some(d=>d.place===placeId) && subset.every(r=>r.status==='local'||r.status==='downloaded'),
+    complete:!cappedPlaces.has(placeId) && !diagnostics.some(d=>d.place===placeId) && subset.every(r=>r.status==='local'||r.status==='downloaded'),
+    truncated:cappedPlaces.has(placeId),
     // 'complete' describes scanned references only: dynamic script IDs remain unknown.
     limitations:'Static scanning can miss dynamically computed IDs, compressed binary properties, and runtime-generated dependencies.',
     assets:subset.map(r=>({id:r.id,status:r.status,reason:r.reason||null})).sort((a,b)=>Number(a.id)-Number(b.id))
