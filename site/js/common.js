@@ -299,6 +299,21 @@ const RB = {
     if (document.getElementById("PlayContainer")) document.documentElement.classList.add("Theater");
     const h = document.getElementById("Header");
     if (h) h.innerHTML = RB.header();
+    // Display the latest server-controlled, text-only site announcement.
+    if (h) {
+      let bar=document.getElementById("SitewideAnnouncement");
+      if(!bar){
+        bar=document.createElement("div");bar.id="SitewideAnnouncement";bar.setAttribute("role","status");
+        bar.style.cssText="display:none;text-align:center;padding:10px 22px;background:#5c3eaa;color:#fff;font:600 14px/1.5 Arial,sans-serif;border-bottom:1px solid #3b2878";
+        h.insertAdjacentElement("afterend",bar);
+      }
+      fetch("/api/site/banner",{cache:"no-store",credentials:"same-origin"})
+        .then(r=>r.ok?r.json():null).then(d=>{
+          if(!d)return;
+          bar.textContent=d.banner?.message||"";
+          bar.style.display=d.banner?.message?"block":"none";
+        }).catch(()=>{});
+    }
     const s = document.getElementById("Sidebar");
     if (s) s.innerHTML = RB.sidebar(current);
     const f = document.getElementById("FooterSlot");
