@@ -100,7 +100,7 @@ export function createNative({db,cfg,root,port,sessionUser,isGated,assetResolver
  function appearance(id){const row=db.prepare('SELECT avatar FROM users WHERE id=?').get(id);let avatar={};try{avatar=JSON.parse(row?.avatar||'{}');}catch{}return avatar;}
  function appearanceURL(id){return `${base}/appearance/${id}`;}
  function avatarPaths(av){return inspectAvatarDependencies(charRoot,av).files;}
- function machineAllowed(url){return /^\/native\/(?:legacy-texture\/?$|asset\/?$|appearance\/\d+$|bodycolors\/\d+$|content$|api\/game\/players\/[1-9][0-9]{0,15}$|api\/moderation\/filtertext$|internal\/gameserver\/(?:heartbeat|shutdown)$|Game\/LoadPlaceInfo\.ashx)$/.test(url.pathname);}
+ function machineAllowed(url){return /^\/native\/(?:legacy-texture\/?$|content-asset\/?$|asset\/?$|appearance\/\d+$|bodycolors\/\d+$|content$|api\/game\/players\/[1-9][0-9]{0,15}$|api\/moderation\/filtertext$|internal\/gameserver\/(?:heartbeat|shutdown)$|Game\/LoadPlaceInfo\.ashx)$/.test(url.pathname);}
  function machine(req,url){return machineAllowed(url)&&!!n.accessKey&&equal(req.headers.accesskey,n.accessKey);}
  async function route(req,res,url,user,sessionHash){
   const p=url.pathname;
@@ -186,9 +186,11 @@ export function createNative({db,cfg,root,port,sessionUser,isGated,assetResolver
          beneath(engineTexturesRoot,name);
     kind=path.extname(file||'');
    }
-  }else if(/^\/native\/asset\/?$/.test(p)){
+  }else if(/^\/native\/(?:asset|content-asset)\/?$/.test(p)){
    const assetId=url.searchParams.get('id');
-   const entry=/^[1-9][0-9]*$/.test(assetId||'')?places.get(Number(assetId)):null;
+   // Places retain the old /native/asset route; media uses /native/content-asset.
+   const isPlaceRoute=/^\/native\/asset\/?$/.test(p);
+   const entry=isPlaceRoute&&/^[1-9][0-9]*$/.test(assetId||'')?places.get(Number(assetId)):null;
    file=preparedMaps.get(entry?.id)||hasMap(entry);kind=file?'.rbxl':undefined;
    // Place IDs retain priority; every other numeric ID can resolve to a cached
    // mesh, texture, model, audio file, or exact linked Lua dependency.
@@ -199,7 +201,7 @@ export function createNative({db,cfg,root,port,sessionUser,isGated,assetResolver
    res.writeHead(200,{'Content-Type':'text/plain','Cache-Control':'no-store'});return res.end(`--rbxsig%=0\npcall(function() game:SetPlaceID(${id}, false) end)`);
   }else return json(res,404,{error:'Unknown native endpoint.'});
   if(!file){
-   const reason=/^\/native\/asset\/?$/.test(p) ? assetResolver?.getFailureReason(url.searchParams.get('id')) : null;
+   const reason=/^\/native\/(?:asset|content-asset)\/?$/.test(p) ? assetResolver?.getFailureReason(url.searchParams.get('id')) : null;
    return json(res,404,{error:'Native content not found.',reason:reason||'not_in_archive'});
   }
   let data=fs.readFileSync(file);
