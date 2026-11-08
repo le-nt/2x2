@@ -42,7 +42,7 @@ test('native protocol shares 2x2 identity, requires the key, and gates WebSocket
   const workerPort=await listen(worker);const probe=http.createServer();appPort=await listen(probe);await close(probe);
   const cfg={accessToken:'the-entry-key',secret:'s'.repeat(64),native:{accessKey:key,signingKey:sign,arbiterOrigin:`http://127.0.0.1:${workerPort}`,publicOrigin:`http://127.0.0.1:${appPort}`}};
   fs.writeFileSync(path.join(tmp,'server/config.json'),JSON.stringify(cfg));
-  child=spawn(process.execPath,[path.join(tmp,'server/server.mjs'),String(appPort)]);child.stdout.on('data',c=>logs+=c);child.stderr.on('data',c=>logs+=c);
+  child=spawn(process.execPath,[path.join(tmp,'server/server.mjs'),String(appPort)],{env:{...process.env,ROBLOX_ASSET_FETCH:'0'}});child.stdout.on('data',c=>logs+=c);child.stderr.on('data',c=>logs+=c);
   const base=`http://127.0.0.1:${appPort}`;
   let ready=false;for(let i=0;i<100;i++){try{await fetch(base);ready=true;break;}catch{await new Promise(r=>setTimeout(r,30));}}assert.ok(ready,logs);
   let cookies='';
