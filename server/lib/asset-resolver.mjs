@@ -141,6 +141,8 @@ function detectExtension(file) {
 export function createAssetResolver({serverDir, siteDir, publicOrigin = ''}) {
   const cacheDir = path.join(serverDir, 'native', 'asset-cache');
   const roots = [
+    // Permanently seeded, exact-ID archive is always preferred over mutable cache.
+    {dir:path.join(serverDir,'native','asset-seed'), prefix:''},
     {dir:path.join(serverDir,'native','asset-library'), prefix:''},
     {dir:path.join(siteDir,'data','scenes','assets'), prefix:'assets_'},
     {dir:path.join(serverDir,'native','asset-recovery','scripts'), prefix:''},
