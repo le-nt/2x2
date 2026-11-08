@@ -76,6 +76,53 @@ namespace {
 
 namespace RBX {
 
+    // Archived files referenced by relative names, unlike numeric asset IDs.
+    // Use dedicated local 2x2 paths; never construct an arbitrary URL.
+    static bool redirectLegacySharedFileToBase(ContentId& id, const std::string& baseUrl)
+    {
+        if (baseUrl.empty()) return false;
+        const std::string raw = id.toString();
+        const std::string lower = boost::algorithm::to_lower_copy(raw);
+        const std::string scheme = "rbxasset://";
+        if (lower.compare(0, scheme.size(), scheme) != 0) return false;
+
+        std::string relative = raw.substr(scheme.size());
+        while (relative.compare(0, 3, "../") == 0) relative.erase(0, 3);
+        while (relative.compare(0, 2, "./") == 0) relative.erase(0, 2);
+        const std::string lowerRelative = boost::algorithm::to_lower_copy(relative);
+        const std::string custom = "shareddata/charcustom/";
+        const std::string texture = "shareddata/textures/";
+        std::string route, name;
+        if (lowerRelative.compare(0, custom.size(), custom) == 0)
+        {
+            route = "content?path=";
+            name = relative.substr(custom.size());
+        }
+        else if (lowerRelative.compare(0, texture.size(), texture) == 0)
+        {
+            route = "legacy-texture?name=";
+            name = relative.substr(texture.size());
+        }
+        else return false;
+
+        // Only an exact path made from safe ASCII letters, digits, slashes,
+        // underscores, periods and dashes. Block traversal and query injection.
+        if (name.empty() || name.size() > 256 || name[0] == '/' ||
+            name.find("..") != std::string::npos) return false;
+        for (size_t i = 0; i < name.size(); ++i)
+        {
+            const unsigned char c = static_cast<unsigned char>(name[i]);
+            if (!((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') ||
+                  (c >= '0' && c <= '9') || c == '/' || c == '.' ||
+                  c == '-' || c == '_')) return false;
+        }
+
+        std::string url = baseUrl;
+        if (url[url.size()-1] != '/') url += '/';
+        id = ContentId(url + route + name);
+        return true;
+    }
+
     // Older maps may contain absolute Roblox asset URLs and shareddata paths.
     // Convert only numeric asset references from known Roblox hosts (or the
     // exact Novetus shareddata pattern) to this game's own asset endpoint.
@@ -647,7 +694,8 @@ namespace RBX {
 		}
 
 		id.convertAssetId(baseUrl, DataModel::get(this)->getUniverseId());
-		redirectLegacyAssetToBase(id, baseUrl);
+		if (!redirectLegacyAssetToBase(id, baseUrl))
+			redirectLegacySharedFileToBase(id, baseUrl);
 		id.convertToLegacyContent(baseUrl);
 
 		// fuck you roblox
