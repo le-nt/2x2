@@ -52,7 +52,7 @@ int Bridge<EventInstance>::on_index(const EventInstance& object, const char* nam
 	}
 
 	// The pre-defined "wait()" method
-	if (strcmp(name, "wait")==0)
+	if (strcmp(name, "wait")==0 || strcmp(name, "Wait")==0)
 	{
 		lua_pushcfunction(L, EventBridge::wait);
 		return 1;

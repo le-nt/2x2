@@ -31,6 +31,7 @@ def fixture():
     workspace=ET.SubElement(root,'Item',{'class':'Workspace','referent':'RBX0'})
     for name,source,disabled in [('ProbeSuccess','local value=Instance.new("StringValue"); value.Name="RuntimeSentinel"; value.Value="native Lua executed"; value.Parent=workspace',False),
         ('ProbeDisabled','Instance.new("BoolValue",workspace).Name="DisabledSentinel"',True),
+        ('ProbeSignalWait','local e=Instance.new("BindableEvent"); coroutine.wrap(function() local value=e.Event:Wait(); local s=Instance.new("StringValue",workspace); s.Name="SignalWaitSentinel"; s.Value=value end)(); e:Fire("native signal resumed"); print("redaction probe isolated-runtime-probe isolated-runtime-probe-signing-key")',False),
         ('ProbeSyntax','local = invalid',False),('ProbeRuntime','error("intentional probe runtime failure")',False)]:
         script=ET.SubElement(workspace,'Item',{'class':'Script','referent':'RBX'+name})
         props=ET.SubElement(script,'Properties')
@@ -119,7 +120,7 @@ RESOURCE_PROBE
             # OpenJob bootstraps asynchronously when code yields. Observe from
             # a separate, non-yielding Execute call after native scheduling.
             time.sleep(a.seconds+.25)
-            observe='local s=workspace:FindFirstChild("RuntimeSentinel"); return game:GetService("HttpService"):JSONEncode({sentinel=s and s.Value or "",disabledRan=workspace:FindFirstChild("DisabledSentinel")~=nil,errors=_G.__2x2ProbeErrors or {}})'
+            observe='local s=workspace:FindFirstChild("RuntimeSentinel"); local signal=workspace:FindFirstChild("SignalWaitSentinel"); return game:GetService("HttpService"):JSONEncode({sentinel=s and s.Value or "",signalWait=signal and signal.Value or "",disabledRan=workspace:FindFirstChild("DisabledSentinel")~=nil,errors=_G.__2x2ProbeErrors or {}})'
             execute='<Execute xmlns="http://roblox.com/"><jobID>isolated-probe</jobID><script><name>ObserveNativeRuntime</name><script>'+escape(observe)+'</script><arguments/></script></Execute>'
             execute_envelope=('<?xml version="1.0"?><soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"><soap:Body>'+execute+'</soap:Body></soap:Envelope>').encode()
             request=urllib.request.Request('http://127.0.0.1:'+str(soap_port)+'/',data=execute_envelope,
@@ -137,12 +138,18 @@ RESOURCE_PROBE
             events=[{'phase':m[0],'placeId':int(m[1]),'context':m[2],'scriptPath':m[3]} for m in re.findall(
                 r'\[2x2 lua\] phase=(\w+) place=(\d+) context=(\w+) script="([^"]*)"',log_file.read_text(errors='replace'))]
             result['nativeLifecycle']=events
+            if not a.place:
+                native_log=log_file.read_text(errors='replace')
+                assert env['RBX_ACCESS_KEY'] not in native_log,'RCC leaked its test access key'
+                assert env['RBX_SECRET_KEY'] not in native_log,'RCC leaked its test signing key'
+                assert 'redaction probe <redacted> <redacted>' in native_log,'Redacted diagnostic was suppressed or not sanitized'
             if resource is not None:
                 delivered=any(r['status']==200 and r['path'].startswith('/native/archive-content?') for r in requests)
                 result['archiveHttpFallback']={'observed':delivered,'resourceSha256':hashlib.sha256(resource).hexdigest(),'audioPlayback':'not_tested'}
                 assert delivered,'Native archive HTTP fallback was not observed'
             if not a.place:
                 assert report['sentinel']=='native Lua executed',report
+                assert report['signalWait']=='native signal resumed',report
                 assert not report['disabledRan'],report
                 assert len(report['errors'])>=2,report
             (a.output/'report.json').write_text(json.dumps(result,indent=2)+'\n')

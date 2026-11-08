@@ -241,6 +241,16 @@ class PrintfLogger
 {
 	rbx::event_signals::scoped_connection messageConnection;
 	std::mutex mutex;
+	static void redact(std::string& message, const std::string& secret)
+	{
+		if (secret.empty()) return;
+		size_t position = 0;
+		while ((position = message.find(secret, position)) != std::string::npos)
+		{
+			message.replace(position, secret.size(), "<redacted>");
+			position += 10;
+		}
+	}
 public:
 	PrintfLogger()
 	{
@@ -249,8 +259,21 @@ public:
 protected:
 	void onMessage(const RBX::StandardOutMessage& message)
 	{
-		if (message.type == RBX::MESSAGE_SENSITIVE) return;
 		std::lock_guard<std::mutex> lock(mutex);
+		// Sensitive legacy messages also contain connection timeout reasons.
+		// Retain their diagnostics while removing actual server credentials.
+		std::string output = message.message;
+		const char* signingValue = std::getenv("RBX_SECRET_KEY");
+		const std::string signingKey = signingValue ? signingValue : "";
+		const std::string accessKey = RBX::Http::accessKey;
+		if (signingKey.size() >= accessKey.size())
+		{
+			redact(output, signingKey); redact(output, accessKey);
+		}
+		else
+		{
+			redact(output, accessKey); redact(output, signingKey);
+		}
 
 		const char* colorCode;
 
@@ -273,7 +296,7 @@ protected:
 			break;
 		}
 
-		std::cout << colorCode << message.message << "\033[0m" << std::endl;
+		std::cout << colorCode << output << "\033[0m" << std::endl;
 	}
 };
 

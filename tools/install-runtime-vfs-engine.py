@@ -11,13 +11,15 @@ import shutil
 from pathlib import Path
 
 FILES = {
+    'App/script/LuaSignalBridge.cpp':'ad6aa003fe2466ac356ef182e8ab28e4fe1fd1d5c2af5351b94b90691a4c86de',
     'ClientShared/RobloxServicesTools.cpp':('8caf73deaa3f54375266d74dde19dd3f3acd5a4abfb768a7cdc4930fb51081fd',
                                           'f9d3ad5e7831d90ec37e4ec3bd31c8bebc7a8423f31ec84b03ae920497cc513e'),
     'App/util/ContentProvider.cpp':'3ec71e07c44b320f144b37269458fc440e181e2f9b585fc1376ca4c80d9e6feb',
     'App/script/ScriptContext.cpp':'5a63eab0c3d5865ac0e2112e0728e3d671c1fb3f51980a8dc7071bc808204a56',
     'RCCService/RCCService.cpp':('3a3590fc6cbb1d0075ed00a2ac5547c72d7458d0af9f80f3a7af059d38bd933a',
                                 '103f29836a26e27dc257c64d1f0b56b47347bf6b6ddad7903c3ce6979719c4cf',
-                                'dab10750c893180d3cfa061bc05c7fd10bdb558949becc9d93ae758f518de43a'),
+                                'dab10750c893180d3cfa061bc05c7fd10bdb558949becc9d93ae758f518de43a',
+                                '8561625840f36d7ad95a8a8ba1d6c5e21bfb71ba6e6f3740f32dd182eef49bf4'),
 }
 
 def sha(file):return hashlib.sha256(file.read_bytes()).hexdigest()
