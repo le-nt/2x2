@@ -31,7 +31,8 @@ const patterns = [
   /rbxassetid:\/\/([1-9][0-9]{0,15})/gi,
   /https?:\/\/(?:www\.)?roblox\.com\/asset\/?\?[^"'<\s]*?\bid=([1-9][0-9]{0,15})/gi,
   /https?:\/\/assetdelivery\.roblox\.com\/v[12]\/asset\/?\?[^"'<\s]*?\bid=([1-9][0-9]{0,15})/gi,
-  /(?:h?rbxasset:\/\/)(?:\.\.\/|\.\/)*shareddata\/assets\/([1-9][0-9]{0,15})/gi,
+  /(?:h?rbxasset:\/\/)(?:\.\.\/|\.\/)*shareddata\/(?:assets|SBCR)\/([1-9][0-9]{0,15})/gi,
+  /https?:\/\/(?:www\.)?projectpizza\.net\/api\/asset\/?\?[^"'<\s]*?\bid=([1-9][0-9]{0,15})/gi,
 ];
 const references = new Map(), errors = [], unscanned = [];
 function collect(text, placeId) {
