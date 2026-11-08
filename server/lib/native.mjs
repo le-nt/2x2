@@ -25,6 +25,9 @@ export function createNative({db,cfg,root,port,sessionUser,isGated,assetResolver
  const base=publicOrigin+'/native';
  const serverDir=path.join(root,'../server');
  const charRoot=path.join(root,'../clients/shareddata/charcustom');
+ const legacyTexturesRoot=path.join(root,'native-legacy-assets/textures');
+ const engineTexturesRoot=path.join(root,'../services/engine/.assets/content/textures');
+ const catalogFacesRoot=path.join(root,'img/catalog/faces');
  const mapRoot=path.join(serverDir,'native/maps');
  // Optional on-demand place repair. Original maps and the registry are never modified.
  const preparedMaps=new Map(),prepareAttempted=new Set();
@@ -97,7 +100,7 @@ export function createNative({db,cfg,root,port,sessionUser,isGated,assetResolver
  function appearance(id){const row=db.prepare('SELECT avatar FROM users WHERE id=?').get(id);let avatar={};try{avatar=JSON.parse(row?.avatar||'{}');}catch{}return avatar;}
  function appearanceURL(id){return `${base}/appearance/${id}`;}
  function avatarPaths(av){return inspectAvatarDependencies(charRoot,av).files;}
- function machineAllowed(url){return /^\/native\/(?:asset\/?$|appearance\/\d+$|bodycolors\/\d+$|content$|api\/game\/players\/[1-9][0-9]{0,15}$|api\/moderation\/filtertext$|internal\/gameserver\/(?:heartbeat|shutdown)$|Game\/LoadPlaceInfo\.ashx)$/.test(url.pathname);}
+ function machineAllowed(url){return /^\/native\/(?:legacy-texture\/?$|asset\/?$|appearance\/\d+$|bodycolors\/\d+$|content$|api\/game\/players\/[1-9][0-9]{0,15}$|api\/moderation\/filtertext$|internal\/gameserver\/(?:heartbeat|shutdown)$|Game\/LoadPlaceInfo\.ashx)$/.test(url.pathname);}
  function machine(req,url){return machineAllowed(url)&&!!n.accessKey&&equal(req.headers.accesskey,n.accessKey);}
  async function route(req,res,url,user,sessionHash){
   const p=url.pathname;
@@ -169,7 +172,20 @@ export function createNative({db,cfg,root,port,sessionUser,isGated,assetResolver
   if(p==='/native/content'){
    const rel=url.searchParams.get('path');file=beneath(charRoot,rel);
    if(file&&!/\.(rbxm|rbxmx|png|jpe?g|mesh|dds|wav|mp3)$/i.test(file))file=null;
+   // A minimal public avatar archive is checked in even if clients/shareddata
+   // is absent. Reuse only exact face filenames; do not guess other content.
+   if(!file && /^faces\/[A-Za-z0-9_-]+\.(?:png|jpe?g)$/i.test(rel||''))
+    file=beneath(catalogFacesRoot,rel.slice('faces/'.length));
    kind=path.extname(file||'');
+  }else if(p==='/native/legacy-texture'){
+   const name=url.searchParams.get('name');
+   // Only archive-relative image filenames; path traversal and arbitrary
+   // files are not accepted. No unbounded filename-based upstream proxy.
+   if(/^[A-Za-z0-9_-]+\.(?:png|jpe?g|dds)$/i.test(name||'')){
+    file=beneath(legacyTexturesRoot,name) ||
+         beneath(engineTexturesRoot,name);
+    kind=path.extname(file||'');
+   }
   }else if(/^\/native\/asset\/?$/.test(p)){
    const assetId=url.searchParams.get('id');
    const entry=/^[1-9][0-9]*$/.test(assetId||'')?places.get(Number(assetId)):null;
