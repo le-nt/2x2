@@ -16,8 +16,8 @@ async function api(path,method="GET",body){
 async function perform(fn){try{showMessage("");await fn();}catch(e){showMessage(e.message,true);}}
 function can(role){return ROLES.indexOf(state.role)>=ROLES.indexOf(role);}
 function showPage(name){
-  state.page=name;$("title").textContent=({dashboard:"Dashboard",users:"User moderation",forums:"Forum moderation",features:"Site features",staff:"Staff roles",audit:"Audit log"})[name]||"2x2 Administration";
-  for(const p of ["dashboard","users","forums","features","staff","audit"])$(p).hidden=p!==name;
+  state.page=name;$("title").textContent=({dashboard:"Dashboard",users:"User moderation",forums:"Forum moderation",banner:"Sitewide banner",features:"Site features",staff:"Staff roles",audit:"Audit log"})[name]||"2x2 Administration";
+  for(const p of ["dashboard","users","forums","banner","features","staff","audit"])$(p).hidden=p!==name;
   for(const b of document.querySelectorAll("#nav button"))b.classList.toggle("active",b.dataset.page===name);
 }
 async function init(){
@@ -29,7 +29,7 @@ async function init(){
   $("authHelp").textContent=state.enrolled?"Enter your authenticator code to start a six-hour staff session.":"Verify your password, then enroll an authenticator app before using the admin panel.";
   for(const b of document.querySelectorAll("#nav button[data-min]"))b.hidden=!can(b.dataset.min);
   if(state.verified){showPage(state.page);await loadPage(state.page);}
-  else for(const p of ["dashboard","users","forums","features","staff","audit"])$(p).hidden=true;
+  else for(const p of ["dashboard","users","forums","banner","features","staff","audit"])$(p).hidden=true;
 }
 async function loadPage(p){
   if(p==="dashboard"){
@@ -41,6 +41,7 @@ async function loadPage(p){
     $("expiry").textContent="Session expires: "+fmt(d.sessionExpires);
   }else if(p==="users")await findUsers();
   else if(p==="forums")await findThreads();
+  else if(p==="banner")await loadBanner();
   else if(p==="features")await loadFlags();
   else if(p==="staff")await loadStaff();
   else if(p==="audit")await loadAudit();
@@ -101,6 +102,15 @@ async function findThreads(){
     ac.append(save);tr.append(lc,pc,ac);$("threadResults").append(tr);
   }
 }
+async function loadBanner(){
+  const d=await api("/banner");
+  $("bannerMessage").value=d.banner?.message||"";
+  $("bannerEnabled").checked=Boolean(d.banner?.enabled);
+}
+async function saveBanner(){
+  await api("/banner","POST",{message:$("bannerMessage").value,enabled:$("bannerEnabled").checked});
+  showMessage("Sitewide banner updated.");
+}
 async function loadFlags(){
   const d=await api("/features");$("flags").replaceChildren();
   for(const f of d.features){
@@ -152,6 +162,7 @@ $("userQuery").addEventListener("keydown",e=>{if(e.key==="Enter")perform(findUse
 $("moderate").onclick=()=>perform(moderate);
 $("addNote").onclick=()=>perform(addNote);
 $("saveStaff").onclick=()=>perform(saveStaff);
+$("saveBanner").onclick=()=>perform(saveBanner);
 $("moreAudit").onclick=()=>perform(async()=>{state.auditPage++;await loadAudit();});
 perform(init);
 })();
