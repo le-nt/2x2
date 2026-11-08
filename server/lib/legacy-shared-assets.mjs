@@ -28,17 +28,21 @@ export function findLegacyArchiveFile(roots,relative){
  if(!validLegacyPath(relative))return null;
  for(const root of roots){
   try{
-   // Exact case first, then case-insensitive component matching (historical Windows behavior).
+   // Always use on-disk directory spelling. Windows existsSync() accepts
+   // different casing but realpathSync() may return the caller's spelling;
+   // that becomes an incorrect path if copied to a case-sensitive build.
    let current=fs.realpathSync(root);
    for(const segment of relative.split('/')){
-    let next=path.join(current,segment);
-    if(!fs.existsSync(next)){
-     const matches=fs.readdirSync(current).filter(x=>x.toLowerCase()===segment.toLowerCase());
-     if(matches.length!==1)throw Error('Missing or ambiguous component');
-     next=path.join(current,matches[0]);
-    }
+    const entries=fs.readdirSync(current);
+    const exact=entries.find(x=>x===segment);
+    const matches=exact ? [exact] : entries.filter(x=>x.toLowerCase()===segment.toLowerCase());
+    if(matches.length!==1)throw Error('Missing or ambiguous component');
+    const next=path.join(current,matches[0]);
     current=fs.realpathSync(next);
-    if(current!==root&&!current.startsWith(root+path.sep))throw Error('Symlink outside archive root');
+    const containment=process.platform==='win32'
+      ? current.toLowerCase().startsWith((root+path.sep).toLowerCase())
+      : current.startsWith(root+path.sep);
+    if(current!==root&&!containment)throw Error('Symlink outside archive root');
    }
    const stat=fs.statSync(current);
    if(stat.isFile()&&stat.size>0&&stat.size<=maxBytes)return current;
