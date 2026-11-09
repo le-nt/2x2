@@ -79,6 +79,7 @@ DYNAMIC_FASTINTVARIABLE(LuaGcBoost, 1)
 DYNAMIC_FASTINTVARIABLE(LuaGcMaxKb, 100)
 
 DYNAMIC_FASTFLAGVARIABLE(LockViolationScriptCrash, false)
+DYNAMIC_FASTFLAGVARIABLE(NativeLuaLifecycleDiagnostics, false)
 
 namespace RBX
 {
@@ -94,7 +95,7 @@ using namespace boost::posix_time;
 // existing exception/stack reporting and never log script source or credentials.
 static void reportScriptLifecycle(ScriptContext* context, BaseScript* script, const char* phase)
 {
-    if (!LuaSettings::singleton().areScriptStartsReported) return;
+    if (!LuaSettings::singleton().areScriptStartsReported && !DFFlag::NativeLuaLifecycleDiagnostics) return;
     DataModel* model = DataModel::get(context);
     std::string scriptPath = script ? script->getFullName() : "<unknown>";
     boost::replace_all(scriptPath, "\n", " ");

@@ -179,7 +179,24 @@ namespace RBX
                     
                     RBXPROFILER_SCOPE("Sound", "createStream");
 
+#ifdef EMSCRIPTEN
+                    // The HTML5 FMOD backend rejects filename streams (error
+                    // 68), but supports streams backed by original encoded
+                    // bytes. Keep that buffer alive for FMOD's borrowed view.
+                    shared_ptr<const std::string> data = ServiceProvider::create<ContentProvider>(context)->requestContentString(id, ContentProvider::PRIORITY_SOUND);
+                    if (!data) return NULL;
+                    if (data->empty() || data->size() > 32 * 1024 * 1024)
+                        throw std::runtime_error("HTML5 audio stream is empty or exceeds the 32 MiB encoded limit");
+                    if (isMemModel(data.get())) throw std::runtime_error("sound format invalid");
+                    FMOD_CREATESOUNDEXINFO info;
+                    memset(&info, 0, sizeof(info));
+                    info.cbsize = sizeof(info);
+                    info.length = data->size();
+                    streamContent = data;
+                    SoundService::checkResult(FMOD_System_CreateStream(system.get(), streamContent->data(), mode | FMOD_OPENMEMORY, &info, &fmod_sound), "createMemoryStream", this, system.get());
+#else
 					SoundService::checkResult(FMOD_System_CreateStream(system.get(), fileName.c_str(), mode, NULL, &fmod_sound), "createStream", this, system.get());
+#endif
 				}
 				else
 				{
@@ -223,6 +240,10 @@ namespace RBX
                     SoundService::checkResultNoThrow(FMOD_Sound_Release(fmod_sound), "release", this, fmod_sound);
 				fmod_sound = 0;
 			}
+#ifdef EMSCRIPTEN
+            streamContent.reset();
+            isStreaming = false;
+#endif
 		}
 	}// namespace Soundscape
 }// namespace RBX

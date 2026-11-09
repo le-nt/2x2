@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """Read native player/physics/tool state from an existing loopback RCC test job.
 
-The fixed observation script does not mutate game objects, inject gameplay or
-read production credentials. Optional event counters observe native signals in
-the job's private diagnostic table. Keep this tool off public endpoints.
+The default observation script does not mutate game objects. Optional event
+counters observe native signals; --client-audio-user installs one fixed,
+read-only diagnostic LocalScript in that test user's PlayerGui. No gameplay is
+injected and no credentials are read. Keep this tool off public endpoints.
 """
 import argparse
 import json
@@ -13,14 +14,52 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 from xml.sax.saxutils import escape
 
+CLIENT_AUDIO='''local root=game:GetService("ReplicatedFirst")
+if script.Parent~=root then
+ if not root:FindFirstChild("__2x2ClientAudioObserverV3Local") then
+  local copy=script:Clone();copy.Name="__2x2ClientAudioObserverV3Local";copy.Parent=root
+ end
+ return
+end
+local count=0
+local seen=setmetatable({},{__mode="k"})
+local function emit(data) data.version=3;print("[2x2 client observation] "..game:GetService("HttpService"):JSONEncode(data)) end
+local player=game:GetService("Players").LocalPlayer
+local humanoid=player.Character and player.Character:FindFirstChild("Humanoid")
+emit({phase="started",placeId=game.PlaceId,health=humanoid and humanoid.Health or nil})
+local function inspect(item)
+ if count>=16 or not item:IsA("Sound") or seen[item] or (item.Name~="Swoosh" and item.Name~="Fire") then return end
+ seen[item]=true;count=count+1
+ local sampleId=count
+ for _,interval in pairs({0.25,0.75}) do
+  delay(interval,function()
+   if item:IsDescendantOf(workspace) then
+    emit({phase="audio",sampleId=sampleId,path=item:GetFullName(),soundId=tostring(item.SoundId),playing=item.IsPlaying,position=item.TimePosition,length=item.TimeLength,sampleDelay=interval})
+   end
+  end)
+ end
+end
+workspace.DescendantAdded:connect(inspect)
+local visited=0
+local function visit(item,depth)
+ if visited>=20000 or depth>64 or count>=16 then return end
+ visited=visited+1
+ if item:IsA("Sound") and item.IsPlaying then inspect(item) end
+ for _,child in pairs(item:GetChildren()) do visit(child,depth+1) end
+end
+visit(workspace,0)
+'''
+
 PROJECTILES='''local projectileNames={Rocket=true,Bullet=true,Pellet=true,Timebomb=true,CannonBall=true,Paintball=true,Teapot=true}
 local function isProjectile(item)
  return item:IsA("BasePart") and (projectileNames[item.Name] or item:FindFirstChild("RocketScript") or item:FindFirstChild("ProjectileScript") or item:FindFirstChild("BombScript"))
 end
 '''
 
-EVENTS='''if not _G.__2x2ValidationEvents then
- local events={};_G.__2x2ValidationEvents=events
+EVENTS='''if not _G.__2x2ValidationObserverV2 then
+ local events={}
+ for _,event in ipairs(_G.__2x2ValidationEvents or {}) do if #events<128 then table.insert(events,event) end end
+ _G.__2x2ValidationObserverV2={events=events}
  local seen=setmetatable({},{__mode="k"})
  local function record(kind,item)
   if #events<128 then table.insert(events,{kind=kind,name=item.Name,path=item:GetFullName(),time=tick()}) end
@@ -34,10 +73,15 @@ EVENTS='''if not _G.__2x2ValidationEvents then
   for _,item in pairs(char:GetChildren()) do tool(item) end
   char.ChildAdded:connect(tool)
  end
- for _,player in pairs(game:GetService("Players"):GetPlayers()) do
+ local function watchPlayer(player)
+  if seen[player] then return end
+  seen[player]=true
   if player.Character then character(player.Character) end
   player.CharacterAdded:connect(character)
  end
+ local players=game:GetService("Players")
+ players.PlayerAdded:connect(watchPlayer)
+ for _,player in pairs(players:GetPlayers()) do watchPlayer(player) end
  workspace.ChildAdded:connect(function(item)
   if isProjectile(item) then record("projectile_created",item)
   elseif item:IsA("Explosion") then record("explosion_created",item) end
@@ -45,15 +89,20 @@ EVENTS='''if not _G.__2x2ValidationEvents then
 end
 '''
 
-OBSERVE='''local report={placeId=game.PlaceId,players={},projectiles={},humanoids={},objectValues={},instanceCount=0,observedEvents=_G.__2x2ValidationEvents}
+OBSERVE='''local report={placeId=game.PlaceId,players={},projectiles={},humanoids={},objectValues={},instanceCount=0,clientAudioObserver=clientProbeStatus,observedEvents=_G.__2x2ValidationObserverV2 and _G.__2x2ValidationObserverV2.events or _G.__2x2ValidationEvents}
 local function position(part)
  if not part then return nil end
  local p=part.Position;return {x=p.X,y=p.Y,z=p.Z}
 end
+local function modelPart(model)
+ local part=model:FindFirstChild("Torso") or model:FindFirstChild("HumanoidRootPart") or model:FindFirstChild("Head") or model.PrimaryPart
+ if part then return part end
+ for _,child in pairs(model:GetChildren()) do if child:IsA("BasePart") then return child end end
+end
 for _,player in pairs(game:GetService("Players"):GetPlayers()) do
  local char=player.Character
  local humanoid=char and char:FindFirstChild("Humanoid")
- local torso=char and (char:FindFirstChild("Torso") or char:FindFirstChild("HumanoidRootPart"))
+ local torso=char and modelPart(char)
  local tools={}
  local backpack={}
  local pack=player:FindFirstChild("Backpack")
@@ -73,7 +122,7 @@ local function visit(item,depth)
  end
  if item:IsA("Model") and #report.humanoids<64 then
   local humanoid=item:FindFirstChild("Humanoid")
-  local torso=item:FindFirstChild("Torso") or item:FindFirstChild("HumanoidRootPart")
+  local torso=modelPart(item)
   if humanoid then table.insert(report.humanoids,{path=item:GetFullName(),health=humanoid.Health,position=position(torso)}) end
  end
  for _,child in pairs(item:GetChildren()) do visit(child,depth+1) end
@@ -87,9 +136,25 @@ def main():
     p.add_argument('--job',required=True)
     p.add_argument('--output',type=Path)
     p.add_argument('--start-event-observation',action='store_true')
+    p.add_argument('--client-audio-user',type=int,help='Install the fixed diagnostic LocalScript for this isolated test user ID')
     a=p.parse_args()
     if not 1024<a.port<65536 or not re.fullmatch(r'[A-Za-z0-9-]{1,100}',a.job):raise ValueError('Invalid local job/port')
     code=PROJECTILES+(EVENTS if a.start_event_observation else '')+OBSERVE
+    if a.client_audio_user is not None:
+        if not 0<a.client_audio_user<2147483647:raise ValueError('Invalid test user ID')
+        code='''local clientProbeStatus="user_not_found"
+for _,player in pairs(game:GetService("Players"):GetPlayers()) do
+ if player.UserId==USER_ID then
+  local gui=player:FindFirstChild("PlayerGui")
+  if not gui then clientProbeStatus="player_gui_missing"
+  elseif gui:FindFirstChild("__2x2ClientAudioObserverV3") then clientProbeStatus="already_present"
+  else
+   local observer=Instance.new("LocalScript");observer.Name="__2x2ClientAudioObserverV3"
+   observer.Source=[====[CLIENT_SOURCE]====];observer.Parent=gui;clientProbeStatus="installed"
+  end
+ end
+end
+'''.replace('USER_ID',str(a.client_audio_user)).replace('CLIENT_SOURCE',CLIENT_AUDIO)+code
     body='<Execute xmlns="http://roblox.com/"><jobID>'+escape(a.job)+'</jobID><script><name>ReadNativeValidationState</name><script>'+escape(code)+'</script><arguments/></script></Execute>'
     envelope=('<?xml version="1.0"?><soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"><soap:Body>'+body+'</soap:Body></soap:Envelope>').encode()
     request=urllib.request.Request('http://127.0.0.1:'+str(a.port)+'/',data=envelope,headers={'Content-Type':'text/xml; charset=utf-8','SOAPAction':'"http://roblox.com/Execute"'})

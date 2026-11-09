@@ -117,7 +117,10 @@ builder changed `127.0.0.1:<port>/native` into `https://www.0.1:<port>/...`.
 RCC now preserves the configured internal server URL. Absent metadata endpoints
 remain explicit failures; no security hashes or versions are fabricated.
 RCC previously printed its server access key through its sensitive logger;
-those messages are now redacted and sensitive messages excluded from stdout.
+known access/signing credentials are now redacted while all message classes,
+including sensitive connection diagnostics, remain visible. The native fixture
+deliberately prints dummy credentials and asserts that only redacted text is
+retained.
 
 Ten-second native server observations, without players:
 
@@ -161,8 +164,60 @@ source check fails on the unchanged PR #17 baseline: it expects an optional
 preload implementation that the existing emergency-rollback loader removed.
 That existing UI behavior was not rewritten to satisfy the stale assertion.
 
-Not yet verified: browser joins/gameplay, NPCs/weapons, client script startup,
-replication semantics, animation/audio decoding including FMOD 68, authorized
+Browser validation now observes Crossroads world rendering, player movement and
+equipping. Two native players in Undead reached the lobby, started the round and
+received human/zombie teams. These are partial gameplay observations, not full
+compatibility. Weapon distribution then failed because the game's `Zip` scripts
+store unparented clones in weak ObjectValues; native observation found all four
+template values nil. `App/v8datamodel/Value.cpp` confirms weak-reference storage.
+No replacement weapons, zombie behavior or ownership semantics were fabricated.
+
+Player entry also exposed a missing default Health script. An explicitly
+configured, hash-pinned VFS relocation delivered the archived original script
+and exposed the unsupported `RBXScriptSignal:Wait()` capitalization. The engine
+now dispatches that alias through the existing native wait implementation; the
+RCC probe verifies yield/resume with the fired value. See
+`ASSET-VFS-MAPPINGS.md` for mapping semantics and remaining ordering tests.
+
+Crossroads browser input now activates original tools and creates native
+projectiles attributed to the actual player. Queued SDL mouse edges and fresh
+InputObject snapshots prevent short clicks from disappearing before Lua sees
+them. Some earlier sessions disconnected at varying intervals; later sessions
+exchanged traffic for over 40 minutes. This does not establish every disconnect
+cause. Repeated internal path separators also caused a genuine sound 404;
+VFS canonicalization now handles these while still rejecting absolute paths
+and dot segments.
+
+The missing default tool hold/slash/lunge animations were recovered by their
+original IDs through the existing public resolver. Browser screenshots show the
+holding pose restored. Import dependency discovery now inspects the native
+avatar bootstrap models, so these dependencies are discovered automatically.
+Writable validation seeds are independent copies, with isolation regressions;
+read-only libraries retain symlinks. Three test-created animation cache files
+temporarily reached the original seed through an earlier staging symlink; exact
+hash checks allowed their removal and restoration of that seed's prior state.
+
+Killbots runs its original wave UI, NPC movement/shooting, projectiles, explosions
+and player death/respawn in the browser. Optional native client lifecycle logs
+confirm compilation/start of the original weapon LocalScripts, Animate,
+LocalSound, ControlScript and CameraScript. The bundled chat core script still
+reports an error; this game is not marked fully compatible.
+
+FMOD 68 was reproduced for the original 545,518-byte Rocket WAV: HTML5 filename
+streams fail while memory streams decode and play. Emscripten now streams the
+original ContentProvider bytes from a retained, bounded buffer. Both the real
+FMOD SDK probe and an observational LocalScript in Killbots show playback time
+advancing; for example the same projectile sound advances from 0.280 to 0.774
+seconds. The diagnostic never starts sounds or changes gameplay. Desktop file
+stream behavior is preserved. Release builds of RCC and UniversalClient pass.
+
+Native worker startup also reproduced an occupied UDP port. Protocol-specific
+port reservations now exclude occupied and concurrently reserved ports, and
+failed NetworkServer startup reports shutdown instead of advertising readiness.
+Four Rust tests and a real RCC occupied-port fixture pass.
+
+Not yet verified: full browser gameplay, all NPCs/weapons,
+all replication semantics, all animation/audio assets, authorized
 live Open Cloud retrieval (no key in this execution environment), R2,
 archive-container serving, fully decoded binary values, Lua-aware expression
 analysis, and per-game runtime discovery authorization/quotas. No game is marked
