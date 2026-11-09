@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
 import crypto from 'node:crypto';
-import {Readable} from 'node:stream';
+import {Readable,PassThrough} from 'node:stream';
 import {openDb} from '../server/lib/db.mjs';
 import {createNativeImports} from '../server/lib/native-imports.mjs';
 
@@ -54,6 +54,19 @@ test('upload metadata, request sizes and pending disk reservations are bounded b
   assert.equal(queue.list().length,0);
   for(let i=0;i<8;i++)db.prepare("INSERT INTO native_imports(id,slug,name,filename,actor_id,state,created_at,updated_at) VALUES (?,?,?,?,?,'uploading',?,?)").run('reserved-'+i,'reserved-'+i,'Reserved','original.rbxl',1,Date.now(),Date.now());
   await assert.rejects(queue.upload(request(place),meta,1),error=>error[0]===429);
+  db.prepare('DELETE FROM native_imports').run();
+  db.prepare("INSERT INTO native_imports(id,slug,name,filename,actor_id,state,bytes,created_at,updated_at) VALUES ('retained','retained','Retained','original.rbxl',1,'failed',?,?,?)").run(2*1024**3,Date.now(),Date.now());
+  await assert.rejects(queue.upload(request(place),meta,1),error=>error[0]===507);
+});
+
+test('an in-progress upload reserves its game ID until the original body is retained',async t=>{
+  const {queue}=fixture(t),meta={slug:'concurrent-game',name:'Concurrent upload',filename:'original.rbxl'};
+  const body=new PassThrough();body.headers={};
+  const first=queue.upload(body,meta,1);
+  await assert.rejects(queue.upload(request(place),meta,1),error=>error[0]===409);
+  body.end(place);
+  const job=await first;assert.equal(job.sha256,hash(place));
+  assert.equal((await completed(queue,job.id)).state,'succeeded');
 });
 
 test('interrupted imports stay explicit after restart instead of claiming completed gameplay',async t=>{
