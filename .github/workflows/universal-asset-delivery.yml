@@ -65,3 +65,5 @@ jobs:
         run: node --test tests/asset-vfs.test.mjs tests/roblox-open-cloud.test.mjs tests/native-asset-seeder.test.mjs tests/asset-resolver.test.mjs tests/asset-upstream-errors.test.mjs tests/native-asset-prefetch.test.mjs tests/legacy-shared-assets.test.mjs tests/legacy-texture-map.test.mjs tests/native-http.test.mjs
       - name: Validate structural place analysis
         run: python -m unittest discover -s tests -p test_place_analysis.py -v
+      - name: Validate browser fixture storage isolation
+        run: python -m unittest discover -s tests -p test_browser_validation_isolation.py -v

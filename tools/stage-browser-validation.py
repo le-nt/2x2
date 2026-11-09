@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Create an isolated native browser validation stack, never a production install.
 
-Run in Linux/WSL. Existing archive directories are read through symlinks; only
-four small place files and the compiled browser bundle are staged. Credentials
-are generated for this disposable stack and are never printed.
+Run in Linux/WSL. Read-only libraries use symlinks. Maps, the browser bundle and
+the writable numeric seed are isolated copies. Credentials are generated for
+this disposable stack and are never printed.
 """
 import argparse
 import hashlib
@@ -63,7 +63,6 @@ def main():
     links={
         'clients/shareddata':archives/'clients/shareddata',
         'server/native/asset-library':archives/'server/native/asset-library',
-        'server/native/asset-seed':archives/'server/native/asset-seed',
         'server/native/asset-recovery/scripts':archives/'server/native/asset-recovery/scripts',
         'site/native-legacy-assets':archives/'site/native-legacy-assets',
         'site/img/catalog/faces':archives/'site/img/catalog/faces',
@@ -72,6 +71,19 @@ def main():
         if source.is_dir():
             destination=output/relative;destination.parent.mkdir(parents=True,exist_ok=True)
             destination.symlink_to(source.resolve(),target_is_directory=True)
+    # Resolver persistence and import seeding write here. A directory symlink
+    # would let a test fetch mutate the original checkout. Keep this small
+    # numeric store isolated; larger read-only content stays virtual.
+    seed=server/'native/asset-seed';seed.mkdir()
+    source_seed=archives/'server/native/asset-seed'
+    if source_seed.is_dir():
+        files=list(source_seed.iterdir())
+        if len(files)>10000 or any(f.is_symlink() or not f.is_file() for f in files):
+            raise ValueError('Numeric seed exceeds fixture limits or contains links/directories')
+        if sum(f.stat().st_size for f in files)>1024**3:raise ValueError('Numeric seed exceeds 1 GiB fixture limit')
+        for file in files:
+            shutil.copy2(file,seed/file.name)
+            if sha(file)!=sha(seed/file.name):raise ValueError('Numeric seed changed during staging')
     client=site/'native-client';client.mkdir();files={}
     for name in ['UniversalClient.js','UniversalClient.wasm','UniversalClient.data']:
         shutil.copy2(build/name,client/name)
