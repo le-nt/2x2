@@ -166,10 +166,16 @@ const unavailableRuntimeModels=[];
 const runtimeContent=path.join(root,'services/engine/.assets/content');
 for(const resource of ['fonts/humanoidAnimateLocalKeyframe2.rbxm','fonts/humanoidAnimateR15.rbxm',
   'fonts/humanoidSoundNewLocal.rbxmx','fonts/humanoidHealthRegenScript.rbxm']) {
-  const found=safeArchiveFile(runtimeContent,resource);
+  let found=safeArchiveFile(runtimeContent,resource),source='packaged_runtime';
+  if(!found) {
+    const archived=archiveVfs?.resolve('rbxasset://'+resource);
+    if(archived?.status==='resolved') {
+      found={file:archived.file,stat:fs.statSync(archived.file)};source='asset_vfs';
+    }
+  }
   if(!found || found.stat.size>2*1024*1024){unavailableRuntimeModels.push(resource);continue;}
   const bytes=fs.readFileSync(found.file),parsed=inspectReferences(found.file,bytes);
-  runtimeModels.push({resource,sha256:crypto.createHash('sha256').update(bytes).digest('hex'),
+  runtimeModels.push({resource,source,sha256:crypto.createHash('sha256').update(bytes).digest('hex'),
     assetIds:parsed.ids,coverage:parsed.coverage,resourceReferences:parsed.resourceReferences||[]});
 }
 

@@ -7,6 +7,7 @@ import {spawnSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
 import {scanAssetReferences} from '../server/lib/asset-discovery.mjs';
 import {createAssetResolver} from '../server/lib/asset-resolver.mjs';
+import {inventoryArchives} from '../tools/inventory-asset-vfs.mjs';
 
 const projectRoot=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 test('asset crawler detects old Roblox, Project Pizda, SBCR, and Script source references',()=>{
@@ -121,4 +122,31 @@ test('new place reports include original character-bootstrap animation dependenc
   assert.equal(report.nativeRuntimeDependencies.models[0].resource,'fonts/humanoidAnimateLocalKeyframe2.rbxm');
   assert.ok(report.nativeRuntimeDependencies.unavailableModels.includes('fonts/humanoidAnimateR15.rbxm'));
   assert.equal(report.resourceReferences.find(r=>r.reference.includes('humanoidAnimateLocalKeyframe2')).status,'resolved');
+});
+
+test('uploaded places discover bootstrap dependencies from verified virtual archive mounts',async t=>{
+  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'2x2-archived-bootstrap-'));
+  t.after(()=>fs.rmSync(dir,{recursive:true,force:true}));
+  const native=path.join(dir,'server/native'),archive=path.join(dir,'original-archive');
+  for(const folder of ['maps','asset-library'])fs.mkdirSync(path.join(native,folder),{recursive:true});
+  fs.mkdirSync(archive);
+  fs.writeFileSync(path.join(native,'maps/map.rbxl'),'<roblox version="4"><Item class="Workspace"/></roblox>');
+  fs.writeFileSync(path.join(native,'places.json'),JSON.stringify({places:{fixture:{file:'map.rbxl',id:1}}}));
+  fs.writeFileSync(path.join(native,'asset-library/87654321.rbxmx'),'<roblox version="4"></roblox>');
+  const model=path.join(archive,'Animate.rbxmx');
+  fs.writeFileSync(model,'<roblox version="4"><Item class="LocalScript"><Properties><ProtectedString name="Source">error("never execute scanners"); local hold="rbxassetid://87654321"</ProtectedString></Properties></Item></roblox>');
+  const roots=[{id:'original-runtime',namespace:'content',path:archive,virtualPrefix:'runtime-2016'}];
+  const manifest=await inventoryArchives(roots);
+  fs.writeFileSync(path.join(native,'asset-vfs-manifest.json'),JSON.stringify(manifest));
+  fs.writeFileSync(path.join(native,'asset-vfs-config.json'),JSON.stringify({manifest:'asset-vfs-manifest.json',roots,mappings:[{from:'fonts/humanoidAnimateLocalKeyframe2.rbxm',to:'runtime-2016/Animate.rbxmx',sha256:manifest.files[0].sha256,reason:'Verified original runtime layout'}]}));
+  const args=[path.join(projectRoot,'tools/seed-native-assets.mjs'),'--root',dir];
+  let run=spawnSync(process.execPath,args,{encoding:'utf8',timeout:20000});assert.equal(run.status,0,run.stderr);
+  let report=JSON.parse(fs.readFileSync(path.join(native,'asset-reports/fixture.json')));
+  assert.equal(report.statuses.local,1);assert.equal(report.nativeRuntimeDependencies.models[0].source,'asset_vfs');
+  assert.deepEqual(report.nativeRuntimeDependencies.models[0].assetIds,['87654321']);
+  fs.writeFileSync(model,'corrupted archive bytes');
+  run=spawnSync(process.execPath,args,{encoding:'utf8',timeout:20000});assert.equal(run.status,0,run.stderr);
+  report=JSON.parse(fs.readFileSync(path.join(native,'asset-reports/fixture.json')));
+  assert.equal(report.nativeRuntimeDependencies.models.length,0);
+  assert.ok(report.nativeRuntimeDependencies.unavailableModels.includes('fonts/humanoidAnimateLocalKeyframe2.rbxm'));
 });
