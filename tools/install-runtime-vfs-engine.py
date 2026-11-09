@@ -11,6 +11,10 @@ import shutil
 from pathlib import Path
 
 FILES = {
+    'App/v8datamodel/Value.cpp':'7eee041b19b90d7b173e4a268510b1d57926353639990237f1a8968eb95f2456',
+    'App/include/v8datamodel/Value.h':'d23b0a89c0c040944dff66e96dfab879cea200a31387d5ae8567400a1f17f359',
+    'App/util/Sound.cpp':'111e9abb97ee869a33fd308eda23ba2b9e8cc965e620fdb117ff6bf804af306b',
+    'App/include/util/Sound.h':'2cadd6d2e5a6146b00505437938c4da1b4627d328246f9649641a8b9d5add9d3',
     'UniversalClient/UserInput.h':'1a242619aebbf8fb3c7e36ba89e64d5becdfc862061a3999c3681237f198b8d9',
     'UniversalClient/UserInput.cpp':('4ddb66c6b7c64da6375fd8c51ff5807369759326830e876c5ad8108303940361',
                                     'de970e2e72d6298a4083c09ad38460dc117bab244da486b3802db415177b3dee'),
@@ -18,7 +22,8 @@ FILES = {
     'ClientShared/RobloxServicesTools.cpp':('8caf73deaa3f54375266d74dde19dd3f3acd5a4abfb768a7cdc4930fb51081fd',
                                           'f9d3ad5e7831d90ec37e4ec3bd31c8bebc7a8423f31ec84b03ae920497cc513e'),
     'App/util/ContentProvider.cpp':'3ec71e07c44b320f144b37269458fc440e181e2f9b585fc1376ca4c80d9e6feb',
-    'App/script/ScriptContext.cpp':'5a63eab0c3d5865ac0e2112e0728e3d671c1fb3f51980a8dc7071bc808204a56',
+    'App/script/ScriptContext.cpp':('5a63eab0c3d5865ac0e2112e0728e3d671c1fb3f51980a8dc7071bc808204a56',
+                                  '6b1045039b736bd276df1a1b62605529392ff8e2cb8e97ce5e45d2b78bb26215'),
     'RCCService/RCCService.cpp':('3a3590fc6cbb1d0075ed00a2ac5547c72d7458d0af9f80f3a7af059d38bd933a',
                                 '103f29836a26e27dc257c64d1f0b56b47347bf6b6ddad7903c3ce6979719c4cf',
                                 'dab10750c893180d3cfa061bc05c7fd10bdb558949becc9d93ae758f518de43a',

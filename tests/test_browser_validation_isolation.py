@@ -29,6 +29,9 @@ class BrowserValidationIsolation(unittest.TestCase):
             for name in ['UniversalClient.js','UniversalClient.data']:(bundle/name).write_bytes(b'fixture bundle')
             (bundle/'UniversalClient.wasm').write_bytes(b'\0asm\x01\0\0\0')
             command=[sys.executable,str(SCRIPT),'--root',str(repo),'--archives',str(archives),'--client-build',str(bundle),'--output',str(stage)]
+            invalid=subprocess.run(command+['--soap-port-start','18190'],text=True,capture_output=True,timeout=20)
+            self.assertNotEqual(invalid.returncode,0)
+            self.assertFalse(stage.exists())
             run=subprocess.run(command,text=True,capture_output=True,timeout=20)
             self.assertEqual(run.returncode,0,run.stderr)
             seed=stage/'server/native/asset-seed'

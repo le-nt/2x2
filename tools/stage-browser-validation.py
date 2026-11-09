@@ -26,10 +26,16 @@ def main():
     p.add_argument('--output',type=Path,required=True)
     p.add_argument('--port',type=int,default=18190)
     p.add_argument('--arbiter-port',type=int,default=18191)
+    p.add_argument('--soap-port-start',type=int,default=18200)
+    p.add_argument('--network-port-start',type=int,default=18230)
     a=p.parse_args();repo=a.root.resolve(strict=True);archives=a.archives.resolve(strict=True);output=a.output.resolve()
     if output.exists():raise ValueError('Choose a new empty output directory; existing validation state is preserved')
     if not output.is_relative_to(repo/'work'):raise ValueError('Validation output must be inside this checkout/work')
     if not 1024<a.port<65535 or not 1024<a.arbiter_port<65535 or a.port==a.arbiter_port:raise ValueError('Invalid validation ports')
+    soap_ports=set(range(a.soap_port_start,a.soap_port_start+21))
+    network_ports=set(range(a.network_port_start,a.network_port_start+21))
+    if min(soap_ports|network_ports)<1025 or max(soap_ports|network_ports)>65535 or soap_ports&network_ports or {a.port,a.arbiter_port}&(soap_ports|network_ports):
+        raise ValueError('Worker port ranges must be valid and disjoint from service ports')
     build=a.client_build.resolve(strict=True)
     for name in ['UniversalClient.js','UniversalClient.wasm','UniversalClient.data']:
         if not (build/name).is_file():raise ValueError('Missing built client '+name)
@@ -61,6 +67,7 @@ def main():
         if sha(source)!=sha(destination):raise ValueError('Map staging checksum mismatch')
     (server/'native/places.json').write_text(json.dumps({'format':1,'places':selected},indent=2)+'\n')
     links={
+        'services/engine/.assets/content':repo/'services/engine/.assets/content',
         'clients/shareddata':archives/'clients/shareddata',
         'server/native/asset-library':archives/'server/native/asset-library',
         'server/native/asset-recovery/scripts':archives/'server/native/asset-recovery/scripts',
@@ -97,7 +104,7 @@ def main():
          'native':{'accessKey':key,'signingKey':signing,'publicOrigin':base,'arbiterOrigin':'http://127.0.0.1:'+str(a.arbiter_port),'maxJobs':4}}
     (server/'config.json').write_text(json.dumps(cfg,indent=2)+'\n')
     arbiter={'access_key':key,'signing_key':signing,'base_url':base+'/native','tls':None,
-             'server':{'port':a.arbiter_port,'soap_port_range':{'start':18200,'end':18220},'network_server_port_range':{'start':18230,'end':18250}}}
+             'server':{'port':a.arbiter_port,'soap_port_range':{'start':a.soap_port_start,'end':a.soap_port_start+20},'network_server_port_range':{'start':a.network_port_start,'end':a.network_port_start+20}}}
     (output/'arbiter-config.json').write_text(json.dumps(arbiter,indent=2)+'\n')
     # This page uses a disposable fixture account through the actual login API.
     # It contains no production password, worker key, signing key or Cloud key.

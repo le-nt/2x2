@@ -170,7 +170,16 @@ received human/zombie teams. These are partial gameplay observations, not full
 compatibility. Weapon distribution then failed because the game's `Zip` scripts
 store unparented clones in weak ObjectValues; native observation found all four
 template values nil. `App/v8datamodel/Value.cpp` confirms weak-reference storage.
-No replacement weapons, zombie behavior or ownership semantics were fabricated.
+The native ObjectValue fix now retains detached targets only while the keeper
+is rooted in the DataModel, with ancestry tracking to release retention when
+the target becomes parented or the keeper leaves the game. Self, ancestor and
+DataModel references remain weak. A real RCC fixture verifies clone survival
+after its creator script is destroyed, reparenting, clearing, and collection
+after clear/unroot/ancestor transitions. RCC and UniversalClient release builds
+pass. On a fresh worker, native observation finds the original Pistol,
+FastZombie, KamiZombie and Zombie templates intact. Sustained two-player rounds
+remain blocked by intermittent browser connection loss under investigation.
+No replacement weapons or zombie behavior were injected.
 
 Player entry also exposed a missing default Health script. An explicitly
 configured, hash-pinned VFS relocation delivered the archived original script
@@ -217,11 +226,20 @@ failed NetworkServer startup reports shutdown instead of advertising readiness.
 Four Rust tests and a real RCC occupied-port fixture pass.
 
 Not yet verified: full browser gameplay, all NPCs/weapons,
-all replication semantics, all animation/audio assets, authorized
-live Open Cloud retrieval (no key in this execution environment), R2,
+all replication semantics, all animation/audio assets, R2,
 archive-container serving, fully decoded binary values, Lua-aware expression
 analysis, and per-game runtime discovery authorization/quotas. No game is marked
 gameplay verified. Remaining work continues under the master goal.
+
+Live delivery validation used the existing user-scoped Open Cloud credential
+without printing or persisting it. Cloud-only and public-only resolver instances
+independently fetched original asset 182393478 (796 bytes), SHA-256
+`a2ba69445e813c9ebb2bf8bcf76649aff5ff559f5cf85f8679b3460ffe10a7ed`.
+Cloud delivery returned HTTP 200 and followed its signed CDN location without
+forwarding the API key. Public delivery followed Roblox's CDN redirect and
+returned identical bytes. Both instances then reused their permanent archives
+without additional requests. This verifies that asset, not arbitrary private
+assets or every permission scope.
 
 ## Reference inspection
 

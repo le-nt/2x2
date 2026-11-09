@@ -32,6 +32,33 @@ def fixture():
     for name,source,disabled in [('ProbeSuccess','local value=Instance.new("StringValue"); value.Name="RuntimeSentinel"; value.Value="native Lua executed"; value.Parent=workspace',False),
         ('ProbeDisabled','Instance.new("BoolValue",workspace).Name="DisabledSentinel"',True),
         ('ProbeSignalWait','local e=Instance.new("BindableEvent"); coroutine.wrap(function() local value=e.Event:Wait(); local s=Instance.new("StringValue",workspace); s.Name="SignalWaitSentinel"; s.Value=value end)(); e:Fire("native signal resumed"); print("redaction probe isolated-runtime-probe isolated-runtime-probe-signing-key")',False),
+        ('ProbeDetachedTemplate','local source=Instance.new("Model"); source.Name="OriginalDetachedTemplate"; local holder=Instance.new("ObjectValue"); holder.Name="DetachedTemplateHolder"; holder.Value=source:Clone(); holder.Parent=workspace; source:Destroy(); script:Destroy()',False),
+        ('ProbeTemplateAncestry','''local result=Instance.new("StringValue",workspace);result.Name="TemplateAncestrySentinel"
+local holder=Instance.new("ObjectValue",workspace)
+holder.Value=Instance.new("Model");holder.Value.Name="ReparentedTemplate"
+local target=holder.Value;target.Parent=workspace;target.Parent=nil
+assert(holder.Value==target,"Reparenting lost the template")
+holder.Parent=target;target.Parent=workspace
+assert(holder.Value==target,"Ancestor reference changed")
+holder.Value=game;assert(holder.Value==game,"Root reference changed")
+holder.Value=holder;assert(holder.Value==holder,"Self reference changed")
+holder.Value=nil;assert(holder.Value==nil,"Clearing failed")
+target:Destroy();result.Value="reparent ancestor root self clear passed"''',False),
+        ('ProbeTemplateRelease','''local watchers={}
+for _,mode in pairs({"clear","unroot","ancestor"}) do
+ local holder=Instance.new("ObjectValue",workspace)
+ local target=Instance.new("Model");holder.Value=target
+ local watcher=Instance.new("ObjectValue");watcher.Value=target
+ watchers[mode]=watcher
+ if mode=="clear" then holder.Value=nil
+ elseif mode=="unroot" then holder.Parent=nil
+ else holder.Parent=target end
+end
+local probe=Instance.new("BindableFunction",workspace);probe.Name="TemplateReleaseProbe"
+probe.OnInvoke=function()
+ local released={};for name,watcher in pairs(watchers) do released[name]=watcher.Value==nil end
+ return game:GetService("HttpService"):JSONEncode(released)
+end''',False),
         ('ProbeSyntax','local = invalid',False),('ProbeRuntime','error("intentional probe runtime failure")',False)]:
         script=ET.SubElement(workspace,'Item',{'class':'Script','referent':'RBX'+name})
         props=ET.SubElement(script,'Properties')
@@ -135,7 +162,8 @@ RESOURCE_PROBE
             # OpenJob bootstraps asynchronously when code yields. Observe from
             # a separate, non-yielding Execute call after native scheduling.
             time.sleep(a.seconds+.25)
-            observe='local s=workspace:FindFirstChild("RuntimeSentinel"); local signal=workspace:FindFirstChild("SignalWaitSentinel"); return game:GetService("HttpService"):JSONEncode({sentinel=s and s.Value or "",signalWait=signal and signal.Value or "",disabledRan=workspace:FindFirstChild("DisabledSentinel")~=nil,errors=_G.__2x2ProbeErrors or {}})'
+            observe='local s=workspace:FindFirstChild("RuntimeSentinel"); local signal=workspace:FindFirstChild("SignalWaitSentinel"); local holder=workspace:FindFirstChild("DetachedTemplateHolder"); local target=holder and holder.Value; local ancestry=workspace:FindFirstChild("TemplateAncestrySentinel"); return game:GetService("HttpService"):JSONEncode({sentinel=s and s.Value or "",signalWait=signal and signal.Value or "",detachedTemplate=target and target.Name or "",templateAncestry=ancestry and ancestry.Value or "",disabledRan=workspace:FindFirstChild("DisabledSentinel")~=nil,errors=_G.__2x2ProbeErrors or {}})'
+            observe='local probe=workspace:FindFirstChild("TemplateReleaseProbe"); local released=probe and game:GetService("HttpService"):JSONDecode(probe:Invoke()) or {}; '+observe.replace('templateAncestry=','templateReleased=released,templateAncestry=')
             execute='<Execute xmlns="http://roblox.com/"><jobID>isolated-probe</jobID><script><name>ObserveNativeRuntime</name><script>'+escape(observe)+'</script><arguments/></script></Execute>'
             execute_envelope=('<?xml version="1.0"?><soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"><soap:Body>'+execute+'</soap:Body></soap:Envelope>').encode()
             request=urllib.request.Request('http://127.0.0.1:'+str(soap_port)+'/',data=execute_envelope,
@@ -172,6 +200,9 @@ RESOURCE_PROBE
             elif not a.place:
                 assert report['sentinel']=='native Lua executed',report
                 assert report['signalWait']=='native signal resumed',report
+                assert report['detachedTemplate']=='OriginalDetachedTemplate',report
+                assert report['templateAncestry']=='reparent ancestor root self clear passed',report
+                assert report['templateReleased']=={'clear':True,'unroot':True,'ancestor':True},report
                 assert not report['disabledRan'],report
                 assert len(report['errors'])>=2,report
             (a.output/'report.json').write_text(json.dumps(result,indent=2)+'\n')
