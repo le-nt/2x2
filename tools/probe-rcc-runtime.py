@@ -26,7 +26,7 @@ def unused_port():
     with socket.socket() as server:
         server.bind(('127.0.0.1',0));return server.getsockname()[1]
 
-def fixture(character_health=False):
+def fixture(character_health=False, legacy_controller=False):
     root=ET.Element('roblox',version='4')
     workspace=ET.SubElement(root,'Item',{'class':'Workspace','referent':'RBX0'})
     for name,source,disabled in [('ProbeSuccess','local value=Instance.new("StringValue"); value.Name="RuntimeSentinel"; value.Value="native Lua executed"; value.Parent=workspace',False),
@@ -81,6 +81,25 @@ player.CharacterAdded:connect(function(character)
  sentinel.Value=table.concat(observed,",")
 end)
 for i=1,3 do player:LoadCharacter() end'''
+    if legacy_controller:
+        item=ET.SubElement(workspace,'Item',{'class':'Script','referent':'RBXControllerProbe'})
+        props=ET.SubElement(item,'Properties')
+        ET.SubElement(props,'string',name='Name').text='ProbeLegacyController'
+        ET.SubElement(props,'ProtectedString',name='Source').text='''local sentinel=Instance.new("StringValue",workspace);sentinel.Name="LegacyControllerSentinel"
+local ok,err=pcall(function()
+ assert(Enum.ControllerType.Player.Value==7 and Enum.ControllerType.None.Value==0)
+ for _,class in pairs({"Model","Part"}) do
+  local object=Instance.new(class);assert(object.Controller==Enum.ControllerType.None)
+  object.Controller=7;assert(object.Controller==Enum.ControllerType.Player)
+  object.Controller="Player";assert(object.Controller==Enum.ControllerType.Player)
+  local copy=object:Clone();assert(copy.Controller==Enum.ControllerType.Player)
+  local rejected=not pcall(function() object.Controller=Enum.ControllerType.Chase end)
+  assert(rejected and object.Controller==Enum.ControllerType.Player)
+  object.Controller=Enum.ControllerType.None;assert(object.Controller.Value==0)
+  copy:Destroy();object:Destroy()
+ end
+end)
+sentinel.Value=ok and "player controller numeric enum clone reset passed" or tostring(err)'''
     return ET.tostring(root,encoding='utf8')
 
 def main():
@@ -91,13 +110,15 @@ def main():
     p.add_argument('--place-id',type=int,default=999999)
     p.add_argument('--resource',type=Path,help='Optional genuine WAV used only to probe native archive HTTP fallback, not playback')
     p.add_argument('--character-health-resource',type=Path,help='Original Health bootstrap model; verify its presence at three CharacterAdded signals')
+    p.add_argument('--legacy-controller',action='store_true',help='Verify historical player Controller values, cloning and explicit unsupported motor modes')
     p.add_argument('--working-directory',type=Path,help='Use existing runtime content while comparing an audited backup executable')
     p.add_argument('--seconds',type=int,default=2,choices=range(1,11))
     p.add_argument('--gameserver-port-conflict',action='store_true',help='Run the real bootstrap against an occupied UDP port; require an attributed shutdown')
     a=p.parse_args();binary=a.rcc.resolve(strict=True);a.output.mkdir(parents=True,exist_ok=True)
     if not 0<a.place_id<2147483647:raise ValueError('Invalid native place ID')
     if a.character_health_resource and (a.place or a.gameserver_port_conflict):raise ValueError('Character bootstrap is a separate trusted fixture')
-    payload=a.place.read_bytes() if a.place else fixture(bool(a.character_health_resource))
+    if a.legacy_controller and a.place:raise ValueError('Controller probe requires the trusted fixture')
+    payload=a.place.read_bytes() if a.place else fixture(bool(a.character_health_resource),a.legacy_controller)
     health_resource=a.character_health_resource.read_bytes() if a.character_health_resource else None
     if health_resource is not None and not 0<len(health_resource)<=2*1024*1024:raise ValueError('Health resource exceeds fixture limit')
     resource=a.resource.read_bytes() if a.resource else None
@@ -189,6 +210,7 @@ RESOURCE_PROBE
             observe='local s=workspace:FindFirstChild("RuntimeSentinel"); local signal=workspace:FindFirstChild("SignalWaitSentinel"); local holder=workspace:FindFirstChild("DetachedTemplateHolder"); local target=holder and holder.Value; local ancestry=workspace:FindFirstChild("TemplateAncestrySentinel"); return game:GetService("HttpService"):JSONEncode({sentinel=s and s.Value or "",signalWait=signal and signal.Value or "",detachedTemplate=target and target.Name or "",templateAncestry=ancestry and ancestry.Value or "",disabledRan=workspace:FindFirstChild("DisabledSentinel")~=nil,errors=_G.__2x2ProbeErrors or {}})'
             observe='local probe=workspace:FindFirstChild("TemplateReleaseProbe"); local released=probe and game:GetService("HttpService"):JSONDecode(probe:Invoke()) or {}; '+observe.replace('templateAncestry=','templateReleased=released,templateAncestry=')
             observe='local health=workspace:FindFirstChild("CharacterHealthSentinel"); '+observe.replace('templateAncestry=','characterHealth=health and health.Value or "",templateAncestry=')
+            observe='local controller=workspace:FindFirstChild("LegacyControllerSentinel"); '+observe.replace('templateAncestry=','legacyController=controller and controller.Value or "",templateAncestry=')
             execute='<Execute xmlns="http://roblox.com/"><jobID>isolated-probe</jobID><script><name>ObserveNativeRuntime</name><script>'+escape(observe)+'</script><arguments/></script></Execute>'
             execute_envelope=('<?xml version="1.0"?><soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"><soap:Body>'+execute+'</soap:Body></soap:Envelope>').encode()
             request=urllib.request.Request('http://127.0.0.1:'+str(soap_port)+'/',data=execute_envelope,
@@ -226,6 +248,8 @@ RESOURCE_PROBE
                 if health_resource is not None:
                     result['characterHealthBootstrap']={'observations':report['characterHealth'],'resourceSha256':hashlib.sha256(health_resource).hexdigest()}
                     assert report['characterHealth']=='present,present,present',report
+                if a.legacy_controller:
+                    assert report['legacyController']=='player controller numeric enum clone reset passed',report
                 assert report['sentinel']=='native Lua executed',report
                 assert report['signalWait']=='native signal resumed',report
                 assert report['detachedTemplate']=='OriginalDetachedTemplate',report

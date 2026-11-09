@@ -5801,10 +5801,13 @@ RAK_THREAD_DECLARATION(RakNet::RecvFromLoop)
 	unsigned int extraSocketOptions = rpai->extraSocketOptions;
 
 	rakPeer->isRecvFromLoopThreadActive.Increment();
+	unsigned int diagnosticPackets = 0;
+	RakNet::TimeMS nextDiagnostic = 0;
 
 	RakPeer::RecvFromStruct *recvFromStruct;
 	while ( rakPeer->endThreads == false )
 	{
+		int diagnosticRead = 0;
 		recvFromStruct=rakPeer->bufferedPackets.Allocate( _FILE_AND_LINE_ );
 		if (recvFromStruct != NULL)
 		{
@@ -5812,9 +5815,11 @@ RAK_THREAD_DECLARATION(RakNet::RecvFromLoop)
 			recvFromStruct->remotePortRakNetWasStartedOn_PS3=remotePortRakNetWasStartedOn_PS3;
 			recvFromStruct->extraSocketOptions=extraSocketOptions;
 			SocketLayer::RecvFromBlocking(s, rakPeer, remotePortRakNetWasStartedOn_PS3, extraSocketOptions, recvFromStruct->data, &recvFromStruct->bytesRead, &recvFromStruct->systemAddress, &recvFromStruct->timeRead);
+			diagnosticRead = recvFromStruct->bytesRead;
 
 			if (recvFromStruct->bytesRead>0)
 			{
+				++diagnosticPackets;
 				RakAssert(recvFromStruct->systemAddress.GetPort());
 				rakPeer->bufferedPackets.Push(recvFromStruct);
 				rakPeer->quitAndDataEvents.SetEvent();
@@ -5826,6 +5831,12 @@ RAK_THREAD_DECLARATION(RakNet::RecvFromLoop)
 		}
 		else
 			RakSleep(30);
+		if (FLog::RakNetDisconnect && RakNet::GetTimeMS() >= nextDiagnostic)
+		{
+			nextDiagnostic = RakNet::GetTimeMS() + 5000;
+			FASTLOG3(FLog::RakNetDisconnect, "RakNet: receive loop packets %u, lastRead %d, socket %u",
+				diagnosticPackets, diagnosticRead, (unsigned int)s);
+		}
 	}
 	rakPeer->isRecvFromLoopThreadActive.Decrement();
 
@@ -5880,6 +5891,8 @@ RAK_THREAD_DECLARATION(RakNet::UpdateNetworkLoop)
 	RakNet::TimeMS timeMS;
 
 	rakPeer->isMainLoopThreadActive = true;
+	unsigned int diagnosticCycles = 0;
+	RakNet::TimeMS nextDiagnostic = 0;
 
 	while ( rakPeer->endThreads == false )
 	{
@@ -5897,6 +5910,13 @@ RAK_THREAD_DECLARATION(RakNet::UpdateNetworkLoop)
 			rakPeer->userUpdateThreadPtr(rakPeer, rakPeer->userUpdateThreadData);
 
 		rakPeer->RunUpdateCycle(timeNS, timeMS, updateBitStream);
+		++diagnosticCycles;
+		if (FLog::RakNetDisconnect && RakNet::GetTimeMS() >= nextDiagnostic)
+		{
+			nextDiagnostic = RakNet::GetTimeMS() + 5000;
+			FASTLOG3(FLog::RakNetDisconnect, "RakNet: update loop cycles %u, receiveThreads %u, clock %u",
+				diagnosticCycles, rakPeer->isRecvFromLoopThreadActive.GetValue(), (unsigned int)RakNet::GetTimeMS());
+		}
 
 		// Pending sends go out this often, unless quitAndDataEvents is set
 		rakPeer->quitAndDataEvents.WaitOnEvent(10);

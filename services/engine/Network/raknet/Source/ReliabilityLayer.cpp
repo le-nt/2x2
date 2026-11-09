@@ -1698,6 +1698,9 @@ bool ReliabilityLayer::Update( SOCKET s, SystemAddress &systemAddress, int MTUSi
 	{
 		// Roblox
 		FASTLOG(FLog::RakNetDisconnect, "Raknet: AckTimeout");
+		FASTLOG3(FLog::RakNetDisconnect, "Raknet: AckTimeout clock current %u, lastDatagram %u, timeout %u",
+			(unsigned int)(time / (CCTimeType)(CC_TIME_TYPE_BYTES == 4 ? 1 : 1000)),
+			(unsigned int)timeLastDatagramArrived, (unsigned int)timeoutTime);
 
 		// SHOW - dead connection
 		// We've waited a very long time for a reliable packet to get an ack and it never has

@@ -23,6 +23,7 @@ class RBXBaseClass PVInstance
 {
 private:
 	typedef Reflection::Described<PVInstance, sPVInstance, Instance > Super;
+	int legacyController;
 
 protected:
 
@@ -30,6 +31,14 @@ protected:
 
 public:
 	virtual ~PVInstance();
+
+	// Historical player controllers are now supplied by Player.Character.
+	// Motor and autonomous controller modes need separate native support.
+	enum ControllerType { CONTROLLER_NONE=0, CONTROLLER_KEYBOARD_RIGHT=1,
+		CONTROLLER_KEYBOARD_LEFT=2, CONTROLLER_JOYPAD1=3, CONTROLLER_JOYPAD2=4,
+		CONTROLLER_CHASE=5, CONTROLLER_FLEE=6, CONTROLLER_PLAYER=7 };
+	ControllerType getLegacyController() const { return static_cast<ControllerType>(legacyController); }
+	void setLegacyController(ControllerType value);
 
 	/*override*/ int getPersistentDataCost() const 
 	{
