@@ -11,6 +11,7 @@ from collections import Counter
 from pathlib import Path
 
 MAGIC = b'<roblox!\x89\xff\r\n\x1a\n'
+END_TAG = b'END\0'  # SerializerBinary.cpp kChunkEnd, including its NUL byte.
 MAX_INSTANCES = 2_000_000
 MAX_CHUNK = 128 * 1024 * 1024
 MAX_STRING = 16 * 1024 * 1024
@@ -123,7 +124,7 @@ def inspect_binary(path):
             payload = f.read(compressed or expanded)
             if len(payload) != (compressed or expanded):
                 raise BinaryFormatError('Truncated chunk payload')
-            if tag == b'END.':
+            if tag == END_TAG:
                 ended = True
                 break
             if tag not in (b'INST', b'PROP', b'PRNT'):

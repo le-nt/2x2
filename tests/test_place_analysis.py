@@ -29,7 +29,7 @@ class PlaceAnalysisTests(unittest.TestCase):
         self.assertNotIn('local mesh',str(result))
 
     def test_binary_scans_unknown_string_properties_without_claiming_full_decode(self):
-        end=chunk(b'END.',b'</roblox>')
+        end=chunk(b'END\0',b'</roblox>')
         data=fixture()[:-len(end)]+prop(1,'ArbitraryString',['rbxassetid://54321'])+prop(1,'Other',['rbxasset://fonts/Teapot.mesh'])+end
         result=self.analyze(data)
         self.assertIn('54321',result['assetIds'])
