@@ -241,6 +241,22 @@ returned identical bytes. Both instances then reused their permanent archives
 without additional requests. This verifies that asset, not arbitrary private
 assets or every permission scope.
 
+Separate fresh RBXLX imports, using Cloud-only and public-only configurations,
+automatically retrieved that referenced asset without `--download`. Both imports
+preserved the input place hash. The report still labels absent runtime bootstrap
+models as partial coverage. All 31 provider, seeder and prefetch regressions pass.
+The isolated browser server now has both upstreams configured; no credential was
+copied into its files or browser settings.
+
+Client stall investigation found that the PR's Emscripten FunctionMarshaller
+differed from the already-locked WSL implementation used for browser builds.
+The PR now preserves that existing implementation: worker Execute calls are
+queued for the owner thread, queue mutation uses a mutex, and drained callbacks
+run outside the lock. A compiled test rejects the old PR branch for executing
+a worker's callback on the worker thread; the aligned implementation passes
+owner-thread, 80,000 concurrent-submission and nested-submission checks. This
+source alignment is not evidence that the browser disconnect cause is solved.
+
 ## Reference inspection
 
 Repository trees and relevant files were inspected through GitHub, including

@@ -2,45 +2,6 @@
 
 namespace RBX
 {
-#ifdef EMSCRIPTEN
-    FunctionMarshaller::FunctionMarshaller()
-    {
-    }
-
-    FunctionMarshaller::~FunctionMarshaller()
-    {
-    }
-
-    void FunctionMarshaller::Execute(std::function<void()> job)
-    {
-        job();
-    }
-
-    void FunctionMarshaller::Submit(std::function<void()> job)
-    {
-        jobQueue.push(std::move(job));
-    }
-
-    void FunctionMarshaller::ProcessJobs()
-    {
-        if (jobQueue.empty())
-        {
-            return;
-        }
-        
-        std::queue<std::function<void()>> localQueue;
-        std::swap(localQueue, jobQueue);
-
-        while (!localQueue.empty())
-        {
-            localQueue.front()();
-            localQueue.pop();
-        }
-    }
-
-#else
-
-
     FunctionMarshaller::FunctionMarshaller()
         : stopFlag(false)
         , marshallerThreadId(std::this_thread::get_id())
@@ -93,5 +54,5 @@ namespace RBX
         }
     }
 
-#endif
+
 };

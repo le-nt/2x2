@@ -11,6 +11,8 @@ import shutil
 from pathlib import Path
 
 FILES = {
+    'UniversalClient/FunctionMarshaller.cpp':'e8c3bff74719b8c51b9deab4d7a65045677cbd45bbfbfca681b62a4a950200ef',
+    'UniversalClient/FunctionMarshaller.h':'f8284f3bd2c2c9c095b8e5c722754baba3749588b3888faa026ff288193716dd',
     'App/v8datamodel/Value.cpp':'7eee041b19b90d7b173e4a268510b1d57926353639990237f1a8968eb95f2456',
     'App/include/v8datamodel/Value.h':'d23b0a89c0c040944dff66e96dfab879cea200a31387d5ae8567400a1f17f359',
     'App/util/Sound.cpp':'111e9abb97ee869a33fd308eda23ba2b9e8cc965e620fdb117ff6bf804af306b',
