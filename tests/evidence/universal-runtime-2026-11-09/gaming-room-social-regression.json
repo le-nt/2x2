@@ -1,0 +1,80 @@
+{
+  "placeId": 281,
+  "originalPlaceModified": false,
+  "beforeServiceErrors": [
+    {
+      "message": "RawCallback error",
+      "scriptPath": "Workspace.Rank"
+    },
+    {
+      "message": "LuaWebService error",
+      "scriptPath": "Players.PreservationProbe.PlayerGui.GUI.Gamepasses.GamepackButton.JoinAndOwned"
+    },
+    {
+      "message": "LuaWebService error",
+      "scriptPath": "Players.PreservationProbe.PlayerGui.GUI.Gamepasses.AdminButton.JoinAndOwned"
+    },
+    {
+      "message": "LuaWebService error",
+      "scriptPath": "Players.PreservationProbe.PlayerGui.GUI.Gamepasses.MLGButton.JoinAndOwned"
+    },
+    {
+      "message": "LuaWebService error",
+      "scriptPath": "Players.PreservationProbe.PlayerGui.GUI.Gamepasses.TipButton.JoinAndOwned"
+    },
+    {
+      "message": "LuaWebService error",
+      "scriptPath": "Workspace.RankGUI"
+    },
+    {
+      "message": "LuaWebService error",
+      "scriptPath": "Players.PreservationProbe.PlayerGui.GUI.Gamepasses.RadioButton.JoinAndOwned"
+    },
+    {
+      "message": "LuaWebService error",
+      "scriptPath": "Players.PreservationProbe.PlayerGui.GUI.Gamepasses.VIPLoungeButton.JoinAndOwned"
+    },
+    {
+      "message": "LuaWebService error",
+      "scriptPath": "Players.PreservationProbe.PlayerGui.GUI.Gamepasses.AdminButton.JoinAndOwned"
+    },
+    {
+      "message": "LuaWebService error",
+      "scriptPath": "Players.PreservationProbe.PlayerGui.GUI.Gamepasses.GamepackButton.JoinAndOwned"
+    },
+    {
+      "message": "LuaWebService error",
+      "scriptPath": "Players.PreservationProbe.PlayerGui.GUI.Gamepasses.MLGButton.JoinAndOwned"
+    },
+    {
+      "message": "LuaWebService error",
+      "scriptPath": "Players.PreservationProbe.PlayerGui.GUI.Gamepasses.RadioButton.JoinAndOwned"
+    },
+    {
+      "message": "LuaWebService error",
+      "scriptPath": "Players.PreservationProbe.PlayerGui.GUI.Gamepasses.TipButton.JoinAndOwned"
+    },
+    {
+      "message": "LuaWebService error",
+      "scriptPath": "Players.PreservationProbe.PlayerGui.GUI.Gamepasses.VIPLoungeButton.JoinAndOwned"
+    },
+    {
+      "message": "LuaWebService error",
+      "scriptPath": "Workspace.RankGUI"
+    }
+  ],
+  "afterServiceErrors": [],
+  "nativeApiProbe": "native-social-real-results.json",
+  "browserObserved": [
+    "Original world, character and ten backpack tools rendered",
+    "Original Help menu opened through mouse input",
+    "Original controller equipped; holding pose and console-ID entry UI rendered",
+    "Original rank leaderstats displayed Guest"
+  ],
+  "limitations": [
+    "No complete console minigame round verified",
+    "Original RankGUI connects an undefined callback before its function declaration",
+    "UpdatesButton.RoomScript assumes its original room hierarchy, but is also present in StarterGui"
+  ],
+  "policy": "Temporary group non-membership defaults: false / 0 / Guest; no Roblox account identity or group membership inferred."
+}

@@ -52,8 +52,8 @@ visit(workspace,0)
 
 CLIENT_RUNTIME='''local root=game:GetService("ReplicatedFirst")
 if script.Parent~=root then
- if not root:FindFirstChild("__2x2ClientRuntimeObserverV1Local") then
-  local copy=script:Clone();copy.Name="__2x2ClientRuntimeObserverV1Local";copy.Parent=root
+ if not root:FindFirstChild("__2x2ClientRuntimeObserverV2Local") then
+  local copy=script:Clone();copy.Name="__2x2ClientRuntimeObserverV2Local";copy.Parent=root
  end
  return
 end
@@ -63,6 +63,19 @@ local run=game:GetService("RunService")
 local steps,renders,events=0,0,0
 local function emit(data) print("[2x2 runtime observation] "..game:GetService("HttpService"):JSONEncode(data)) end
 local function vector(v) return v and {x=v.X,y=v.Y,z=v.Z} or nil end
+local function scene()
+ local result={gui={}}
+ local camera=workspace.CurrentCamera
+ if camera then result.camera={type=tostring(camera.CameraType),subject=camera.CameraSubject and camera.CameraSubject:GetFullName() or "",position=vector(camera.CoordinateFrame.p),focus=vector(camera.Focus.p)} end
+ local gui=player:FindFirstChild("PlayerGui")
+ if gui then for index,child in ipairs(gui:GetChildren()) do
+  if index>24 then break end
+  local item={name=child.Name,class=child.ClassName,children=#child:GetChildren()}
+  local ok,enabled=pcall(function() return child.Enabled end);if ok then item.enabled=enabled end
+  table.insert(result.gui,item)
+ end end
+ return result
+end
 local connections={
  run.Stepped:connect(function() steps=steps+1 end),
  run.RenderStepped:connect(function() renders=renders+1 end)
@@ -79,7 +92,8 @@ for sample=1,120 do
  local humanoid=character and character:FindFirstChild("Humanoid")
  local torso=character and (character:FindFirstChild("HumanoidRootPart") or character:FindFirstChild("Torso"))
  local network=game:FindFirstChild("NetworkClient")
- emit({phase="heartbeat",sample=sample,time=tick(),steps=steps,renders=renders,keyboard=input.KeyboardEnabled,mouse=input.MouseEnabled,wDown=input:IsKeyDown(Enum.KeyCode.W),health=humanoid and humanoid.Health or nil,moveDirection=humanoid and vector(humanoid.MoveDirection) or nil,position=torso and vector(torso.Position) or nil,networkChildren=network and #network:GetChildren() or 0})
+ local extra=nil;if sample==1 or sample%10==0 then local ok,result=pcall(scene);extra=ok and result or {error=tostring(result)} end
+ emit({version=2,scene=extra,phase="heartbeat",sample=sample,time=tick(),steps=steps,renders=renders,keyboard=input.KeyboardEnabled,mouse=input.MouseEnabled,wDown=input:IsKeyDown(Enum.KeyCode.W),health=humanoid and humanoid.Health or nil,moveDirection=humanoid and vector(humanoid.MoveDirection) or nil,position=torso and vector(torso.Position) or nil,networkChildren=network and #network:GetChildren() or 0})
  wait(1)
 end
 for _,connection in pairs(connections) do connection:disconnect() end
@@ -189,7 +203,7 @@ def main():
     client_user=a.client_audio_user if a.client_audio_user is not None else a.client_runtime_user
     if client_user is not None:
         if not 0<client_user<2147483647:raise ValueError('Invalid test user ID')
-        observer_name='__2x2ClientRuntimeObserverV1' if a.client_runtime_user is not None else '__2x2ClientAudioObserverV3'
+        observer_name='__2x2ClientRuntimeObserverV2' if a.client_runtime_user is not None else '__2x2ClientAudioObserverV3'
         code='''local clientProbeStatus="user_not_found"
 for _,player in pairs(game:GetService("Players"):GetPlayers()) do
  if player.UserId==USER_ID then

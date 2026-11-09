@@ -10,6 +10,7 @@ import { promisify } from 'node:util';
 import { gunzipSync } from 'node:zlib';
 import { issue,verify,equal,clientTicket,safeRelative } from './native-security.mjs';
 import {createNativeChat} from './native-chat.mjs';
+import {createNativeSocial} from './native-social.mjs';
 import {createNativeDataStore} from './native-datastore.mjs';
 import {rewriteLegacyAssetUrls,validAssetVersion} from './asset-resolver.mjs';
 import {inspectAvatarDependencies} from './native-avatar-deps.mjs';
@@ -26,6 +27,7 @@ function beneath(root,rel){if(!safeRelative(rel))return null;try{const base=fs.r
 export function createNative({db,cfg,root,port,sessionUser,isGated,assetResolver}){
  const n=cfg.native;
  const chat=createNativeChat({db,config:n.chat});
+ const social=createNativeSocial({db});
  const publicOrigin=origin(n.publicOrigin||`http://localhost:${port}`);
  const base=publicOrigin+'/native';
  const serverDir=path.join(root,'../server');
@@ -139,7 +141,7 @@ export function createNative({db,cfg,root,port,sessionUser,isGated,assetResolver
  function appearanceURL(id){return `${base}/appearance/${id}`;}
  function avatarPaths(av){return inspectAvatarDependencies(charRoot,av).files;}
  function machineAllowed(url){return /^\/native\/(?:archive-content\/?$|legacy-shared\/?$|legacy-texture\/?$|content-asset\/?$|asset\/?$|appearance\/\d+$|bodycolors\/\d+$|content$|persistence\/(?:getV2|set|increment|getSortedValues)$|api\/game\/players\/[1-9][0-9]{0,15}$|api\/moderation\/filtertext$|internal\/gameserver\/(?:heartbeat|shutdown)$|Game\/LoadPlaceInfo\.ashx)$/.test(url.pathname);}
- function machine(req,url){return machineAllowed(url)&&!!n.accessKey&&equal(req.headers.accesskey,n.accessKey);}
+ function machine(req,url){return (machineAllowed(url)||/^\/native\/Game\/(?:LuaWebService\/HandleSocialRequest\.ashx|GamePass\/GamePassHandler\.ashx)$/.test(url.pathname))&&!!n.accessKey&&equal(req.headers.accesskey,n.accessKey);}
  async function route(req,res,url,user,sessionHash){
   refreshPlaces();
   const p=url.pathname;
@@ -172,6 +174,7 @@ export function createNative({db,cfg,root,port,sessionUser,isGated,assetResolver
   if(await persistence(req,res,url,{service}))return;
   if(req.method!=='GET'&&req.method!=='HEAD'&&req.method!=='POST')return json(res,405,{error:'Method not supported.'});
   if(await chat(req,res,url,{service,user}))return;
+  if(social(req,res,url,{service,user}))return;
   if(p==='/native/negotiate'){res.writeHead(200,{'Content-Type':'text/plain','Cache-Control':'no-store'});return res.end('OK');}
   if(p==='/native/game/placelauncher'){
    if(req.method!=='POST')return json(res,405,{error:'Use POST.'});
