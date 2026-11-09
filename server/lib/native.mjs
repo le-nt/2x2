@@ -11,7 +11,7 @@ import { gunzipSync } from 'node:zlib';
 import { issue,verify,equal,clientTicket,safeRelative } from './native-security.mjs';
 import {createNativeChat} from './native-chat.mjs';
 import {createNativeDataStore} from './native-datastore.mjs';
-import {rewriteLegacyAssetUrls} from './asset-resolver.mjs';
+import {rewriteLegacyAssetUrls,validAssetVersion} from './asset-resolver.mjs';
 import {inspectAvatarDependencies} from './native-avatar-deps.mjs';
 import {loadLegacyTextureMap,legacyTextureAssetId} from './legacy-texture-map.mjs';
 import {createNativeAssetPrefetch} from './native-asset-prefetch.mjs';
@@ -264,20 +264,26 @@ export function createNative({db,cfg,root,port,sessionUser,isGated,assetResolver
    }
   }else if(/^\/native\/(?:asset|content-asset)\/?$/.test(p)){
    const assetId=url.searchParams.get('id');
+   const version=url.searchParams.get('version');
+   if(!validAssetVersion(version))return json(res,400,{error:'Invalid asset version.'});
    // Places retain the old /native/asset route; media uses /native/content-asset.
    const isPlaceRoute=/^\/native\/asset\/?$/.test(p);
-   const entry=isPlaceRoute&&/^[1-9][0-9]*$/.test(assetId||'')?places.get(Number(assetId)):null;
+   const entry=isPlaceRoute&&version===null&&/^[1-9][0-9]*$/.test(assetId||'')?places.get(Number(assetId)):null;
    file=preparedMaps.get(entry?.id)||hasMap(entry);kind=file?'.rbxl':undefined;
    // Place IDs retain priority; every other numeric ID can resolve to a cached
    // mesh, texture, model, audio file, or exact linked Lua dependency.
-   if(!file){const asset=await assetResolver?.resolve(assetId);if(asset){file=asset.file;kind=asset.ext;}}
+   if(!file){const asset=await assetResolver?.resolve(assetId,{version});if(asset){file=asset.file;kind=asset.ext;}}
   }
   else if(p==='/native/Game/LoadPlaceInfo.ashx'){
    const id=Number(url.searchParams.get('PlaceId'));if(!places.has(id))return json(res,404,{error:'Unknown place.'});
    res.writeHead(200,{'Content-Type':'text/plain','Cache-Control':'no-store'});return res.end(`--rbxsig%=0\npcall(function() game:SetPlaceID(${id}, false) end)`);
   }else return json(res,404,{error:'Unknown native endpoint.'});
   if(!file){
-   const reason=/^\/native\/(?:asset|content-asset)\/?$/.test(p) ? assetResolver?.getFailureReason(url.searchParams.get('id')) : null;
+   const reason=/^\/native\/(?:asset|content-asset)\/?$/.test(p) ? assetResolver?.getFailureReason(url.searchParams.get('id'),{version:url.searchParams.get('version')}) : null;
+   if(reason==='upstream_rate_limited'){
+    res.setHeader('Retry-After',String(Math.max(1,Math.ceil((assetResolver?.getRetryAfter(url.searchParams.get('id'),{version:url.searchParams.get('version')})||1000)/1000))));
+    return json(res,429,{error:'Asset provider is temporarily rate limited.',reason});
+   }
    return json(res,404,{error:'Native content not found.',reason:reason||'not_in_archive'});
   }
   let data=fs.readFileSync(file);

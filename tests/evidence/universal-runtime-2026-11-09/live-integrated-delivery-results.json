@@ -1,0 +1,98 @@
+{
+  "checkedAt": "2026-11-09T23:26:11.674Z",
+  "preference": "legacy_v1",
+  "assets": [
+    {
+      "id": "182393478",
+      "sha256": "a2ba69445e813c9ebb2bf8bcf76649aff5ff559f5cf85f8679b3460ffe10a7ed",
+      "bytes": 796,
+      "provider": "legacy_v1_location",
+      "actualVersion": 1,
+      "assetTypeId": 24
+    },
+    {
+      "id": "182393478",
+      "version": 1,
+      "sha256": "a2ba69445e813c9ebb2bf8bcf76649aff5ff559f5cf85f8679b3460ffe10a7ed",
+      "bytes": 796,
+      "provider": "legacy_v1_location",
+      "actualVersion": 1,
+      "assetTypeId": 24
+    },
+    {
+      "id": "34854607",
+      "sha256": "12510c94336f3944623da0cea886e7583f8c07b98ae4617f0ac154b76ab7f263",
+      "bytes": 106236,
+      "provider": "legacy_v1_location",
+      "actualVersion": 1,
+      "assetTypeId": 1
+    },
+    {
+      "id": "1029523",
+      "sha256": "21a52f4d677abec1d53d5593c8d57212467d29eec03c99cf2e1d88701c86d879",
+      "bytes": 204469,
+      "provider": "opencloud",
+      "actualVersion": 1,
+      "assetTypeId": 4
+    },
+    {
+      "id": "151199377",
+      "sha256": "48e7c35c36d1c70ab30820b8be27d8ad3cfb5b8ada2f3c96a6c2204cab1c05b5",
+      "bytes": 12998,
+      "provider": "opencloud",
+      "actualVersion": 1,
+      "assetTypeId": 1
+    }
+  ],
+  "requests": [
+    {
+      "host": "assetdelivery.roblox.com",
+      "endpoint": "/v1/assetId/182393478",
+      "status": 200
+    },
+    {
+      "host": "fts.rbxcdn.com",
+      "status": 200
+    },
+    {
+      "host": "assetdelivery.roblox.com",
+      "endpoint": "/v1/assetId/34854607",
+      "status": 200
+    },
+    {
+      "host": "fts.rbxcdn.com",
+      "status": 200
+    },
+    {
+      "host": "assetdelivery.roblox.com",
+      "endpoint": "/v1/assetId/1029523",
+      "status": 200
+    },
+    {
+      "host": "apis.roblox.com",
+      "endpoint": "/asset-delivery-api/v1/assetId/1029523",
+      "status": 200
+    },
+    {
+      "host": "contentdelivery.roblox.com",
+      "status": 200
+    },
+    {
+      "host": "assetdelivery.roblox.com",
+      "endpoint": "/v1/assetId/151199377",
+      "status": 200
+    },
+    {
+      "host": "apis.roblox.com",
+      "endpoint": "/asset-delivery-api/v1/assetId/151199377",
+      "status": 200
+    },
+    {
+      "host": "contentdelivery.roblox.com",
+      "status": 200
+    }
+  ],
+  "credentialForwarded": false,
+  "cacheRemovedBeforeRestart": true,
+  "restartReusedOriginalBytes": true
+}

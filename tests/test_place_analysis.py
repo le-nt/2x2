@@ -67,4 +67,13 @@ class PlaceAnalysisTests(unittest.TestCase):
         self.assertEqual(result['scriptSourceCoverage']['status'],'external_sources_required')
         self.assertEqual(result['scriptSourceCoverage']['linkedSourceReferences'],1)
 
+    def test_version_pins_survive_xml_entities_and_binary_string_properties(self):
+        urls='https://www.roblox.com/asset?id=12345&amp;version=2 https://assetdelivery.roblox.com/v1/assetId/12345/version/3'
+        xml=('<roblox><Item class="Decal"><Properties><string name="Name">'+urls+'</string></Properties></Item></roblox>').encode()
+        result=self.analyze(xml)
+        self.assertEqual(result['versionedReferences'],[{'id':'12345','version':2},{'id':'12345','version':3}])
+        end=chunk(b'END\0',b'</roblox>')
+        binary=self.analyze(fixture()[:-len(end)]+prop(2,'Source',[urls])+end)
+        self.assertEqual(binary['versionedReferences'],result['versionedReferences'])
+
 if __name__=='__main__':unittest.main()

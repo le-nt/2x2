@@ -6,7 +6,7 @@ import re
 import sys
 import xml.etree.ElementTree as ET
 from pathlib import Path
-from rbxl_binary_inventory import inspect_binary, MAGIC, ASSET_RE, classify_script_source, summarize_script_sources
+from rbxl_binary_inventory import inspect_binary, MAGIC, ASSET_RE, classify_script_source, summarize_script_sources, versioned_asset_references, source_asset_ids, unversioned_asset_ids
 
 MAX_BYTES = 128 * 1024 * 1024
 SCRIPT_CLASSES = {'Script', 'LocalScript', 'ModuleScript'}
@@ -33,6 +33,8 @@ def analyze_place(file):
     if root.tag != 'roblox':
         raise ValueError('XML root must be roblox')
     scripts, resources, ids, stack = [], set(), set(), [(root, [], 0)]
+    versioned = set()
+    unversioned = set()
     instances = 0
     while stack:
         node, ancestry, depth = stack.pop()
@@ -57,7 +59,11 @@ def analyze_place(file):
                     'compileStatus':'not_tested', 'startStatus':'not_tested', 'runtimeStatus':'not_tested'})
         # Scan decoded values including XML entities and all string properties.
         if node.text:
-            ids.update(ASSET_RE.findall(node.text))
+            ids.update(source_asset_ids(node.text))
+            unversioned.update(unversioned_asset_ids(node.text))
+            for reference in versioned_asset_references(node.text):
+                ids.add(reference['id'])
+                versioned.add((reference['id'],reference['version']))
             resources.update(m.rstrip() for m in RESOURCE_RE.findall(node.text))
         for child in reversed(list(node)):
             stack.append((child,chain,depth+1))
@@ -65,6 +71,8 @@ def analyze_place(file):
             'sha256':original_hash, 'instanceCount':instances, 'scripts':scripts,
             'scriptSourceCoverage':summarize_script_sources(scripts),
             'assetIds':sorted(ids,key=lambda x:(len(x),x)), 'resourceReferences':sorted(resources),
+            'versionedReferences':[{'id':asset,'version':version} for asset,version in sorted(versioned)],
+            'unversionedAssetIds':sorted(unversioned,key=lambda x:(len(x),x)),
             'gameplayStatus':'not_tested', 'limitations':['Computed Lua references require runtime observation; Lua was not executed.']}
 
 if __name__ == '__main__':

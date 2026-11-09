@@ -5,6 +5,18 @@ import path from 'node:path';
 import os from 'node:os';
 import {createNativeAssetPrefetch} from '../server/lib/native-asset-prefetch.mjs';
 
+test('prefetch carries deferred version pins separately rather than replacing them with latest',async t=>{
+ const temp=fs.mkdtempSync(path.join(os.tmpdir(),'2x2-pinned-prefetch-'));t.after(()=>fs.rmSync(temp,{recursive:true,force:true}));
+ const dir=path.join(temp,'native/asset-reports');fs.mkdirSync(dir,{recursive:true});
+ fs.writeFileSync(path.join(dir,'example.json'),JSON.stringify({placeId:'example',assets:[{id:'123',version:1,status:'deferred'},{id:'123',version:2,status:'missing'},{id:'123',version:1,status:'missing'}]}));
+ const previous=process.env.ROBLOX_ASSET_FETCH;process.env.ROBLOX_ASSET_FETCH='1';
+ t.after(()=>{if(previous===undefined)delete process.env.ROBLOX_ASSET_FETCH;else process.env.ROBLOX_ASSET_FETCH=previous;});
+ const seen=[];const prefetch=createNativeAssetPrefetch({serverDir:temp,assetResolver:{lookup:()=>null,resolve:async(id,options)=>{seen.push({id,version:options.version});}},logger:{log(){},warn(){}}});
+ assert.equal(prefetch.launch('example'),2);
+ for(let i=0;i<30&&prefetch.stats().pending;i++)await new Promise(resolve=>setTimeout(resolve,5));
+ assert.deepEqual(seen,[{id:'123',version:1},{id:'123',version:2}]);
+});
+
 test('prefetch uses verified per-game IDs, deduplicates launches and keeps queue bounded',async()=>{
  const temp=fs.mkdtempSync(path.join(os.tmpdir(),'2x2-prefetch-'));
  const dir=path.join(temp,'native/asset-reports');

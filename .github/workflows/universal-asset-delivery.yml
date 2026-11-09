@@ -20,6 +20,7 @@ on:
       - 'tools/import-native.py'
       - 'tools/seed-native-assets.mjs'
       - 'tests/roblox-open-cloud.test.mjs'
+      - 'tests/asset-delivery.test.mjs'
       - 'tests/native-asset-seeder.test.mjs'
       - 'tests/asset-resolver.test.mjs'
       - 'tests/asset-upstream-errors.test.mjs'
@@ -74,7 +75,7 @@ jobs:
           python -m py_compile tools/stage-browser-validation.py tools/observe-native-job.py tools/probe-rcc-runtime.py tools/install-runtime-vfs-engine.py
           python -m py_compile tools/setup-browser-validation-users.py
       - name: Run offline regression tests
-        run: node --test tests/asset-vfs.test.mjs tests/roblox-open-cloud.test.mjs tests/native-asset-seeder.test.mjs tests/asset-resolver.test.mjs tests/asset-upstream-errors.test.mjs tests/native-asset-prefetch.test.mjs tests/legacy-shared-assets.test.mjs tests/legacy-texture-map.test.mjs tests/native-http.test.mjs tests/native-datastore.test.mjs
+        run: node --test tests/asset-vfs.test.mjs tests/roblox-open-cloud.test.mjs tests/asset-delivery.test.mjs tests/native-asset-seeder.test.mjs tests/asset-resolver.test.mjs tests/asset-upstream-errors.test.mjs tests/native-asset-prefetch.test.mjs tests/legacy-shared-assets.test.mjs tests/legacy-texture-map.test.mjs tests/native-http.test.mjs tests/native-datastore.test.mjs
       - name: Validate structural place analysis
         run: python -m unittest discover -s tests -p test_place_analysis.py -v
       - name: Validate browser fixture storage isolation

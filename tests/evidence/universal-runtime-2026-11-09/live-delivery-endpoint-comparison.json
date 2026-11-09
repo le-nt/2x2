@@ -1,0 +1,1032 @@
+{
+  "checkedAt": "2026-11-09T23:04:10.265Z",
+  "environment": "User Windows connection; not a Hetzner/datacenter benchmark",
+  "limits": "Low-volume correctness comparison only; no throughput or quota guarantees",
+  "requests": [
+    {
+      "provider": "opencloud",
+      "id": "182393478",
+      "hops": [
+        {
+          "host": "apis.roblox.com",
+          "status": 200,
+          "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-cache",
+            "roblox-assetid": "182393478",
+            "roblox-assetversionnumber": "1",
+            "roblox-assettypeid": "24",
+            "x-ratelimit-limit": "1000, 1000;w=60, 1000;w=60",
+            "x-ratelimit-remaining": "999",
+            "x-ratelimit-reset": "51"
+          },
+          "headerLatencyMs": 430,
+          "endpoint": "/asset-delivery-api/v1/assetId/182393478",
+          "descriptor": {
+            "assetId": null,
+            "assetTypeId": 24,
+            "assetVersionNumber": null,
+            "locationCount": 1
+          }
+        },
+        {
+          "host": "contentdelivery.roblox.com",
+          "status": 200,
+          "headers": {
+            "content-type": "application/octet-stream",
+            "content-length": "504"
+          },
+          "headerLatencyMs": 253
+        }
+      ],
+      "credentialForwarded": false,
+      "status": 200,
+      "bytes": 796,
+      "sha256": "a2ba69445e813c9ebb2bf8bcf76649aff5ff559f5cf85f8679b3460ffe10a7ed",
+      "totalMs": 692
+    },
+    {
+      "provider": "public_v1_bytes",
+      "id": "182393478",
+      "hops": [
+        {
+          "host": "assetdelivery.roblox.com",
+          "status": 302,
+          "headers": {
+            "content-length": "0",
+            "cache-control": "no-cache",
+            "roblox-assetid": "182393478",
+            "roblox-assetversionnumber": "1",
+            "roblox-assettypeid": "24",
+            "x-ratelimit-limit": "3000, 3000;w=60",
+            "x-ratelimit-remaining": "2997",
+            "x-ratelimit-reset": "50"
+          },
+          "headerLatencyMs": 521,
+          "endpoint": "/v1/asset"
+        },
+        {
+          "host": "fts.rbxcdn.com",
+          "status": 200,
+          "headers": {
+            "content-type": "binary/octet-stream",
+            "content-length": "504",
+            "etag": "\"f6195435842d68de5747a1afdddb3a23\"",
+            "cache-control": "public, max-age=227633, s-maxage=227633",
+            "x-ratelimit-limit": "10000, 10000;w=1",
+            "x-ratelimit-remaining": "9774",
+            "x-ratelimit-reset": "1"
+          },
+          "headerLatencyMs": 205
+        }
+      ],
+      "credentialForwarded": false,
+      "status": 200,
+      "bytes": 796,
+      "sha256": "a2ba69445e813c9ebb2bf8bcf76649aff5ff559f5cf85f8679b3460ffe10a7ed",
+      "totalMs": 728
+    },
+    {
+      "provider": "public_v1_location",
+      "id": "182393478",
+      "hops": [
+        {
+          "host": "assetdelivery.roblox.com",
+          "status": 200,
+          "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-cache",
+            "roblox-assetid": "182393478",
+            "roblox-assetversionnumber": "1",
+            "roblox-assettypeid": "24",
+            "x-ratelimit-limit": "1000000, 1000000;w=1",
+            "x-ratelimit-remaining": "999999",
+            "x-ratelimit-reset": "1"
+          },
+          "headerLatencyMs": 170,
+          "endpoint": "/v1/assetId/182393478",
+          "descriptor": {
+            "assetId": null,
+            "assetTypeId": 24,
+            "assetVersionNumber": null,
+            "locationCount": 1
+          }
+        },
+        {
+          "host": "fts.rbxcdn.com",
+          "status": 200,
+          "headers": {
+            "content-type": "binary/octet-stream",
+            "content-length": "504",
+            "etag": "\"f6195435842d68de5747a1afdddb3a23\"",
+            "cache-control": "public, max-age=227633, s-maxage=227633",
+            "x-ratelimit-limit": "10000, 10000;w=1",
+            "x-ratelimit-remaining": "9774",
+            "x-ratelimit-reset": "1"
+          },
+          "headerLatencyMs": 47
+        }
+      ],
+      "credentialForwarded": false,
+      "status": 200,
+      "bytes": 796,
+      "sha256": "a2ba69445e813c9ebb2bf8bcf76649aff5ff559f5cf85f8679b3460ffe10a7ed",
+      "totalMs": 219
+    },
+    {
+      "provider": "public_v2_location",
+      "id": "182393478",
+      "hops": [
+        {
+          "host": "assetdelivery.roblox.com",
+          "status": 200,
+          "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-cache",
+            "roblox-assetid": "182393478",
+            "roblox-assetversionnumber": "1",
+            "roblox-assettypeid": "24",
+            "x-ratelimit-limit": "1000000, 1000000;w=1",
+            "x-ratelimit-remaining": "999999",
+            "x-ratelimit-reset": "1"
+          },
+          "headerLatencyMs": 175,
+          "endpoint": "/v2/assetId/182393478",
+          "descriptor": {
+            "assetId": null,
+            "assetTypeId": 24,
+            "assetVersionNumber": null,
+            "locationCount": 1
+          }
+        },
+        {
+          "host": "fts.rbxcdn.com",
+          "status": 200,
+          "headers": {
+            "content-type": "binary/octet-stream",
+            "content-length": "504",
+            "etag": "\"f6195435842d68de5747a1afdddb3a23\"",
+            "cache-control": "public, max-age=31536000",
+            "x-ratelimit-limit": "10000, 10000;w=1",
+            "x-ratelimit-remaining": "9998",
+            "x-ratelimit-reset": "1"
+          },
+          "headerLatencyMs": 47
+        }
+      ],
+      "credentialForwarded": false,
+      "status": 200,
+      "bytes": 796,
+      "sha256": "a2ba69445e813c9ebb2bf8bcf76649aff5ff559f5cf85f8679b3460ffe10a7ed",
+      "totalMs": 224
+    },
+    {
+      "provider": "opencloud",
+      "id": "34854607",
+      "hops": [
+        {
+          "host": "apis.roblox.com",
+          "status": 200,
+          "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-cache",
+            "roblox-assetid": "34854607",
+            "roblox-assetversionnumber": "1",
+            "roblox-assettypeid": "1",
+            "x-ratelimit-limit": "1000, 1000;w=60, 1000;w=60",
+            "x-ratelimit-remaining": "998",
+            "x-ratelimit-reset": "49"
+          },
+          "headerLatencyMs": 117,
+          "endpoint": "/asset-delivery-api/v1/assetId/34854607",
+          "descriptor": {
+            "assetId": null,
+            "assetTypeId": 1,
+            "assetVersionNumber": null,
+            "locationCount": 1
+          }
+        },
+        {
+          "host": "contentdelivery.roblox.com",
+          "status": 200,
+          "headers": {
+            "content-type": "application/octet-stream",
+            "content-length": "162759"
+          },
+          "headerLatencyMs": 76
+        }
+      ],
+      "credentialForwarded": false,
+      "status": 200,
+      "bytes": 106236,
+      "sha256": "12510c94336f3944623da0cea886e7583f8c07b98ae4617f0ac154b76ab7f263",
+      "totalMs": 417
+    },
+    {
+      "provider": "public_v1_bytes",
+      "id": "34854607",
+      "hops": [
+        {
+          "host": "assetdelivery.roblox.com",
+          "status": 302,
+          "headers": {
+            "content-length": "0",
+            "cache-control": "no-cache",
+            "roblox-assetid": "34854607",
+            "roblox-assetversionnumber": "1",
+            "roblox-assettypeid": "1",
+            "x-ratelimit-limit": "3000, 3000;w=60",
+            "x-ratelimit-remaining": "2996",
+            "x-ratelimit-reset": "49"
+          },
+          "headerLatencyMs": 195,
+          "endpoint": "/v1/asset"
+        },
+        {
+          "host": "fts.rbxcdn.com",
+          "status": 200,
+          "headers": {
+            "content-type": "binary/octet-stream",
+            "content-length": "162759",
+            "etag": "\"ab5ef43bee0f607d9ecd3e125e229d22\"",
+            "cache-control": "public, max-age=224381, s-maxage=224381",
+            "x-ratelimit-limit": "10000, 10000;w=1",
+            "x-ratelimit-remaining": "9705",
+            "x-ratelimit-reset": "1"
+          },
+          "headerLatencyMs": 67
+        }
+      ],
+      "credentialForwarded": false,
+      "status": 200,
+      "bytes": 106236,
+      "sha256": "12510c94336f3944623da0cea886e7583f8c07b98ae4617f0ac154b76ab7f263",
+      "totalMs": 376
+    },
+    {
+      "provider": "public_v1_location",
+      "id": "34854607",
+      "hops": [
+        {
+          "host": "assetdelivery.roblox.com",
+          "status": 200,
+          "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-cache",
+            "roblox-assetid": "34854607",
+            "roblox-assetversionnumber": "1",
+            "roblox-assettypeid": "1",
+            "x-ratelimit-limit": "1000000, 1000000;w=1",
+            "x-ratelimit-remaining": "999999",
+            "x-ratelimit-reset": "1"
+          },
+          "headerLatencyMs": 170,
+          "endpoint": "/v1/assetId/34854607",
+          "descriptor": {
+            "assetId": null,
+            "assetTypeId": 1,
+            "assetVersionNumber": null,
+            "locationCount": 1
+          }
+        },
+        {
+          "host": "fts.rbxcdn.com",
+          "status": 200,
+          "headers": {
+            "content-type": "binary/octet-stream",
+            "content-length": "162759",
+            "etag": "\"ab5ef43bee0f607d9ecd3e125e229d22\"",
+            "cache-control": "public, max-age=224381, s-maxage=224381",
+            "x-ratelimit-limit": "10000, 10000;w=1",
+            "x-ratelimit-remaining": "9705",
+            "x-ratelimit-reset": "1"
+          },
+          "headerLatencyMs": 52
+        }
+      ],
+      "credentialForwarded": false,
+      "status": 200,
+      "bytes": 106236,
+      "sha256": "12510c94336f3944623da0cea886e7583f8c07b98ae4617f0ac154b76ab7f263",
+      "totalMs": 248
+    },
+    {
+      "provider": "public_v2_location",
+      "id": "34854607",
+      "hops": [
+        {
+          "host": "assetdelivery.roblox.com",
+          "status": 200,
+          "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-cache",
+            "roblox-assetid": "34854607",
+            "roblox-assetversionnumber": "1",
+            "roblox-assettypeid": "1",
+            "x-ratelimit-limit": "1000000, 1000000;w=1",
+            "x-ratelimit-remaining": "999999",
+            "x-ratelimit-reset": "1"
+          },
+          "headerLatencyMs": 160,
+          "endpoint": "/v2/assetId/34854607",
+          "descriptor": {
+            "assetId": null,
+            "assetTypeId": 1,
+            "assetVersionNumber": null,
+            "locationCount": 1
+          }
+        },
+        {
+          "host": "fts.rbxcdn.com",
+          "status": 200,
+          "headers": {
+            "content-type": "binary/octet-stream",
+            "content-length": "162759",
+            "etag": "\"ab5ef43bee0f607d9ecd3e125e229d22\"",
+            "cache-control": "public, max-age=224381, s-maxage=224381",
+            "x-ratelimit-limit": "10000, 10000;w=1",
+            "x-ratelimit-remaining": "9705",
+            "x-ratelimit-reset": "1"
+          },
+          "headerLatencyMs": 50
+        }
+      ],
+      "credentialForwarded": false,
+      "status": 200,
+      "bytes": 106236,
+      "sha256": "12510c94336f3944623da0cea886e7583f8c07b98ae4617f0ac154b76ab7f263",
+      "totalMs": 237
+    },
+    {
+      "provider": "opencloud",
+      "id": "1029523",
+      "hops": [
+        {
+          "host": "apis.roblox.com",
+          "status": 200,
+          "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-cache",
+            "roblox-assetid": "1029523",
+            "roblox-assetversionnumber": "1",
+            "roblox-assettypeid": "4",
+            "x-ratelimit-limit": "1000, 1000;w=60, 1000;w=60",
+            "x-ratelimit-remaining": "997",
+            "x-ratelimit-reset": "48"
+          },
+          "headerLatencyMs": 116,
+          "endpoint": "/asset-delivery-api/v1/assetId/1029523",
+          "descriptor": {
+            "assetId": null,
+            "assetTypeId": 4,
+            "assetVersionNumber": null,
+            "locationCount": 1
+          }
+        },
+        {
+          "host": "contentdelivery.roblox.com",
+          "status": 200,
+          "headers": {
+            "content-type": "application/octet-stream",
+            "content-length": "24300"
+          },
+          "headerLatencyMs": 59
+        }
+      ],
+      "credentialForwarded": false,
+      "status": 200,
+      "bytes": 204469,
+      "sha256": "21a52f4d677abec1d53d5593c8d57212467d29eec03c99cf2e1d88701c86d879",
+      "totalMs": 184
+    },
+    {
+      "provider": "public_v1_bytes",
+      "id": "1029523",
+      "hops": [
+        {
+          "host": "assetdelivery.roblox.com",
+          "status": 401,
+          "headers": {
+            "content-type": "application/json",
+            "content-length": "77",
+            "cache-control": "no-cache",
+            "x-ratelimit-limit": "3000, 3000;w=60",
+            "x-ratelimit-remaining": "2996",
+            "x-ratelimit-reset": "48"
+          },
+          "headerLatencyMs": 157,
+          "endpoint": "/v1/asset"
+        }
+      ],
+      "credentialForwarded": false,
+      "status": 401,
+      "totalMs": 158
+    },
+    {
+      "provider": "public_v1_location",
+      "id": "1029523",
+      "hops": [
+        {
+          "host": "assetdelivery.roblox.com",
+          "status": 200,
+          "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-cache",
+            "x-ratelimit-limit": "1000000, 1000000;w=1",
+            "x-ratelimit-remaining": "999999",
+            "x-ratelimit-reset": "1"
+          },
+          "headerLatencyMs": 384,
+          "endpoint": "/v1/assetId/1029523",
+          "descriptor": {
+            "assetId": null,
+            "assetTypeId": 0,
+            "assetVersionNumber": null,
+            "locationCount": 0,
+            "errorCodes": [
+              401
+            ]
+          }
+        }
+      ],
+      "credentialForwarded": false,
+      "error": "missing_asset_location",
+      "totalMs": 384
+    },
+    {
+      "provider": "public_v2_location",
+      "id": "1029523",
+      "hops": [
+        {
+          "host": "assetdelivery.roblox.com",
+          "status": 200,
+          "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-cache",
+            "x-ratelimit-limit": "1000000, 1000000;w=1",
+            "x-ratelimit-remaining": "999999",
+            "x-ratelimit-reset": "1"
+          },
+          "headerLatencyMs": 175,
+          "endpoint": "/v2/assetId/1029523",
+          "descriptor": {
+            "assetId": null,
+            "assetTypeId": 0,
+            "assetVersionNumber": null,
+            "locationCount": 0,
+            "errorCodes": [
+              401
+            ]
+          }
+        }
+      ],
+      "credentialForwarded": false,
+      "error": "missing_asset_location",
+      "totalMs": 176
+    },
+    {
+      "provider": "opencloud",
+      "id": "182393478",
+      "version": 1,
+      "hops": [
+        {
+          "host": "apis.roblox.com",
+          "status": 200,
+          "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-cache",
+            "roblox-assetid": "182393478",
+            "roblox-assetversionnumber": "1",
+            "roblox-assettypeid": "24",
+            "x-ratelimit-limit": "1000, 1000;w=60, 1000;w=60",
+            "x-ratelimit-remaining": "999",
+            "x-ratelimit-reset": "47"
+          },
+          "headerLatencyMs": 116,
+          "endpoint": "/asset-delivery-api/v1/assetId/182393478/version/1",
+          "descriptor": {
+            "assetId": null,
+            "assetTypeId": 24,
+            "assetVersionNumber": null,
+            "locationCount": 1
+          }
+        },
+        {
+          "host": "contentdelivery.roblox.com",
+          "status": 200,
+          "headers": {
+            "content-type": "application/octet-stream",
+            "content-length": "504"
+          },
+          "headerLatencyMs": 57
+        }
+      ],
+      "credentialForwarded": false,
+      "status": 200,
+      "bytes": 796,
+      "sha256": "a2ba69445e813c9ebb2bf8bcf76649aff5ff559f5cf85f8679b3460ffe10a7ed",
+      "totalMs": 174
+    },
+    {
+      "provider": "public_v1_bytes",
+      "id": "182393478",
+      "version": 1,
+      "hops": [
+        {
+          "host": "assetdelivery.roblox.com",
+          "status": 302,
+          "headers": {
+            "content-length": "0",
+            "cache-control": "no-cache",
+            "roblox-assetid": "182393478",
+            "roblox-assetversionnumber": "1",
+            "roblox-assettypeid": "24",
+            "x-ratelimit-limit": "3000, 3000;w=60",
+            "x-ratelimit-remaining": "2996",
+            "x-ratelimit-reset": "47"
+          },
+          "headerLatencyMs": 160,
+          "endpoint": "/v1/asset"
+        },
+        {
+          "host": "fts.rbxcdn.com",
+          "status": 200,
+          "headers": {
+            "content-type": "binary/octet-stream",
+            "content-length": "504",
+            "etag": "\"f6195435842d68de5747a1afdddb3a23\"",
+            "cache-control": "public, max-age=227633, s-maxage=227633",
+            "x-ratelimit-limit": "10000, 10000;w=1",
+            "x-ratelimit-remaining": "9774",
+            "x-ratelimit-reset": "1"
+          },
+          "headerLatencyMs": 50
+        }
+      ],
+      "credentialForwarded": false,
+      "status": 200,
+      "bytes": 796,
+      "sha256": "a2ba69445e813c9ebb2bf8bcf76649aff5ff559f5cf85f8679b3460ffe10a7ed",
+      "totalMs": 210
+    },
+    {
+      "provider": "public_v1_location",
+      "id": "182393478",
+      "version": 1,
+      "hops": [
+        {
+          "host": "assetdelivery.roblox.com",
+          "status": 200,
+          "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-cache",
+            "roblox-assetid": "182393478",
+            "roblox-assetversionnumber": "1",
+            "roblox-assettypeid": "24",
+            "x-ratelimit-limit": "1000000, 1000000;w=1",
+            "x-ratelimit-remaining": "999999",
+            "x-ratelimit-reset": "1"
+          },
+          "headerLatencyMs": 175,
+          "endpoint": "/v1/assetId/182393478/version/1",
+          "descriptor": {
+            "assetId": null,
+            "assetTypeId": 24,
+            "assetVersionNumber": null,
+            "locationCount": 1
+          }
+        },
+        {
+          "host": "fts.rbxcdn.com",
+          "status": 200,
+          "headers": {
+            "content-type": "binary/octet-stream",
+            "content-length": "504",
+            "etag": "\"f6195435842d68de5747a1afdddb3a23\"",
+            "cache-control": "public, max-age=227633, s-maxage=227633",
+            "x-ratelimit-limit": "10000, 10000;w=1",
+            "x-ratelimit-remaining": "9774",
+            "x-ratelimit-reset": "1"
+          },
+          "headerLatencyMs": 48
+        }
+      ],
+      "credentialForwarded": false,
+      "status": 200,
+      "bytes": 796,
+      "sha256": "a2ba69445e813c9ebb2bf8bcf76649aff5ff559f5cf85f8679b3460ffe10a7ed",
+      "totalMs": 224
+    },
+    {
+      "provider": "public_v2_location",
+      "id": "182393478",
+      "version": 1,
+      "hops": [
+        {
+          "host": "assetdelivery.roblox.com",
+          "status": 200,
+          "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-cache",
+            "roblox-assetid": "182393478",
+            "roblox-assetversionnumber": "1",
+            "roblox-assettypeid": "24",
+            "x-ratelimit-limit": "1000000, 1000000;w=1",
+            "x-ratelimit-remaining": "999999",
+            "x-ratelimit-reset": "1"
+          },
+          "headerLatencyMs": 169,
+          "endpoint": "/v2/assetId/182393478/version/1",
+          "descriptor": {
+            "assetId": null,
+            "assetTypeId": 24,
+            "assetVersionNumber": null,
+            "locationCount": 1
+          }
+        },
+        {
+          "host": "fts.rbxcdn.com",
+          "status": 200,
+          "headers": {
+            "content-type": "binary/octet-stream",
+            "content-length": "504",
+            "etag": "\"f6195435842d68de5747a1afdddb3a23\"",
+            "cache-control": "public, max-age=227633, s-maxage=227633",
+            "x-ratelimit-limit": "10000, 10000;w=1",
+            "x-ratelimit-remaining": "9774",
+            "x-ratelimit-reset": "1"
+          },
+          "headerLatencyMs": 46
+        }
+      ],
+      "credentialForwarded": false,
+      "status": 200,
+      "bytes": 796,
+      "sha256": "a2ba69445e813c9ebb2bf8bcf76649aff5ff559f5cf85f8679b3460ffe10a7ed",
+      "totalMs": 216
+    },
+    {
+      "provider": "opencloud",
+      "id": "182393478",
+      "version": 99999999,
+      "hops": [
+        {
+          "host": "apis.roblox.com",
+          "status": 200,
+          "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-cache",
+            "x-ratelimit-limit": "1000, 1000;w=60, 1000;w=60",
+            "x-ratelimit-remaining": "998",
+            "x-ratelimit-reset": "46"
+          },
+          "headerLatencyMs": 130,
+          "endpoint": "/asset-delivery-api/v1/assetId/182393478/version/99999999",
+          "descriptor": {
+            "assetId": null,
+            "assetTypeId": 0,
+            "assetVersionNumber": null,
+            "locationCount": 0,
+            "errorCodes": [
+              404
+            ]
+          }
+        }
+      ],
+      "credentialForwarded": false,
+      "error": "missing_asset_location",
+      "totalMs": 131
+    },
+    {
+      "provider": "public_v1_bytes",
+      "id": "182393478",
+      "version": 99999999,
+      "hops": [
+        {
+          "host": "assetdelivery.roblox.com",
+          "status": 404,
+          "headers": {
+            "content-type": "application/json",
+            "content-length": "64",
+            "cache-control": "no-cache",
+            "x-ratelimit-limit": "3000, 3000;w=60",
+            "x-ratelimit-remaining": "2994",
+            "x-ratelimit-reset": "46"
+          },
+          "headerLatencyMs": 164,
+          "endpoint": "/v1/asset"
+        }
+      ],
+      "credentialForwarded": false,
+      "status": 404,
+      "totalMs": 165
+    },
+    {
+      "provider": "public_v1_location",
+      "id": "182393478",
+      "version": 99999999,
+      "hops": [
+        {
+          "host": "assetdelivery.roblox.com",
+          "status": 200,
+          "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-cache",
+            "x-ratelimit-limit": "1000000, 1000000;w=1",
+            "x-ratelimit-remaining": "999999",
+            "x-ratelimit-reset": "1"
+          },
+          "headerLatencyMs": 171,
+          "endpoint": "/v1/assetId/182393478/version/99999999",
+          "descriptor": {
+            "assetId": null,
+            "assetTypeId": 0,
+            "assetVersionNumber": null,
+            "locationCount": 0,
+            "errorCodes": [
+              404
+            ]
+          }
+        }
+      ],
+      "credentialForwarded": false,
+      "error": "missing_asset_location",
+      "totalMs": 172
+    },
+    {
+      "provider": "public_v2_location",
+      "id": "182393478",
+      "version": 99999999,
+      "hops": [
+        {
+          "host": "assetdelivery.roblox.com",
+          "status": 200,
+          "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-cache",
+            "x-ratelimit-limit": "1000000, 1000000;w=1",
+            "x-ratelimit-remaining": "999999",
+            "x-ratelimit-reset": "1"
+          },
+          "headerLatencyMs": 160,
+          "endpoint": "/v2/assetId/182393478/version/99999999",
+          "descriptor": {
+            "assetId": null,
+            "assetTypeId": 0,
+            "assetVersionNumber": null,
+            "locationCount": 0,
+            "errorCodes": [
+              404
+            ]
+          }
+        }
+      ],
+      "credentialForwarded": false,
+      "error": "missing_asset_location",
+      "totalMs": 161
+    },
+    {
+      "provider": "opencloud",
+      "id": "151199377",
+      "hops": [
+        {
+          "host": "apis.roblox.com",
+          "status": 200,
+          "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-cache",
+            "roblox-assetid": "151199377",
+            "roblox-assetversionnumber": "1",
+            "roblox-assettypeid": "1",
+            "x-ratelimit-limit": "1000, 1000;w=60, 1000;w=60",
+            "x-ratelimit-remaining": "996",
+            "x-ratelimit-reset": "46"
+          },
+          "headerLatencyMs": 181,
+          "endpoint": "/asset-delivery-api/v1/assetId/151199377",
+          "descriptor": {
+            "assetId": null,
+            "assetTypeId": 1,
+            "assetVersionNumber": null,
+            "locationCount": 1
+          }
+        },
+        {
+          "host": "contentdelivery.roblox.com",
+          "status": 200,
+          "headers": {
+            "content-type": "application/octet-stream",
+            "content-length": "13041"
+          },
+          "headerLatencyMs": 78
+        }
+      ],
+      "credentialForwarded": false,
+      "status": 200,
+      "bytes": 12998,
+      "sha256": "48e7c35c36d1c70ab30820b8be27d8ad3cfb5b8ada2f3c96a6c2204cab1c05b5",
+      "totalMs": 261
+    },
+    {
+      "provider": "public_v1_bytes",
+      "id": "151199377",
+      "hops": [
+        {
+          "host": "assetdelivery.roblox.com",
+          "status": 401,
+          "headers": {
+            "content-type": "application/json",
+            "content-length": "77",
+            "cache-control": "no-cache",
+            "x-ratelimit-limit": "3000, 3000;w=60",
+            "x-ratelimit-remaining": "2991",
+            "x-ratelimit-reset": "45"
+          },
+          "headerLatencyMs": 166,
+          "endpoint": "/v1/asset"
+        }
+      ],
+      "credentialForwarded": false,
+      "status": 401,
+      "totalMs": 167
+    },
+    {
+      "provider": "public_v1_location",
+      "id": "151199377",
+      "hops": [
+        {
+          "host": "assetdelivery.roblox.com",
+          "status": 200,
+          "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-cache",
+            "x-ratelimit-limit": "1000000, 1000000;w=1",
+            "x-ratelimit-remaining": "999999",
+            "x-ratelimit-reset": "1"
+          },
+          "headerLatencyMs": 169,
+          "endpoint": "/v1/assetId/151199377",
+          "descriptor": {
+            "assetId": null,
+            "assetTypeId": 0,
+            "assetVersionNumber": null,
+            "locationCount": 0,
+            "errorCodes": [
+              401
+            ]
+          }
+        }
+      ],
+      "credentialForwarded": false,
+      "error": "missing_asset_location",
+      "totalMs": 169
+    },
+    {
+      "provider": "public_v2_location",
+      "id": "151199377",
+      "hops": [
+        {
+          "host": "assetdelivery.roblox.com",
+          "status": 200,
+          "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-cache",
+            "x-ratelimit-limit": "1000000, 1000000;w=1",
+            "x-ratelimit-remaining": "999999",
+            "x-ratelimit-reset": "1"
+          },
+          "headerLatencyMs": 178,
+          "endpoint": "/v2/assetId/151199377",
+          "descriptor": {
+            "assetId": null,
+            "assetTypeId": 0,
+            "assetVersionNumber": null,
+            "locationCount": 0,
+            "errorCodes": [
+              401
+            ]
+          }
+        }
+      ],
+      "credentialForwarded": false,
+      "error": "missing_asset_location",
+      "totalMs": 179
+    },
+    {
+      "provider": "opencloud",
+      "id": "9191919191919",
+      "hops": [
+        {
+          "host": "apis.roblox.com",
+          "status": 200,
+          "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-cache",
+            "x-ratelimit-limit": "1000, 1000;w=60, 1000;w=60",
+            "x-ratelimit-remaining": "995",
+            "x-ratelimit-reset": "45"
+          },
+          "headerLatencyMs": 103,
+          "endpoint": "/asset-delivery-api/v1/assetId/9191919191919",
+          "descriptor": {
+            "assetId": null,
+            "assetTypeId": 0,
+            "assetVersionNumber": null,
+            "locationCount": 0,
+            "errorCodes": [
+              404
+            ]
+          }
+        }
+      ],
+      "credentialForwarded": false,
+      "error": "missing_asset_location",
+      "totalMs": 103
+    },
+    {
+      "provider": "public_v1_bytes",
+      "id": "9191919191919",
+      "hops": [
+        {
+          "host": "assetdelivery.roblox.com",
+          "status": 404,
+          "headers": {
+            "content-type": "application/json",
+            "content-length": "64",
+            "cache-control": "no-cache",
+            "x-ratelimit-limit": "3000, 3000;w=60",
+            "x-ratelimit-remaining": "2999",
+            "x-ratelimit-reset": "45"
+          },
+          "headerLatencyMs": 189,
+          "endpoint": "/v1/asset"
+        }
+      ],
+      "credentialForwarded": false,
+      "status": 404,
+      "totalMs": 189
+    },
+    {
+      "provider": "public_v1_location",
+      "id": "9191919191919",
+      "hops": [
+        {
+          "host": "assetdelivery.roblox.com",
+          "status": 200,
+          "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-cache",
+            "x-ratelimit-limit": "1000000, 1000000;w=1",
+            "x-ratelimit-remaining": "999999",
+            "x-ratelimit-reset": "1"
+          },
+          "headerLatencyMs": 307,
+          "endpoint": "/v1/assetId/9191919191919",
+          "descriptor": {
+            "assetId": null,
+            "assetTypeId": 0,
+            "assetVersionNumber": null,
+            "locationCount": 0,
+            "errorCodes": [
+              404
+            ]
+          }
+        }
+      ],
+      "credentialForwarded": false,
+      "error": "missing_asset_location",
+      "totalMs": 308
+    },
+    {
+      "provider": "public_v2_location",
+      "id": "9191919191919",
+      "hops": [
+        {
+          "host": "assetdelivery.roblox.com",
+          "status": 200,
+          "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-cache",
+            "x-ratelimit-limit": "1000000, 1000000;w=1",
+            "x-ratelimit-remaining": "999999",
+            "x-ratelimit-reset": "1"
+          },
+          "headerLatencyMs": 156,
+          "endpoint": "/v2/assetId/9191919191919",
+          "descriptor": {
+            "assetId": null,
+            "assetTypeId": 0,
+            "assetVersionNumber": null,
+            "locationCount": 0,
+            "errorCodes": [
+              404
+            ]
+          }
+        }
+      ],
+      "credentialForwarded": false,
+      "error": "missing_asset_location",
+      "totalMs": 157
+    }
+  ]
+}

@@ -20,19 +20,19 @@ import {prepareAssetVfs} from './prepare-asset-vfs.mjs';
 
 const defaultRoot=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 function flags(argv) {
-  const options={download:false,maxFetch:250,maxAssets:10000,maxDepth:4,maxDurationMs:300000,place:null,root:null};
+  const options={download:false,maxFetch:250,maxAssets:10000,maxDepth:4,maxDurationMs:300000,concurrency:3,place:null,root:null};
   for (let i=0;i<argv.length;i++) {
     const arg=argv[i];
     if (arg==='--download') options.download=true;
     else if (arg==='--place') options.place=argv[++i];
     else if (arg==='--root') options.root=argv[++i];
-    else if (['--max-fetch','--max-assets','--max-depth','--max-duration-ms'].includes(arg)) {
+    else if (['--max-fetch','--max-assets','--max-depth','--max-duration-ms','--concurrency'].includes(arg)) {
       const n=Number(argv[++i]);
       if (!Number.isSafeInteger(n)||n<0) throw Error('Invalid value for '+arg);
-      options[arg==='--max-fetch'?'maxFetch':arg==='--max-assets'?'maxAssets':arg==='--max-depth'?'maxDepth':'maxDurationMs']=n;
+      options[arg==='--max-fetch'?'maxFetch':arg==='--max-assets'?'maxAssets':arg==='--max-depth'?'maxDepth':arg==='--concurrency'?'concurrency':'maxDurationMs']=n;
     } else throw Error('Unknown option: '+arg);
   }
-  if (options.maxAssets>100000 || options.maxFetch>10000 || options.maxDepth>12 || options.maxDurationMs>600000)
+  if (options.maxAssets>100000 || options.maxFetch>10000 || options.maxDepth>12 || options.maxDurationMs>600000 || options.concurrency<1 || options.concurrency>6)
     throw Error('Safety limit exceeded');
   return options;
 }
@@ -61,24 +61,26 @@ const visited=new Set();
 const cappedPlaces=new Set();
 let totalUnique=0;
 
-function remember(id,placeId,depth,parent) {
+function remember(id,placeId,depth,parent,version=null) {
   if (!validAssetId(id)) return;
+  if(version!==null && !validAssetId(String(version)))return;
+  const assetKey=version===null?id:id+'.v'+version;
   if (!perPlace.has(placeId)) perPlace.set(placeId,new Set());
-  perPlace.get(placeId).add(id);
-  if (!ids.has(id)) {
+  perPlace.get(placeId).add(assetKey);
+  if (!ids.has(assetKey)) {
     if (totalUnique>=opts.maxAssets) {stats.skipped++;cappedPlaces.add(placeId);return;}
-    ids.set(id,{id,places:new Set(),parents:new Set(),status:'pending',depth,sha256:null,size:null,extension:null});
+    ids.set(assetKey,{id,...(version===null?{}:{version:Number(version)}),places:new Set(),parents:new Set(),status:'pending',depth,sha256:null,size:null,extension:null});
     totalUnique++;
   }
-  const record=ids.get(id);
+  const record=ids.get(assetKey);
   if (!record) return;
   record.places.add(placeId);
   if(parent)record.parents.add(parent);
   if(depth>opts.maxDepth)return;
-  const key=placeId+':'+id;
+  const key=placeId+':'+assetKey;
   if (visited.has(key))return;
   visited.add(key);
-  queue.push({id,placeId,depth});
+  queue.push({id,assetKey,version,placeId,depth});
 }
 function safeMap(file) {
   if (typeof file!=='string' || path.isAbsolute(file) || file.split(/[\\/]/).includes('..')) return null;
@@ -119,6 +121,8 @@ function inspectReferences(file,bytes) {
     return {...first,ids:[...new Set([...first.ids,...decoded.assetIds.filter(validAssetId)])].sort((a,b)=>Number(a)-Number(b)),
       coverage:decoded.format==='binary'?'binary_decoded_partial':'xml_text',analysis:decoded,
       resourceReferences:decoded.resourceReferences||[],
+      versionedReferences:[...new Map([...(first.versionedReferences||[]),...(decoded.versionedReferences||[])].map(r=>[r.id+'.v'+r.version,r])).values()],
+      unversionedIds:[...new Set([...(first.unversionedIds||first.ids),...(decoded.unversionedAssetIds||decoded.assetIds)].filter(validAssetId))],
       unsupportedProperties:decoded.unsupportedBinaryProperties};
   } catch(error){return {...first,coverage:'model_analyzer_invalid_response'};}
 }
@@ -139,8 +143,10 @@ function archiveAsset(record,found) {
   const hash=crypto.createHash('sha256').update(content).digest('hex');
   const ext=found.ext && /^\.[a-z0-9]{2,5}$/i.test(found.ext)?found.ext.toLowerCase():'';
   // One asset ID maps to one complete, immutable archive object.
-  const destination=path.join(seedDir,record.id+ext);
+  const stem=record.id+(record.version?'.v'+record.version:'');
+  let destination=path.join(seedDir,stem+ext);
   fs.mkdirSync(seedDir,{recursive:true});
+  if(path.dirname(found.file)===fs.realpathSync(seedDir))destination=found.file;
   if (!fs.existsSync(destination)) {
     const temp=destination+'.'+crypto.randomUUID()+'.tmp';
     try {
@@ -154,6 +160,7 @@ function archiveAsset(record,found) {
   record.size=content.length;
   record.extension=ext;
   record.kind=classify(content,found.file);
+  if(found.metadata)record.identity=found.metadata;
   record.file=path.relative(nativeDir,destination).replaceAll(path.sep,'/');
   return content;
 }
@@ -176,7 +183,7 @@ for(const resource of ['fonts/humanoidAnimateLocalKeyframe2.rbxm','fonts/humanoi
   if(!found || found.stat.size>2*1024*1024){unavailableRuntimeModels.push(resource);continue;}
   const bytes=fs.readFileSync(found.file),parsed=inspectReferences(found.file,bytes);
   runtimeModels.push({resource,source,sha256:crypto.createHash('sha256').update(bytes).digest('hex'),
-    assetIds:parsed.ids,coverage:parsed.coverage,resourceReferences:parsed.resourceReferences||[]});
+    assetIds:parsed.ids,unversionedAssetIds:parsed.unversionedIds||parsed.ids,versionedReferences:parsed.versionedReferences||[],coverage:parsed.coverage,resourceReferences:parsed.resourceReferences||[]});
 }
 
 for(const [placeId,entry] of Object.entries(places)) {
@@ -189,23 +196,25 @@ for(const [placeId,entry] of Object.entries(places)) {
     const parsed=inspectReferences(file,mapBytes);
     for(const model of runtimeModels) {
       rememberResources(placeId,['rbxasset://'+model.resource,...model.resourceReferences]);
-      for(const id of model.assetIds)remember(id,placeId,0,null);
+      for(const id of model.unversionedAssetIds)remember(id,placeId,0,null);
+      for(const reference of model.versionedReferences)remember(reference.id,placeId,0,null,reference.version);
     }
     analysesByPlace.set(placeId,parsed.analysis||null);
     rememberResources(placeId,[...scanResourceReferences(mapBytes).references,...(parsed.resourceReferences||[])]);
     if(!['xml_text','binary_decoded'].includes(parsed.coverage))diagnostics.push({place:placeId,reason:parsed.coverage,unsupported:parsed.unsupportedProperties?.slice(0,12)});
     stats.scannedPlaces++;
     if(!['xml_text','binary_decoded'].includes(parsed.coverage))stats.unscannedPlaces++;
-    for(const id of parsed.ids)remember(id,placeId,0,null);
+    for(const id of parsed.unversionedIds||parsed.ids)remember(id,placeId,0,null);
+    for(const reference of parsed.versionedReferences||[])remember(reference.id,placeId,0,null,reference.version);
   }catch(error){diagnostics.push({place:placeId,reason:error.code||error.message});}
 }
 
 const fetchDeadline=performance.now()+opts.maxDurationMs;
-while(queue.length) {
-  const task=queue.shift();
-  const record=ids.get(task.id);
-  if(!record)continue;
-  let found=resolver.lookup(task.id);
+async function processTask(task) {
+  const record=ids.get(task.assetKey);
+  if(!record)return;
+  const options={version:task.version};
+  let found=resolver.lookup(task.id,options);
   let downloaded=false;
   if(!found && opts.download && performance.now()>=fetchDeadline) {
     if(record.status==='pending') {
@@ -215,15 +224,15 @@ while(queue.length) {
   }
   if(!found && opts.download && performance.now()<fetchDeadline && stats.upstreamAttempts<opts.maxFetch) {
     stats.upstreamAttempts++;
-    try {found=await resolver.resolve(task.id);downloaded=!!found;}
+    try {found=await resolver.resolve(task.id,options);downloaded=!!found;}
     catch(error){record.reason=error.code||'network_error';}
   }
   if(!found) {
     if(record.status==='pending') {
-      record.status='missing';
-      record.reason=record.reason||resolver.getFailureReason(task.id)||'not_locally_available';
+      record.status=resolver.getFailureReason(task.id,options)==='upstream_rate_limited'?'deferred':'missing';
+      record.reason=record.reason||resolver.getFailureReason(task.id,options)||'not_locally_available';
     }
-    continue;
+    return;
   }
   if(record.status==='pending'||record.status==='missing') {
     try {
@@ -233,25 +242,32 @@ while(queue.length) {
       const deps=record.kind==='model'||record.kind==='text' ? inspectReferences(found.file,bytes) : null;
       record.scan=deps?.coverage||'not_a_model';
       record.resourceReferences=deps?.resourceReferences||(record.kind==='text'?scanResourceReferences(bytes).references:[]);
-      record.dependencies=(deps?.ids||[]).filter(id=>id!==record.id);
+      record.dependencies=(deps?.unversionedIds||deps?.ids||[]).filter(id=>id!==record.id);
+      record.versionedDependencies=(deps?.versionedReferences||[]).filter(r=>r.id!==record.id || r.version!==record.version);
     } catch(error) {
       record.status='error';record.reason=error.code||error.message;record.dependencies=[];
     }
   }
-  rememberResources(task.placeId,record.resourceReferences||[],task.id);
+  rememberResources(task.placeId,record.resourceReferences||[],task.assetKey);
   if(!['not_a_model','xml_text','text_literals'].includes(record.scan))
     diagnostics.push({place:task.placeId,asset:record.id,reason:record.scan||'model_not_scanned'});
   if(task.depth===opts.maxDepth && record.dependencies?.some(id=>!visited.has(task.placeId+':'+id)))
     cappedPlaces.add(task.placeId);
+  if(task.depth===opts.maxDepth && record.versionedDependencies?.some(r=>!visited.has(task.placeId+':'+r.id+'.v'+r.version)))cappedPlaces.add(task.placeId);
   if(task.depth<opts.maxDepth && record.dependencies) {
     for(const dep of record.dependencies) {
       if(dep===task.id)continue;
       stats.modelDependencies++;
-      remember(dep,task.placeId,task.depth+1,task.id);
+      remember(dep,task.placeId,task.depth+1,task.assetKey);
     }
+    for(const dep of record.versionedDependencies||[]){stats.modelDependencies++;remember(dep.id,task.placeId,task.depth+1,task.assetKey,dep.version);}
   }
 }
-const records=[...ids.values()].sort((a,b)=>Number(a.id)-Number(b.id)).map(record=>({
+while(queue.length) {
+  const batch=queue.splice(0,opts.concurrency);
+  await Promise.all(batch.map(processTask));
+}
+const records=[...ids.values()].sort((a,b)=>Number(a.id)-Number(b.id)||(a.version||0)-(b.version||0)).map(record=>({
   ...record,places:[...record.places].sort(),parents:[...record.parents].sort()
 }));
 for(const record of records) {
@@ -278,12 +294,12 @@ for(const [placeId,linked] of perPlace) {
     truncated:cappedPlaces.has(placeId),
     // 'complete' describes scanned references only: dynamic script IDs remain unknown.
     limitations:'Static scanning can miss dynamically computed IDs, compressed binary properties, and runtime-generated dependencies.',
-    assets:subset.map(r=>({id:r.id,status:r.status,reason:r.reason||null})).sort((a,b)=>Number(a.id)-Number(b.id))
+    assets:subset.map(r=>({id:r.id,...(r.version?{version:r.version}:{}),status:r.status,reason:r.reason||null})).sort((a,b)=>Number(a.id)-Number(b.id)||(a.version||0)-(b.version||0))
   });
 }
 atomicJson(indexPath,{
   schemaVersion:1,generatedAt,mode:opts.download?'seed_with_upstream':'offline_only',
-  stats,diagnostics,
+  concurrency:opts.concurrency,stats,diagnostics,
   assets:records
 });
 console.log(JSON.stringify({report:indexPath,perGameReports:reportsDir,stats,diagnostics:diagnostics.length},null,2));

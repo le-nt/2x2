@@ -7,6 +7,8 @@ const patterns = [
   /rbxassetid:\/\/([1-9][0-9]{0,15})(?!\d)/gi,
   /https?:\/\/(?:www\.)?roblox\.com\/asset\/?\?[^"'<\s]{0,256}?\bid=([1-9][0-9]{0,15})(?!\d)/gi,
   /https?:\/\/assetdelivery\.roblox\.com\/v[12]\/asset\/?\?[^"'<\s]{0,256}?\bid=([1-9][0-9]{0,15})(?!\d)/gi,
+  /https?:\/\/assetdelivery\.roblox\.com\/v[12]\/assetId\/([1-9][0-9]{0,15})(?!\d)/gi,
+  /https:\/\/apis\.roblox\.com\/asset-delivery-api\/v1\/assetId\/([1-9][0-9]{0,15})(?!\d)/gi,
   /https?:\/\/(?:www\.)?projectpizza\.net\/(?:api\/)?asset\/?\?[^"'<\s]{0,256}?\bid=([1-9][0-9]{0,15})(?!\d)/gi,
   /h?rbxasset:\/\/(?:\.\.\/|\.\/)*shareddata\/(?:assets|SBCR)\/([1-9][0-9]{0,15})(?![A-Za-z0-9._/-])/gi,
 ];
@@ -19,7 +21,21 @@ export function looksLikeRobloxModel(bytes) {
   const b=Buffer.from(bytes);
   return isXmlRoblox(b) || b.subarray(0,16).toString('latin1').startsWith('<roblox!');
 }
-function collect(text, ids) {
+function versionedFromText(text) {
+  const found=new Map();
+  for(const match of text.replace(/&amp;|&#38;|&#x26;/gi,'&').matchAll(/https?:\/\/(?:www\.)?(?:roblox\.com|assetdelivery\.roblox\.com|apis\.roblox\.com)\/[^\x00-\x20"'<>]{1,1024}/gi)) {
+    try {
+      const url=new URL(match[0]),query=new Map([...url.searchParams].map(([k,v])=>[k.toLowerCase(),v]));
+      const pathAllowed=url.hostname==='assetdelivery.roblox.com'&&/^\/v[12]\//i.test(url.pathname)||url.hostname==='apis.roblox.com'&&/^\/asset-delivery-api\/v1\//i.test(url.pathname);
+      const pinned=pathAllowed?url.pathname.match(/^(?:\/v[12]|\/asset-delivery-api\/v1)\/assetId\/([1-9][0-9]{0,15})\/version\/([1-9][0-9]{0,15})\/?$/i):null;
+      const permitted=url.hostname==='assetdelivery.roblox.com' && /^\/v[12]\/asset\/?$/i.test(url.pathname) || ['roblox.com','www.roblox.com'].includes(url.hostname) && /^\/asset\/?$/i.test(url.pathname);
+      const id=pinned?.[1] || (permitted?query.get('id'):null),version=pinned?.[2] || (permitted?query.get('version'):null);
+      if(validAssetId(id)&&validAssetId(version))found.set(id+'.v'+version,{id,version:Number(version)});
+    }catch{}
+  }
+  return [...found.values()];
+}
+function collect(text, ids, versions, unversioned) {
   for (const pattern of patterns) {
     pattern.lastIndex=0;
     let found;
@@ -27,6 +43,9 @@ function collect(text, ids) {
       if (validAssetId(found[1])) ids.add(found[1]);
     }
   }
+  for(const item of versionedFromText(text))versions.set(item.id+'.v'+item.version,item);
+  const withoutPins=text.replace(/https?:\/\/(?:www\.)?(?:roblox\.com|assetdelivery\.roblox\.com|apis\.roblox\.com)\/[^\x00-\x20"'<>]{1,1024}/gi,url=>versionedFromText(url).length?'':url);
+  for(const pattern of patterns){pattern.lastIndex=0;let found;while((found=pattern.exec(withoutPins))!==null)if(validAssetId(found[1]))unversioned.add(found[1]);}
 }
 export function scanResourceReferences(bytes, {maxBytes=128*1024*1024} = {}) {
   const b=Buffer.from(bytes);
@@ -46,9 +65,9 @@ export function scanAssetReferences(bytes, {maxBytes=128*1024*1024} = {}) {
   const b=Buffer.from(bytes);
   if (b.length>maxBytes) return {ids:[],coverage:'skipped_oversize',bytes:b.length};
   const xml=isXmlRoblox(b);
-  const ids=new Set();
+  const ids=new Set(),versions=new Map(),unversioned=new Set();
   // Latin1 preserves ASCII bytes in older Roblox formats.
-  collect(b.toString(xml?'utf8':'latin1'), ids);
+  collect(b.toString(xml?'utf8':'latin1'), ids,versions,unversioned);
   if (!xml && b.length <= 32*1024*1024) {
     // Some RBXM string tables use UTF-16LE. This is heuristic and not
     // a replacement for parsing compressed binary property streams.
@@ -57,7 +76,7 @@ export function scanAssetReferences(bytes, {maxBytes=128*1024*1024} = {}) {
       const low=b[i],high=b[i+1];
       wide+= high===0 && low>=32 && low<127 ? String.fromCharCode(low) : ' ';
     }
-    collect(wide,ids);
+    collect(wide,ids,versions,unversioned);
   }
-  return {ids:[...ids].sort((a,b)=>Number(a)-Number(b)),coverage:xml?'xml_text':'binary_strings_partial',bytes:b.length};
+  return {ids:[...ids].sort((a,b)=>Number(a)-Number(b)),unversionedIds:[...unversioned].sort((a,b)=>Number(a)-Number(b)),versionedReferences:[...versions.values()],coverage:xml?'xml_text':'binary_strings_partial',bytes:b.length};
 }

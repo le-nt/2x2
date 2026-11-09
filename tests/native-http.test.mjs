@@ -18,6 +18,12 @@ test('native protocol shares 2x2 identity, requires the key, and gates WebSocket
  fs.mkdirSync(path.join(tmp,'server/native/asset-library'),{recursive:true});
  fs.mkdirSync(path.join(tmp,'server/native/asset-recovery/scripts'),{recursive:true});
  fs.writeFileSync(path.join(tmp,'server/native/asset-library/34854608.mesh'),'version 1.00\n');
+ fs.mkdirSync(path.join(tmp,'server/native/asset-seed'),{recursive:true});fs.mkdirSync(path.join(tmp,'server/native/asset-metadata'),{recursive:true});
+ for(const version of [1,2]){
+  const bytes=Buffer.from('original pinned bytes '+version);
+  fs.writeFileSync(path.join(tmp,'server/native/asset-seed/8890012.v'+version),bytes);
+  fs.writeFileSync(path.join(tmp,'server/native/asset-metadata/8890012.v'+version+'.json'),JSON.stringify({schemaVersion:1,assetId:'8890012',requestedVersion:version,assetVersionNumber:version,versionVerified:true,bytes:bytes.length,sha256:createHash('sha256').update(bytes).digest('hex')}));
+ }
  fs.copyFileSync(path.join(root,'server/native/asset-library/34854607.png'),path.join(tmp,'server/native/asset-library/34854607.png'));
  fs.writeFileSync(path.join(tmp,'server/native/asset-recovery/scripts/1014476.lua'),'print("linked Lua delivered")\n');
  fs.writeFileSync(path.join(tmp,'server/native/places.json'),JSON.stringify({format:1,places:{[classic]:{id:1,file:'test.rbxl'},'binary-map':{id:2,file:'binary.rbxl'}}}));
@@ -136,6 +142,12 @@ test('native protocol shares 2x2 identity, requires the key, and gates WebSocket
   const damagedTexture=await request('/native/legacy-texture?name=cake.png',{headers:{AccessKey:key}},'');
   assert.equal(damagedTexture.status,404);assert.equal((await damagedTexture.json()).reason,'integrity_mismatch');
   const mesh=await request('/native/asset?id=34854608',{headers:{AccessKey:key}},'');
+  for(const version of [1,2]){
+   const asset=await request('/native/content-asset?id=8890012&version='+version,{headers:{AccessKey:key}},'');
+   assert.equal(asset.status,200);assert.equal(await asset.text(),'original pinned bytes '+version);
+  }
+  assert.equal((await request('/native/content-asset?id=8890012&version=0',{headers:{AccessKey:key}},'')).status,400);
+  assert.equal((await request('/native/asset?id=1&version=1',{headers:{AccessKey:key}},'')).status,404,'A pinned asset cannot silently return an unrelated unversioned imported map');
   assert.equal(mesh.status,200);assert.equal(await mesh.text(),'version 1.00\n');
   const overlay=await request('/api/asset?id=34854607',{headers:{AccessKey:key}},'');
   assert.equal(overlay.status,200);assert.equal(overlay.headers.get('Content-Type'),'image/png');
