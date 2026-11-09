@@ -277,6 +277,15 @@ preserved. All 11 targeted resources return their exact original PNG bytes from
 the isolated native HTTP endpoint. The machine-specific archive and mappings
 remain local. [Official source](https://archive.org/download/novetus-archive/1.0%20Release%20Candidates/Novetus%20v1.0%20RC3.zip).
 
+Undead respawns then exposed `Character.Health` being inserted asynchronously
+after CharacterAdded listeners. RCC now loads the original Health bootstrap
+before publishing the character, preserving custom Health overrides and warning
+without preventing spawn when the optional resource is unavailable. A real RCC
+comparison reports `missing,missing,missing` with the previous executable and
+`present,present,present` after the fix across three spawns. The fixture serves
+the original hash-verified archived model and creates only a disposable local
+test player; no game script is replaced.
+
 Repository trees and relevant files were inspected through GitHub, including
 Novetus map descriptions and ClientScriptTestForm. No external implementation
 was copied for this foundation. License files were read before considering reuse:

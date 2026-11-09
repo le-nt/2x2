@@ -11,6 +11,8 @@ import shutil
 from pathlib import Path
 
 FILES = {
+    'Network/Player.cpp':'274b3c72b9401e8177e76f7087c1f0e8e3153a92a6a65b12eede1b6afc8090bc',
+    'Network/raknet/Source/GetTime.cpp':'2f490ed83467088b1bef15c4fe67bd790256103e6ff2471e178c4b8f6f07f59c',
     'UniversalClient/FunctionMarshaller.cpp':'e8c3bff74719b8c51b9deab4d7a65045677cbd45bbfbfca681b62a4a950200ef',
     'UniversalClient/FunctionMarshaller.h':'f8284f3bd2c2c9c095b8e5c722754baba3749588b3888faa026ff288193716dd',
     'App/v8datamodel/Value.cpp':'7eee041b19b90d7b173e4a268510b1d57926353639990237f1a8968eb95f2456',

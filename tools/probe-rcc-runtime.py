@@ -26,7 +26,7 @@ def unused_port():
     with socket.socket() as server:
         server.bind(('127.0.0.1',0));return server.getsockname()[1]
 
-def fixture():
+def fixture(character_health=False):
     root=ET.Element('roblox',version='4')
     workspace=ET.SubElement(root,'Item',{'class':'Workspace','referent':'RBX0'})
     for name,source,disabled in [('ProbeSuccess','local value=Instance.new("StringValue"); value.Name="RuntimeSentinel"; value.Value="native Lua executed"; value.Parent=workspace',False),
@@ -65,6 +65,22 @@ end''',False),
         ET.SubElement(props,'string',name='Name').text=name
         ET.SubElement(props,'bool',name='Disabled').text=str(disabled).lower()
         ET.SubElement(props,'ProtectedString',name='Source').text=source
+    if character_health:
+        item=ET.SubElement(workspace,'Item',{'class':'Script','referent':'RBXHealthProbe'})
+        props=ET.SubElement(item,'Properties')
+        ET.SubElement(props,'string',name='Name').text='ProbeCharacterHealth'
+        ET.SubElement(props,'ProtectedString',name='Source').text='''local players=game:GetService("Players")
+players.CharacterAutoLoads=false
+local sentinel=Instance.new("StringValue",workspace);sentinel.Name="CharacterHealthSentinel"
+local player=assert(players.LocalPlayer,"Trusted bootstrap player missing")
+local observed={}
+player.CharacterAdded:connect(function(character)
+ local health=character:FindFirstChild("Health")
+ table.insert(observed,health and health:IsA("Script") and "present" or "missing")
+ if health then health.Disabled=true end
+ sentinel.Value=table.concat(observed,",")
+end)
+for i=1,3 do player:LoadCharacter() end'''
     return ET.tostring(root,encoding='utf8')
 
 def main():
@@ -74,11 +90,16 @@ def main():
     p.add_argument('--place',type=Path)
     p.add_argument('--place-id',type=int,default=999999)
     p.add_argument('--resource',type=Path,help='Optional genuine WAV used only to probe native archive HTTP fallback, not playback')
+    p.add_argument('--character-health-resource',type=Path,help='Original Health bootstrap model; verify its presence at three CharacterAdded signals')
+    p.add_argument('--working-directory',type=Path,help='Use existing runtime content while comparing an audited backup executable')
     p.add_argument('--seconds',type=int,default=2,choices=range(1,11))
     p.add_argument('--gameserver-port-conflict',action='store_true',help='Run the real bootstrap against an occupied UDP port; require an attributed shutdown')
     a=p.parse_args();binary=a.rcc.resolve(strict=True);a.output.mkdir(parents=True,exist_ok=True)
     if not 0<a.place_id<2147483647:raise ValueError('Invalid native place ID')
-    payload=a.place.read_bytes() if a.place else fixture()
+    if a.character_health_resource and (a.place or a.gameserver_port_conflict):raise ValueError('Character bootstrap is a separate trusted fixture')
+    payload=a.place.read_bytes() if a.place else fixture(bool(a.character_health_resource))
+    health_resource=a.character_health_resource.read_bytes() if a.character_health_resource else None
+    if health_resource is not None and not 0<len(health_resource)<=2*1024*1024:raise ValueError('Health resource exceeds fixture limit')
     resource=a.resource.read_bytes() if a.resource else None
     if resource is not None and not 0<len(resource)<=64*1024*1024:raise ValueError('Resource exceeds probe size limits')
     if not 0<len(payload)<=128*1024*1024:raise ValueError('Place size outside limits')
@@ -90,8 +111,9 @@ def main():
             parsed=urllib.parse.urlparse(self.path)
             requested=urllib.parse.parse_qs(parsed.query).get('path',[''])[0]
             resource_request=resource is not None and parsed.path=='/native/archive-content' and requested.casefold()=='sounds/rocket whoosh 01.wav'
-            ok=place_request or resource_request
-            data=payload if place_request else resource if resource_request else b''
+            health_request=health_resource is not None and parsed.path=='/native/archive-content' and requested.casefold()=='fonts/humanoidhealthregenscript.rbxm'
+            ok=place_request or resource_request or health_request
+            data=payload if place_request else resource if resource_request else health_resource if health_request else b''
             if len(requests)<1000:requests.append({'path':self.path[:512],'status':200 if ok else 404,'sha256':hashlib.sha256(data).hexdigest() if ok else None})
             self.send_response(200 if ok else 404);self.send_header('Content-Type','application/octet-stream')
             self.send_header('Content-Length',str(len(data)));self.end_headers()
@@ -127,10 +149,12 @@ end)
 game:GetService("ContentProvider"):SetBaseUrl("BASE/")
 game:Load("BASE/asset/?id=PLACE_ID")
 game:GetService("NetworkServer"):Start(PORT)
+CHARACTER_PLAYER
 sc.ScriptsDisabled=false
 game:GetService("RunService"):Run()
 RESOURCE_PROBE
 '''.replace('BASE',base).replace('PORT',str(network_port)).replace('PLACE_ID',str(a.place_id))
+    script=script.replace('CHARACTER_PLAYER','local players=game:GetService("Players");players.CharacterAutoLoads=false;players:CreateLocalPlayer(999999)' if health_resource is not None else '')
     # The archived file has an uppercase R. The lowercase reference exercises
     # the missing packaged-path fallback on the case-sensitive Linux runtime.
     script=script.replace('RESOURCE_PROBE','game:GetService("ContentProvider"):Preload("rbxasset://sounds/rocket whoosh 01.wav")' if resource is not None else '')
@@ -141,7 +165,7 @@ RESOURCE_PROBE
     body='<OpenJob xmlns="http://roblox.com/"><job><id>isolated-probe</id><expirationInSeconds>20</expirationInSeconds><category>0</category><cores>1</cores></job><script><name>IsolatedRuntimeProbe</name><script>'+escape(script)+'</script><arguments/></script></OpenJob>'
     envelope=('<?xml version="1.0"?><soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"><soap:Body>'+body+'</soap:Body></soap:Envelope>').encode()
     with log_file.open('wb') as output:
-        child=subprocess.Popen([str(binary),'-Port',str(soap_port),'-BaseUrl:'+base],cwd=binary.parent,env=env,stdout=output,stderr=subprocess.STDOUT)
+        child=subprocess.Popen([str(binary),'-Port',str(soap_port),'-BaseUrl:'+base],cwd=a.working_directory.resolve(strict=True) if a.working_directory else binary.parent,env=env,stdout=output,stderr=subprocess.STDOUT)
         try:
             deadline=time.monotonic()+45
             while True:
@@ -164,6 +188,7 @@ RESOURCE_PROBE
             time.sleep(a.seconds+.25)
             observe='local s=workspace:FindFirstChild("RuntimeSentinel"); local signal=workspace:FindFirstChild("SignalWaitSentinel"); local holder=workspace:FindFirstChild("DetachedTemplateHolder"); local target=holder and holder.Value; local ancestry=workspace:FindFirstChild("TemplateAncestrySentinel"); return game:GetService("HttpService"):JSONEncode({sentinel=s and s.Value or "",signalWait=signal and signal.Value or "",detachedTemplate=target and target.Name or "",templateAncestry=ancestry and ancestry.Value or "",disabledRan=workspace:FindFirstChild("DisabledSentinel")~=nil,errors=_G.__2x2ProbeErrors or {}})'
             observe='local probe=workspace:FindFirstChild("TemplateReleaseProbe"); local released=probe and game:GetService("HttpService"):JSONDecode(probe:Invoke()) or {}; '+observe.replace('templateAncestry=','templateReleased=released,templateAncestry=')
+            observe='local health=workspace:FindFirstChild("CharacterHealthSentinel"); '+observe.replace('templateAncestry=','characterHealth=health and health.Value or "",templateAncestry=')
             execute='<Execute xmlns="http://roblox.com/"><jobID>isolated-probe</jobID><script><name>ObserveNativeRuntime</name><script>'+escape(observe)+'</script><arguments/></script></Execute>'
             execute_envelope=('<?xml version="1.0"?><soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"><soap:Body>'+execute+'</soap:Body></soap:Envelope>').encode()
             request=urllib.request.Request('http://127.0.0.1:'+str(soap_port)+'/',data=execute_envelope,
@@ -198,6 +223,9 @@ RESOURCE_PROBE
                 result['networkStartup']={'failureLogged':failed,'shutdownReported':shutdown,'advertisedReady':heartbeat}
                 assert failed and shutdown and not heartbeat,result['networkStartup']
             elif not a.place:
+                if health_resource is not None:
+                    result['characterHealthBootstrap']={'observations':report['characterHealth'],'resourceSha256':hashlib.sha256(health_resource).hexdigest()}
+                    assert report['characterHealth']=='present,present,present',report
                 assert report['sentinel']=='native Lua executed',report
                 assert report['signalWait']=='native signal resumed',report
                 assert report['detachedTemplate']=='OriginalDetachedTemplate',report
