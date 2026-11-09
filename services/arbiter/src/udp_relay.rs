@@ -56,7 +56,12 @@ where
 mod tests {
     use super::*;
     use futures::channel::mpsc;
-    use std::{io, pin::Pin, task::{Context, Poll}, time::Duration};
+    use std::{
+        io,
+        pin::Pin,
+        task::{Context, Poll},
+        time::Duration,
+    };
 
     struct TestSocket {
         incoming: mpsc::UnboundedReceiver<Result<Message, io::Error>>,
@@ -70,16 +75,25 @@ mod tests {
     }
     impl Sink<Message> for TestSocket {
         type Error = mpsc::SendError;
-        fn poll_ready(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
+        fn poll_ready(
+            mut self: Pin<&mut Self>,
+            cx: &mut Context<'_>,
+        ) -> Poll<Result<(), Self::Error>> {
             Pin::new(&mut self.outgoing).poll_ready(cx)
         }
         fn start_send(mut self: Pin<&mut Self>, item: Message) -> Result<(), Self::Error> {
             Pin::new(&mut self.outgoing).start_send(item)
         }
-        fn poll_flush(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
+        fn poll_flush(
+            mut self: Pin<&mut Self>,
+            cx: &mut Context<'_>,
+        ) -> Poll<Result<(), Self::Error>> {
             Pin::new(&mut self.outgoing).poll_flush(cx)
         }
-        fn poll_close(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
+        fn poll_close(
+            mut self: Pin<&mut Self>,
+            cx: &mut Context<'_>,
+        ) -> Poll<Result<(), Self::Error>> {
             Pin::new(&mut self.outgoing).poll_close(cx)
         }
     }
@@ -94,19 +108,34 @@ mod tests {
         let (outgoing, mut output) = mpsc::unbounded();
         let relay = tokio::spawn(forward(TestSocket { incoming, outgoing }, socket));
         let payload = vec![42u8; 4096];
-        input.unbounded_send(Ok(Message::Binary(payload.clone()))).unwrap();
+        input
+            .unbounded_send(Ok(Message::Binary(payload.clone())))
+            .unwrap();
         let mut buffer = vec![0; 65536];
-        let (size, sender) = tokio::time::timeout(Duration::from_secs(2), peer.recv_from(&mut buffer)).await.unwrap().unwrap();
+        let (size, sender) =
+            tokio::time::timeout(Duration::from_secs(2), peer.recv_from(&mut buffer))
+                .await
+                .unwrap()
+                .unwrap();
         assert_eq!(&buffer[..size], payload.as_slice());
         let foreign = UdpSocket::bind("127.0.0.1:0").await.unwrap();
         foreign.send_to(&vec![99; 4096], address).await.unwrap();
         peer.send_to(&payload, sender).await.unwrap();
-        let reply = tokio::time::timeout(Duration::from_secs(2), output.next()).await.unwrap().unwrap();
+        let reply = tokio::time::timeout(Duration::from_secs(2), output.next())
+            .await
+            .unwrap()
+            .unwrap();
         assert_eq!(reply, Message::Binary(payload));
         drop(input);
-        let exit = tokio::time::timeout(Duration::from_secs(2), relay).await.unwrap().unwrap();
+        let exit = tokio::time::timeout(Duration::from_secs(2), relay)
+            .await
+            .unwrap()
+            .unwrap();
         assert_eq!(exit, RelayExit::WebSocketEnded);
-        assert!(UdpSocket::bind(address).await.is_ok(), "Relay leaked its UDP socket after EOF");
+        assert!(
+            UdpSocket::bind(address).await.is_ok(),
+            "Relay leaked its UDP socket after EOF"
+        );
     }
 
     #[rocket::async_test]
@@ -115,8 +144,15 @@ mod tests {
         socket.connect("127.0.0.1:9").await.unwrap();
         let (input, incoming) = mpsc::unbounded();
         let (outgoing, _output) = mpsc::unbounded();
-        input.unbounded_send(Ok(Message::Binary(vec![0; 65508]))).unwrap();
-        let exit = tokio::time::timeout(Duration::from_secs(2), forward(TestSocket { incoming, outgoing }, socket)).await.unwrap();
+        input
+            .unbounded_send(Ok(Message::Binary(vec![0; 65508])))
+            .unwrap();
+        let exit = tokio::time::timeout(
+            Duration::from_secs(2),
+            forward(TestSocket { incoming, outgoing }, socket),
+        )
+        .await
+        .unwrap();
         assert_eq!(exit, RelayExit::DatagramTooLarge);
     }
 }

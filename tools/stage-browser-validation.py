@@ -96,6 +96,7 @@ def main():
     location.replace('/native-test.html?id='+encodeURIComponent(new URLSearchParams(location.search).get('id')||'2008m-crossroads'));
     })().catch(error=>document.getElementById('status').textContent=error.message);</script>'''
     (site/'validation.html').write_text(login)
+    (site/'validation-peer.html').write_text(login.replace('PreservationProbe','PreservationPeer').replace('Isolated_probe_password_2026!','Isolated_peer_password_2026!'))
     (output/'validation-marker.json').write_text(json.dumps({'schemaVersion':1,'type':'isolated-native-validation','sourceRoot':str(repo),'archiveRoot':str(archives),'publicOrigin':base,'placeIds':[e['id'] for e in selected.values()]},indent=2)+'\n')
     print(json.dumps({'stage':str(output),'publicOrigin':base,'places':len(selected),'clientFiles':files}))
 

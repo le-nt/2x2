@@ -13,6 +13,12 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 from xml.sax.saxutils import escape
 
+PROJECTILES='''local projectileNames={Rocket=true,Bullet=true,Pellet=true,Timebomb=true,CannonBall=true,Paintball=true,Teapot=true}
+local function isProjectile(item)
+ return item:IsA("BasePart") and (projectileNames[item.Name] or item:FindFirstChild("RocketScript") or item:FindFirstChild("ProjectileScript") or item:FindFirstChild("BombScript"))
+end
+'''
+
 EVENTS='''if not _G.__2x2ValidationEvents then
  local events={};_G.__2x2ValidationEvents=events
  local seen=setmetatable({},{__mode="k"})
@@ -32,8 +38,10 @@ EVENTS='''if not _G.__2x2ValidationEvents then
   if player.Character then character(player.Character) end
   player.CharacterAdded:connect(character)
  end
- local names={Rocket=true,Bullet=true,Pellet=true,Timebomb=true,CannonBall=true,Paintball=true}
- workspace.ChildAdded:connect(function(item) if names[item.Name] and item:IsA("BasePart") then record("projectile_created",item) end end)
+ workspace.ChildAdded:connect(function(item)
+  if isProjectile(item) then record("projectile_created",item)
+  elseif item:IsA("Explosion") then record("explosion_created",item) end
+ end)
 end
 '''
 
@@ -53,9 +61,8 @@ for _,player in pairs(game:GetService("Players"):GetPlayers()) do
  if char then for _,item in pairs(char:GetChildren()) do if item:IsA("Tool") or item:IsA("HopperBin") then table.insert(tools,{name=item.Name,class=item.ClassName}) end end end
  table.insert(report.players,{name=player.Name,userId=player.UserId,teamColor=tostring(player.TeamColor),position=position(torso),health=humanoid and humanoid.Health or nil,equipped=tools,backpack=backpack})
 end
-local projectiles={Rocket=true,Bullet=true,Pellet=true,Timebomb=true,CannonBall=true,Paintball=true}
 for _,item in pairs(workspace:GetChildren()) do
- if projectiles[item.Name] and item:IsA("BasePart") then table.insert(report.projectiles,{name=item.Name,position=position(item)}) end
+ if isProjectile(item) then table.insert(report.projectiles,{name=item.Name,position=position(item)}) end
 end
 local function visit(item,depth)
  if report.instanceCount>=30000 or depth>64 then return end
@@ -82,7 +89,7 @@ def main():
     p.add_argument('--start-event-observation',action='store_true')
     a=p.parse_args()
     if not 1024<a.port<65536 or not re.fullmatch(r'[A-Za-z0-9-]{1,100}',a.job):raise ValueError('Invalid local job/port')
-    code=(EVENTS if a.start_event_observation else '')+OBSERVE
+    code=PROJECTILES+(EVENTS if a.start_event_observation else '')+OBSERVE
     body='<Execute xmlns="http://roblox.com/"><jobID>'+escape(a.job)+'</jobID><script><name>ReadNativeValidationState</name><script>'+escape(code)+'</script><arguments/></script></Execute>'
     envelope=('<?xml version="1.0"?><soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"><soap:Body>'+body+'</soap:Body></soap:Envelope>').encode()
     request=urllib.request.Request('http://127.0.0.1:'+str(a.port)+'/',data=envelope,headers={'Content-Type':'text/xml; charset=utf-8','SOAPAction':'"http://roblox.com/Execute"'})
