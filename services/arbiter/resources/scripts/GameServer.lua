@@ -147,7 +147,12 @@ if not ok then
 end
 --game:Load("rbxasset://test.rbxl") -- UNIT TEST ONLY DUMBASS
 
-ns:Start(GamePort)
+local networkStarted, networkError = pcall(function() ns:Start(GamePort) end)
+if not networkStarted then
+    log_warn("NetworkServer start failed: " .. tostring(networkError))
+    shutdown()
+    return
+end
 log("NetworkServer started on port " .. GamePort)
 heartbeat(nil)
 

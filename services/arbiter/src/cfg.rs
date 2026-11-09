@@ -1,7 +1,7 @@
 use serde_derive::{Deserialize, Serialize};
 use std::fs::File;
 use once_cell::sync::OnceCell;
-use rand::Rng;
+use crate::ports::{PortLease, Transport, reserve};
 
 use crate::{ArbiterError};
 use std::collections::HashMap;
@@ -144,7 +144,7 @@ pub fn get_config() -> Result<&'static Config, ArbiterError> {
     CONFIG.get().ok_or(ArbiterError::InitConfigError("Config not initialized".to_string()))
 }
 
-pub fn get_usable_port_soap() -> Result<i32, ArbiterError> {
+pub fn get_usable_port_soap() -> Result<PortLease, ArbiterError> {
     let config = get_config()?;
     let port_range = &config.server.soap_port_range;
 
@@ -155,19 +155,10 @@ pub fn get_usable_port_soap() -> Result<i32, ArbiterError> {
         ));
     }
 
-    let mut rng = rand::rng();
-    let mut tries = 100;
-    while tries > 0 {
-        let port = rng.random_range(port_range.start..=port_range.end);
-        if port != config.server.port && (1..=65535).contains(&port) {
-            return Ok(port);
-        }
-        tries -= 1;
-    }
-    Err(ArbiterError::InitConfigError("Failed to find usable port".to_string()))
+    reserve(port_range.start, port_range.end, config.server.port, Transport::Tcp)
 }
 
-pub fn get_usable_port_game() -> Result<i32, ArbiterError> {
+pub fn get_usable_port_game() -> Result<PortLease, ArbiterError> {
     let config = get_config()?;
     let port_range = &config.server.network_server_port_range;
 
@@ -178,14 +169,5 @@ pub fn get_usable_port_game() -> Result<i32, ArbiterError> {
         ));
     }
 
-    let mut rng = rand::rng();
-    let mut tries = 100;
-    while tries > 0 {
-        let port = rng.random_range(port_range.start..=port_range.end);
-        if port != config.server.port && (1..=65535).contains(&port) {
-            return Ok(port);
-        }
-        tries -= 1;
-    }
-    Err(ArbiterError::InitConfigError("Failed to find usable port".to_string()))
+    reserve(port_range.start, port_range.end, config.server.port, Transport::Udp)
 }

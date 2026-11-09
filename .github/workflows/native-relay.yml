@@ -12,6 +12,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Test native transport framing and cleanup
+      - name: Test native transport framing, port reservations and cleanup
         working-directory: services/arbiter
-        run: cargo test --locked --release udp_relay
+        run: cargo test --locked --release

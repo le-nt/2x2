@@ -48,6 +48,7 @@ def main():
     p.add_argument('--place-id',type=int,default=999999)
     p.add_argument('--resource',type=Path,help='Optional genuine WAV used only to probe native archive HTTP fallback, not playback')
     p.add_argument('--seconds',type=int,default=2,choices=range(1,11))
+    p.add_argument('--gameserver-port-conflict',action='store_true',help='Run the real bootstrap against an occupied UDP port; require an attributed shutdown')
     a=p.parse_args();binary=a.rcc.resolve(strict=True);a.output.mkdir(parents=True,exist_ok=True)
     if not 0<a.place_id<2147483647:raise ValueError('Invalid native place ID')
     payload=a.place.read_bytes() if a.place else fixture()
@@ -69,9 +70,19 @@ def main():
             self.send_header('Content-Length',str(len(data)));self.end_headers()
             if ok:self.wfile.write(data)
         def log_message(self,*args):pass
+        def do_POST(self):
+            size=int(self.headers.get('Content-Length','0'))
+            ok=0<=size<=65536 and self.path in ('/native/internal/gameserver/heartbeat','/native/internal/gameserver/shutdown') and self.headers.get('AccessKey')=='isolated-runtime-probe'
+            if 0<=size<=65536:self.rfile.read(size)
+            if len(requests)<1000:requests.append({'path':self.path[:512],'status':200 if ok else 404,'method':'POST'})
+            self.send_response(200 if ok else 404);self.send_header('Content-Length','2');self.end_headers();self.wfile.write(b'{}')
     server=http.server.ThreadingHTTPServer(('127.0.0.1',0),Handler)
     threading.Thread(target=server.serve_forever,daemon=True).start()
     soap_port,network_port=unused_port(),unused_port()
+    occupied=None
+    if a.gameserver_port_conflict:
+        occupied=socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
+        occupied.bind(('127.0.0.1',network_port))
     base='http://127.0.0.1:'+str(server.server_port)+'/native'
     # Dummy credentials are deliberately unrelated to the user's credentials.
     env={**os.environ,'EGL_PLATFORM':'surfaceless','RBX_ACCESS_KEY':'isolated-runtime-probe',
@@ -96,6 +107,10 @@ RESOURCE_PROBE
     # The archived file has an uppercase R. The lowercase reference exercises
     # the missing packaged-path fallback on the case-sensitive Linux runtime.
     script=script.replace('RESOURCE_PROBE','game:GetService("ContentProvider"):Preload("rbxasset://sounds/rocket whoosh 01.wav")' if resource is not None else '')
+    if a.gameserver_port_conflict:
+        bootstrap=(Path(__file__).resolve().parents[1]/'services/arbiter/resources/scripts/GameServer.lua').read_text()
+        if ']====]' in bootstrap:raise ValueError('Unexpected trusted bootstrap delimiter')
+        script='local bootstrap=assert(loadstring([====['+bootstrap+']====], "GameServerStartupFixture")); bootstrap('+str(a.place_id)+','+str(network_port)+','+json.dumps(base)+')'
     body='<OpenJob xmlns="http://roblox.com/"><job><id>isolated-probe</id><expirationInSeconds>20</expirationInSeconds><category>0</category><cores>1</cores></job><script><name>IsolatedRuntimeProbe</name><script>'+escape(script)+'</script><arguments/></script></OpenJob>'
     envelope=('<?xml version="1.0"?><soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"><soap:Body>'+body+'</soap:Body></soap:Envelope>').encode()
     with log_file.open('wb') as output:
@@ -131,7 +146,7 @@ RESOURCE_PROBE
             values=[e.text for e in parsed.iter() if e.tag.rsplit('}',1)[-1]=='value' and e.text]
             report=next((json.loads(v) for v in values if v.startswith('{')),None)
             if report is None:raise RuntimeError('Native probe returned no report')
-            result={'schemaVersion':1,'mode':'archived_place' if a.place else 'trusted_fixture',
+            result={'schemaVersion':1,'mode':'startup_failure_fixture' if a.gameserver_port_conflict else 'archived_place' if a.place else 'trusted_fixture',
                 'placeId':a.place_id,'placeSha256':hashlib.sha256(payload).hexdigest(),'secondsObserved':a.seconds,'server':report,
                 'requests':requests,'browserGameplay':'not_tested',
                 'limitations':['Headless server without players.','Resource fixture serves only this place; missing metadata endpoints are explicit 404s.']}
@@ -142,12 +157,19 @@ RESOURCE_PROBE
                 native_log=log_file.read_text(errors='replace')
                 assert env['RBX_ACCESS_KEY'] not in native_log,'RCC leaked its test access key'
                 assert env['RBX_SECRET_KEY'] not in native_log,'RCC leaked its test signing key'
-                assert 'redaction probe <redacted> <redacted>' in native_log,'Redacted diagnostic was suppressed or not sanitized'
+                if not a.gameserver_port_conflict:
+                    assert 'redaction probe <redacted> <redacted>' in native_log,'Redacted diagnostic was suppressed or not sanitized'
             if resource is not None:
                 delivered=any(r['status']==200 and r['path'].startswith('/native/archive-content?') for r in requests)
                 result['archiveHttpFallback']={'observed':delivered,'resourceSha256':hashlib.sha256(resource).hexdigest(),'audioPlayback':'not_tested'}
                 assert delivered,'Native archive HTTP fallback was not observed'
-            if not a.place:
+            if a.gameserver_port_conflict:
+                failed='NetworkServer start failed:' in log_file.read_text(errors='replace')
+                shutdown=any(r['path']=='/native/internal/gameserver/shutdown' and r['status']==200 for r in requests)
+                heartbeat=any(r['path']=='/native/internal/gameserver/heartbeat' and r['status']==200 for r in requests)
+                result['networkStartup']={'failureLogged':failed,'shutdownReported':shutdown,'advertisedReady':heartbeat}
+                assert failed and shutdown and not heartbeat,result['networkStartup']
+            elif not a.place:
                 assert report['sentinel']=='native Lua executed',report
                 assert report['signalWait']=='native signal resumed',report
                 assert not report['disabledRan'],report
@@ -160,5 +182,6 @@ RESOURCE_PROBE
             try:child.wait(timeout=5)
             except subprocess.TimeoutExpired:child.kill();child.wait()
             server.shutdown();server.server_close()
+            if occupied:occupied.close()
 
 if __name__=='__main__':main()

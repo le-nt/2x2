@@ -18,6 +18,7 @@ mod rcc;
 mod responses;
 mod routes;
 mod udp_relay;
+mod ports;
 mod version;
 
 #[derive(Debug)]
