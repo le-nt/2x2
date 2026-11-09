@@ -11,6 +11,9 @@ import shutil
 from pathlib import Path
 
 FILES = {
+    'UniversalClient/UserInput.h':'1a242619aebbf8fb3c7e36ba89e64d5becdfc862061a3999c3681237f198b8d9',
+    'UniversalClient/UserInput.cpp':('4ddb66c6b7c64da6375fd8c51ff5807369759326830e876c5ad8108303940361',
+                                    'de970e2e72d6298a4083c09ad38460dc117bab244da486b3802db415177b3dee'),
     'App/script/LuaSignalBridge.cpp':'ad6aa003fe2466ac356ef182e8ab28e4fe1fd1d5c2af5351b94b90691a4c86de',
     'ClientShared/RobloxServicesTools.cpp':('8caf73deaa3f54375266d74dde19dd3f3acd5a4abfb768a7cdc4930fb51081fd',
                                           'f9d3ad5e7831d90ec37e4ec3bd31c8bebc7a8423f31ec84b03ae920497cc513e'),
