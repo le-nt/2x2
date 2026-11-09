@@ -269,6 +269,7 @@ for(const [placeId,linked] of perPlace) {
     schemaVersion:1,generatedAt,placeId,game:places[placeId]?.name||placeId,
     resourceReferences:[...(resourcesByPlace.get(placeId)?.values()||[])],
     placeAnalysis:analysesByPlace.get(placeId)||null,
+    scriptSourceCoverage:analysesByPlace.get(placeId)?.scriptSourceCoverage||null,
     nativeRuntimeDependencies:{models:runtimeModels,unavailableModels:unavailableRuntimeModels},
     resourceCoverage:archiveVfs?'manifest_lookup':'not_inventoried',
     gameplayStatus:'not_tested',

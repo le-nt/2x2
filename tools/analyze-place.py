@@ -6,7 +6,7 @@ import re
 import sys
 import xml.etree.ElementTree as ET
 from pathlib import Path
-from rbxl_binary_inventory import inspect_binary, MAGIC, ASSET_RE
+from rbxl_binary_inventory import inspect_binary, MAGIC, ASSET_RE, classify_script_source, summarize_script_sources
 
 MAX_BYTES = 128 * 1024 * 1024
 SCRIPT_CLASSES = {'Script', 'LocalScript', 'ModuleScript'}
@@ -51,6 +51,7 @@ def analyze_place(file):
                 source = values.get('Source', '')
                 scripts.append({'class':kind, 'path':'/'.join(chain), 'disabled':values.get('Disabled','false').strip().lower() == 'true',
                     'sourcePresent':bool(source.strip()), 'sourceBytes':len(source.encode('utf8')),
+                    'sourceStatus':classify_script_source(source),
                     'sourceSha256':hashlib.sha256(source.encode('utf8')).hexdigest(),
                     'linkedSource':values.get('LinkedSource') or None,
                     'compileStatus':'not_tested', 'startStatus':'not_tested', 'runtimeStatus':'not_tested'})
@@ -62,6 +63,7 @@ def analyze_place(file):
             stack.append((child,chain,depth+1))
     return {'format':'xml', 'valid':True, 'coverage':'xml_properties_and_literal_references',
             'sha256':original_hash, 'instanceCount':instances, 'scripts':scripts,
+            'scriptSourceCoverage':summarize_script_sources(scripts),
             'assetIds':sorted(ids,key=lambda x:(len(x),x)), 'resourceReferences':sorted(resources),
             'gameplayStatus':'not_tested', 'limitations':['Computed Lua references require runtime observation; Lua was not executed.']}
 

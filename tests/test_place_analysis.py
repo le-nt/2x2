@@ -43,4 +43,28 @@ class PlaceAnalysisTests(unittest.TestCase):
     def test_invalid_binary_never_looks_analyzed(self):
         with self.assertRaises(ValueError):self.analyze(fixture()[:-15])
 
+    def test_comment_only_export_is_not_reported_as_gameplay_code(self):
+        for source in ['-- Decompiling is disabled', '-- Server scripts can NOT be decompiled\n', '\ufeff --[=[placeholder\ncontent]=] \n-- next comment']:
+            xml=('<roblox><Item class="Script"><Properties><ProtectedString name="Source"><![CDATA['+source+']]></ProtectedString></Properties></Item></roblox>').encode()
+            result=self.analyze(xml)
+            self.assertEqual(result['scripts'][0]['sourceStatus'],'comments_only')
+            self.assertEqual(result['scriptSourceCoverage']['status'],'no_code_in_archive')
+            self.assertTrue(result['valid'],'A preserved scene is still a valid import')
+            end=chunk(b'END\0',b'</roblox>')
+            binary=self.analyze(fixture()[:-len(end)]+prop(2,'Source',[source])+end)
+            self.assertEqual(binary['scriptSourceCoverage']['commentOnly'],1)
+            self.assertEqual(binary['scriptSourceCoverage']['withCode'],0)
+
+    def test_comment_classification_does_not_strip_strings_or_code_after_comments(self):
+        for source in ['print("-- placeholder")','--[==[comment]==]\nerror("scanner must never run me")','return "-- Decompiling is disabled"']:
+            result=analyzer.classify_script_source(source)
+            self.assertEqual(result,'code_present_unverified')
+        self.assertEqual(analyzer.classify_script_source('--[[unclosed'),'unknown_unclosed_comment')
+        self.assertEqual(analyzer.classify_script_source(' \n\t'),'empty')
+
+    def test_external_sources_are_not_mistaken_for_a_comment_only_complete_archive(self):
+        result=self.analyze(b'<roblox><Item class="Script"><Properties><string name="LinkedSource">rbxassetid://12345</string></Properties></Item></roblox>')
+        self.assertEqual(result['scriptSourceCoverage']['status'],'external_sources_required')
+        self.assertEqual(result['scriptSourceCoverage']['linkedSourceReferences'],1)
+
 if __name__=='__main__':unittest.main()
