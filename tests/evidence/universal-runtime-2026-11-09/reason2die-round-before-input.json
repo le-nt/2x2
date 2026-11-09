@@ -1,0 +1,91 @@
+{
+  "observedEvents": [],
+  "objectValues": [
+    {
+      "path": "Workspace.Game.Start.IntroCutscene.SkipCutsceneGui.Cutscene",
+      "hasValue": false
+    },
+    {
+      "path": "Workspace.Game.Start.IntroCutscene.SkipCutsceneGuiValue",
+      "hasValue": false
+    },
+    {
+      "path": "Workspace.PreservationPeer.Killer",
+      "hasValue": false
+    },
+    {
+      "path": "Workspace.PreservationProbe.Killer",
+      "hasValue": false
+    },
+    {
+      "path": "Workspace.PreservationProbe.MolotovHandle.Killer",
+      "hasValue": false
+    },
+    {
+      "path": "Workspace.PreservationProbe.GrenadeHandle.Killer",
+      "hasValue": false
+    }
+  ],
+  "toolActivations": [],
+  "humanoids": [
+    {
+      "path": "Workspace.PreservationPeer",
+      "position": {
+        "z": 24.986263275146484,
+        "y": 411.587646484375,
+        "x": 37.12872314453125
+      },
+      "health": 100
+    },
+    {
+      "path": "Workspace.PreservationProbe",
+      "position": {
+        "z": 64.99462127685547,
+        "y": 456.5893859863281,
+        "x": -126.40645599365234
+      },
+      "health": 100
+    }
+  ],
+  "instanceCount": 4110,
+  "projectiles": [],
+  "players": [
+    {
+      "teamColor": "Earth green",
+      "equipped": [],
+      "backpack": [
+        {
+          "class": "HopperBin",
+          "name": "Zombie"
+        }
+      ],
+      "name": "PreservationPeer",
+      "position": {
+        "z": 24.986263275146484,
+        "y": 411.587646484375,
+        "x": 37.12872314453125
+      },
+      "health": 100,
+      "userId": 2
+    },
+    {
+      "teamColor": "White",
+      "equipped": [],
+      "backpack": [
+        {
+          "class": "Tool",
+          "name": "Handgun"
+        }
+      ],
+      "name": "PreservationProbe",
+      "position": {
+        "z": 64.99462127685547,
+        "y": 456.5893859863281,
+        "x": -126.40645599365234
+      },
+      "health": 100,
+      "userId": 1
+    }
+  ],
+  "placeId": 278
+}

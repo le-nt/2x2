@@ -1,0 +1,17 @@
+{
+  "errors": [],
+  "players": [
+    {
+      "team": "Earth green",
+      "name": "PreservationPeer",
+      "ready": true,
+      "character": "PreservationPeer"
+    },
+    {
+      "team": "White",
+      "name": "PreservationProbe",
+      "ready": true,
+      "character": "PreservationProbe"
+    }
+  ]
+}

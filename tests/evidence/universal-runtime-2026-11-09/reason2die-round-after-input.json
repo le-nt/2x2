@@ -1,0 +1,109 @@
+{
+  "observedEvents": [
+    {
+      "path": "Workspace.PreservationProbe.Handgun",
+      "kind": "tool_activated",
+      "time": 1794229890.803746,
+      "name": "Handgun"
+    }
+  ],
+  "objectValues": [
+    {
+      "path": "Workspace.Game.Start.IntroCutscene.SkipCutsceneGui.Cutscene",
+      "hasValue": false
+    },
+    {
+      "path": "Workspace.Game.Start.IntroCutscene.SkipCutsceneGuiValue",
+      "hasValue": false
+    },
+    {
+      "path": "Workspace.PreservationPeer.Killer",
+      "hasValue": false
+    },
+    {
+      "path": "Workspace.PreservationProbe.Killer",
+      "hasValue": false
+    },
+    {
+      "path": "Workspace.PreservationProbe.MolotovHandle.Killer",
+      "hasValue": false
+    },
+    {
+      "path": "Workspace.PreservationProbe.GrenadeHandle.Killer",
+      "hasValue": false
+    },
+    {
+      "path": "Workspace.PreservationProbe.Handgun.Window",
+      "hasValue": false
+    }
+  ],
+  "toolActivations": [
+    {
+      "path": "Workspace.PreservationProbe.Handgun",
+      "name": "Handgun",
+      "time": 1794229890.803785,
+      "userId": 1
+    }
+  ],
+  "humanoids": [
+    {
+      "path": "Workspace.PreservationPeer",
+      "position": {
+        "z": 28.420900344848633,
+        "y": 411.5943603515625,
+        "x": 34.182159423828125
+      },
+      "health": 100
+    },
+    {
+      "path": "Workspace.PreservationProbe",
+      "position": {
+        "z": 81.99946594238281,
+        "y": 425.5977783203125,
+        "x": -140.41062927246094
+      },
+      "health": 100
+    }
+  ],
+  "instanceCount": 4126,
+  "projectiles": [],
+  "players": [
+    {
+      "teamColor": "Earth green",
+      "equipped": [],
+      "backpack": [
+        {
+          "class": "HopperBin",
+          "name": "Zombie"
+        }
+      ],
+      "name": "PreservationPeer",
+      "position": {
+        "z": 28.420900344848633,
+        "y": 411.5943603515625,
+        "x": 34.182159423828125
+      },
+      "health": 100,
+      "userId": 2
+    },
+    {
+      "teamColor": "White",
+      "equipped": [
+        {
+          "class": "Tool",
+          "name": "Handgun"
+        }
+      ],
+      "backpack": [],
+      "name": "PreservationProbe",
+      "position": {
+        "z": 81.99946594238281,
+        "y": 425.5977783203125,
+        "x": -140.41062927246094
+      },
+      "health": 100,
+      "userId": 1
+    }
+  ],
+  "placeId": 278
+}

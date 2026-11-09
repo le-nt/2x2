@@ -1,0 +1,3 @@
+User-supplied compatibility references retained unchanged at the user's request. These are reference material, not automatically installed runtime code. TC1 contains four original numeric-ID audio files, staged only in the isolated validation asset store. BigGlove contains Studio plugins. The Lua/model backports require review and compatibility tests before integration. Original local files remain unchanged.
+
+Repository references: https://github.com/stan2474/roblox_utils_cli (the supplied link target) and https://github.com/LuaGunsX/LOLMouse (the supplied link label). Neither repository was executed or copied into the engine.

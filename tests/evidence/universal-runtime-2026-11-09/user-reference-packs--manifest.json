@@ -1,0 +1,126 @@
+[
+  {
+    "archive": "TC1.zip",
+    "archiveSha256": "a02deda3be90a02a7082d2ccd01f0231a6461b72622dfbaa87ac40eea6d5389e",
+    "entry": "TC1/131274983.mp3",
+    "bytes": 5658,
+    "sha256": "4fec37e880131cdd46c2dc65ba4c883a556bb29fbca4f1194f9ccd2d703e8495",
+    "executed": false,
+    "stagedAssetId": "131274983"
+  },
+  {
+    "archive": "TC1.zip",
+    "archiveSha256": "a02deda3be90a02a7082d2ccd01f0231a6461b72622dfbaa87ac40eea6d5389e",
+    "entry": "TC1/131282542.mp3",
+    "bytes": 7537,
+    "sha256": "68f493babda4d6a3b6f64db8521a451f0d6f0e3f3d157f82111baa3f0f3a628b",
+    "executed": false,
+    "stagedAssetId": "131282542"
+  },
+  {
+    "archive": "TC1.zip",
+    "archiveSha256": "a02deda3be90a02a7082d2ccd01f0231a6461b72622dfbaa87ac40eea6d5389e",
+    "entry": "TC1/142750686.mp3",
+    "bytes": 981855,
+    "sha256": "145d87ba033049666759f4944d59e592a15b60ba211ebd3cf0fb526f2e12fe67",
+    "executed": false,
+    "stagedAssetId": "142750686"
+  },
+  {
+    "archive": "TC1.zip",
+    "archiveSha256": "a02deda3be90a02a7082d2ccd01f0231a6461b72622dfbaa87ac40eea6d5389e",
+    "entry": "TC1/243784760.mp3",
+    "bytes": 1512400,
+    "sha256": "73f0c6c80c0034f41fd4a6caa1ab1b5efc88cd9cf022e34fda7dfc50397ed51d",
+    "executed": false,
+    "stagedAssetId": "243784760"
+  },
+  {
+    "archive": "TC1.zip",
+    "archiveSha256": "a02deda3be90a02a7082d2ccd01f0231a6461b72622dfbaa87ac40eea6d5389e",
+    "entry": "TC1/AssetPack.json",
+    "bytes": 140,
+    "sha256": "a32024e876c028801055230a9b8966ce442d44c4d17d8dcd3c5aca80ba32b642",
+    "executed": false
+  },
+  {
+    "archive": "bigglove_v2.1.zip",
+    "archiveSha256": "ba47be108d87379271fe96d7cacf18e29cf730e8b0ff3af83dad05fc27dcaabc",
+    "entry": "BigGlove.lua",
+    "bytes": 33907,
+    "sha256": "58dc6c9a6dc8396c41d873fd9090146c6ecf365f99fb9e6d74bfcb6754b92732",
+    "executed": false
+  },
+  {
+    "archive": "bigglove_v2.1.zip",
+    "archiveSha256": "ba47be108d87379271fe96d7cacf18e29cf730e8b0ff3af83dad05fc27dcaabc",
+    "entry": "bigglove_main.png",
+    "bytes": 446,
+    "sha256": "77a734ef00c692a85e362d9396d1c148a20875981521179781de433f634ef1a3",
+    "executed": false
+  },
+  {
+    "archive": "bigglove_v2.1.zip",
+    "archiveSha256": "ba47be108d87379271fe96d7cacf18e29cf730e8b0ff3af83dad05fc27dcaabc",
+    "entry": "BigGlove_Palette.lua",
+    "bytes": 15353,
+    "sha256": "1581d84da0535af589c1d3030e65a9acbcddf1aeae2f46ef6b0d65bfa9598ea3",
+    "executed": false
+  },
+  {
+    "archive": "bigglove_v2.1.zip",
+    "archiveSha256": "ba47be108d87379271fe96d7cacf18e29cf730e8b0ff3af83dad05fc27dcaabc",
+    "entry": "bigglove_palette.png",
+    "bytes": 505,
+    "sha256": "e017798400d7289a8f376cce325077e039a0bdf12a40c4cc5ea250d28903ea9a",
+    "executed": false
+  },
+  {
+    "archive": "bigglove_v2.1.zip",
+    "archiveSha256": "ba47be108d87379271fe96d7cacf18e29cf730e8b0ff3af83dad05fc27dcaabc",
+    "entry": "BigGlove_Repeat.lua",
+    "bytes": 60138,
+    "sha256": "20b9a7ed87cfd24c6e0f0d6eb660f3883e7f6d0a448344f246dc55c91aae902a",
+    "executed": false
+  },
+  {
+    "archive": "bigglove_v2.1.zip",
+    "archiveSha256": "ba47be108d87379271fe96d7cacf18e29cf730e8b0ff3af83dad05fc27dcaabc",
+    "entry": "bigglove_repeat.png",
+    "bytes": 373,
+    "sha256": "470ab91d06b351defd0ee540030fb891049b5d566c52bafc3d242f46b092d0cc",
+    "executed": false
+  },
+  {
+    "archive": "bigglove_v2.1.zip",
+    "archiveSha256": "ba47be108d87379271fe96d7cacf18e29cf730e8b0ff3af83dad05fc27dcaabc",
+    "entry": "BigGlove_ResizeAlign.lua",
+    "bytes": 60217,
+    "sha256": "3933222702fc8d61f7dfe1aedf987074f3b6cd198bdda309cafb98b9d7bd9a7f",
+    "executed": false
+  },
+  {
+    "archive": "bigglove_v2.1.zip",
+    "archiveSha256": "ba47be108d87379271fe96d7cacf18e29cf730e8b0ff3af83dad05fc27dcaabc",
+    "entry": "bigglove_resizealign.png",
+    "bytes": 381,
+    "sha256": "dc05635c2f3d431972643ee1792e8ecf2caf06355ef27e2a822dba4672730fd5",
+    "executed": false
+  },
+  {
+    "archive": "bigglove_v2.1.zip",
+    "archiveSha256": "ba47be108d87379271fe96d7cacf18e29cf730e8b0ff3af83dad05fc27dcaabc",
+    "entry": "BigGlove_SmoothClone.lua",
+    "bytes": 60165,
+    "sha256": "669590a2ea696acb4d1fc96d3f032d6a5ece70380522e1a8591c3f2d2e2ffdab",
+    "executed": false
+  },
+  {
+    "archive": "bigglove_v2.1.zip",
+    "archiveSha256": "ba47be108d87379271fe96d7cacf18e29cf730e8b0ff3af83dad05fc27dcaabc",
+    "entry": "bigglove_smoothclone.png",
+    "bytes": 854,
+    "sha256": "d35c2d7a41c0f57417bdb6169abe6eb36445aae7a014a0d90a0fbf4f7c78ce44",
+    "executed": false
+  }
+]

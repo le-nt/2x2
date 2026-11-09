@@ -1,0 +1,78 @@
+[
+  {
+    "file": "TC1.zip",
+    "bytes": 2418187,
+    "sha256": "a02deda3be90a02a7082d2ccd01f0231a6461b72622dfbaa87ac40eea6d5389e",
+    "source": "User-supplied Downloads file",
+    "installedAsRuntimeCode": false
+  },
+  {
+    "file": "bigglove_v2.1.zip",
+    "bytes": 233887,
+    "sha256": "ba47be108d87379271fe96d7cacf18e29cf730e8b0ff3af83dad05fc27dcaabc",
+    "source": "User-supplied Downloads file",
+    "installedAsRuntimeCode": false
+  },
+  {
+    "file": "backportedsetattributeandgetattribute (1).rbxm",
+    "bytes": 637,
+    "sha256": "9ddc6c21bf3388d61e3cea54a7f5e4425b2389e10fb570d3eb3b8a9591211156",
+    "source": "User-supplied Downloads file",
+    "installedAsRuntimeCode": false
+  },
+  {
+    "file": "backportedtweenservice (2).rbxm",
+    "bytes": 4663,
+    "sha256": "2f291fbbaf55190ca862ed2bcc69971c79de276dc0294d207e7db068454c6345",
+    "source": "User-supplied Downloads file",
+    "installedAsRuntimeCode": false
+  },
+  {
+    "file": "message (1).lua",
+    "bytes": 2140,
+    "sha256": "7a6154cb1fbadeca527f1723af3718b72ef0c3259fdd6ceebc8e86d9d18230f3",
+    "source": "User-supplied Downloads file",
+    "installedAsRuntimeCode": false
+  },
+  {
+    "file": "RbxGui.lua",
+    "bytes": 133632,
+    "sha256": "768cbb2a7289759558eaeca170166d53a9c6ccdecf35ff246b18a26cfed284e1",
+    "source": "User-supplied Downloads file",
+    "installedAsRuntimeCode": false
+  },
+  {
+    "file": "hierarchy.lua",
+    "bytes": 3378,
+    "sha256": "ced1cbcaeb2c0d85da09199a6acd65c798d96318706cb22a101daf0ac940ac6f",
+    "source": "User-supplied Downloads file",
+    "installedAsRuntimeCode": false
+  },
+  {
+    "file": "MathUtility.lua",
+    "bytes": 622,
+    "sha256": "3d3abb062a1a1b364bba2df4156e08edd1c47969ef63515e612a1e2d307adc62",
+    "source": "User-supplied Downloads file",
+    "installedAsRuntimeCode": false
+  },
+  {
+    "file": "Signal.lua",
+    "bytes": 3452,
+    "sha256": "66ef7b3f00dbf17dab6d9ff18f26124e6ffa9c2f1451421f521457cef6e5a3a5",
+    "source": "User-supplied Downloads file",
+    "installedAsRuntimeCode": false
+  },
+  {
+    "file": "backports.rbxm",
+    "bytes": 9219,
+    "sha256": "1715d7bd63466b43b05f7f1fcd35ce9e42041d1852fc79176d184e07456073d1",
+    "source": "User-supplied Downloads file",
+    "installedAsRuntimeCode": false
+  },
+  {
+    "file": "ported-functions.txt",
+    "bytes": 8545,
+    "sha256": "c4d557b34a12969ba41af148cf0be3d6e6518eecb9e7e935dc969836133c0166",
+    "source": "User-supplied discussion excerpt; reference only"
+  }
+]
