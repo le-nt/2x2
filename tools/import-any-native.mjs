@@ -11,7 +11,7 @@ import {fileURLToPath} from 'node:url';
 import {looksLikeRobloxModel} from '../server/lib/asset-discovery.mjs';
 
 const project=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
-const opts={root:project,download:!!process.env.ROBLOX_OPEN_CLOUD_API_KEY,maxFetch:100};
+const opts={root:project,download:!!process.env.ROBLOX_OPEN_CLOUD_API_KEY||process.env.ROBLOX_ASSET_FETCH==='1'||!!process.env.AYA_ASSET_FALLBACK_URL,maxFetch:100};
 const argv=process.argv.slice(2);
 for(let i=0;i<argv.length;i++){
   const a=argv[i];

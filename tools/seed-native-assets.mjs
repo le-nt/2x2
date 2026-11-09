@@ -15,7 +15,7 @@ import crypto from 'node:crypto';
 import {fileURLToPath} from 'node:url';
 import {createAssetResolver} from '../server/lib/asset-resolver.mjs';
 import {scanAssetReferences,scanResourceReferences,looksLikeRobloxModel,validAssetId} from '../server/lib/asset-discovery.mjs';
-import {canonicalResource} from '../server/lib/asset-vfs.mjs';
+import {canonicalResource,safeArchiveFile} from '../server/lib/asset-vfs.mjs';
 import {prepareAssetVfs} from './prepare-asset-vfs.mjs';
 
 const defaultRoot=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
@@ -158,6 +158,21 @@ function archiveAsset(record,found) {
   return content;
 }
 
+// These are the engine's character bootstrap models (Network/Player.cpp),
+// independent of any particular archived place. Discover their original IDs
+// from the shipped models instead of maintaining guessed ID substitutions.
+const runtimeModels=[];
+const unavailableRuntimeModels=[];
+const runtimeContent=path.join(root,'services/engine/.assets/content');
+for(const resource of ['fonts/humanoidAnimateLocalKeyframe2.rbxm','fonts/humanoidAnimateR15.rbxm',
+  'fonts/humanoidSoundNewLocal.rbxmx','fonts/humanoidHealthRegenScript.rbxm']) {
+  const found=safeArchiveFile(runtimeContent,resource);
+  if(!found || found.stat.size>2*1024*1024){unavailableRuntimeModels.push(resource);continue;}
+  const bytes=fs.readFileSync(found.file),parsed=inspectReferences(found.file,bytes);
+  runtimeModels.push({resource,sha256:crypto.createHash('sha256').update(bytes).digest('hex'),
+    assetIds:parsed.ids,coverage:parsed.coverage,resourceReferences:parsed.resourceReferences||[]});
+}
+
 for(const [placeId,entry] of Object.entries(places)) {
   if(opts.place && opts.place!==placeId)continue;
   perPlace.set(placeId,new Set());
@@ -166,6 +181,10 @@ for(const [placeId,entry] of Object.entries(places)) {
   try {
     const mapBytes=fs.readFileSync(file);
     const parsed=inspectReferences(file,mapBytes);
+    for(const model of runtimeModels) {
+      rememberResources(placeId,['rbxasset://'+model.resource,...model.resourceReferences]);
+      for(const id of model.assetIds)remember(id,placeId,0,null);
+    }
     analysesByPlace.set(placeId,parsed.analysis||null);
     rememberResources(placeId,[...scanResourceReferences(mapBytes).references,...(parsed.resourceReferences||[])]);
     if(!['xml_text','binary_decoded'].includes(parsed.coverage))diagnostics.push({place:placeId,reason:parsed.coverage,unsupported:parsed.unsupportedProperties?.slice(0,12)});
@@ -237,6 +256,7 @@ for(const [placeId,linked] of perPlace) {
     schemaVersion:1,generatedAt,placeId,game:places[placeId]?.name||placeId,
     resourceReferences:[...(resourcesByPlace.get(placeId)?.values()||[])],
     placeAnalysis:analysesByPlace.get(placeId)||null,
+    nativeRuntimeDependencies:{models:runtimeModels,unavailableModels:unavailableRuntimeModels},
     resourceCoverage:archiveVfs?'manifest_lookup':'not_inventoried',
     gameplayStatus:'not_tested',
     discoveredAssets:subset.length,statuses,

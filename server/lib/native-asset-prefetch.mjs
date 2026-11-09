@@ -23,7 +23,8 @@ export function createNativeAssetPrefetch({serverDir,assetResolver,maxPerLaunch=
     }
   }
   function launch(place){
-    if(stopped||!assetResolver||!validPlace(place)||!perLaunch||!process.env.ROBLOX_OPEN_CLOUD_API_KEY)return 0;
+    const upstreamConfigured=process.env.ROBLOX_OPEN_CLOUD_API_KEY || process.env.ROBLOX_ASSET_FETCH==='1' || process.env.AYA_ASSET_FALLBACK_URL;
+    if(stopped||!assetResolver||!validPlace(place)||!perLaunch||!upstreamConfigured)return 0;
     // Multiple players launching one place should not extend the queue repeatedly.
     if((placeCooldown.get(place)||0)>Date.now())return 0;
     const file=path.join(serverDir,'native','asset-reports',place+'.json');

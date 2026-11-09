@@ -102,3 +102,23 @@ test('new imports automatically inventory nested model resources, decoded XML va
   assert.equal(spawnSync(process.execPath,args,{encoding:'utf8',timeout:20000}).status,0);
   assert.equal(JSON.parse(fs.readFileSync(file)).complete,false,'invalid XML cannot be called completely scanned');
 });
+
+test('new place reports include original character-bootstrap animation dependencies',t=>{
+  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'2x2-runtime-deps-'));
+  t.after(()=>fs.rmSync(dir,{recursive:true,force:true}));
+  const maps=path.join(dir,'server/native/maps'),lib=path.join(dir,'server/native/asset-library');
+  const fonts=path.join(dir,'services/engine/.assets/content/fonts');
+  for(const folder of [maps,lib,fonts])fs.mkdirSync(folder,{recursive:true});
+  fs.writeFileSync(path.join(maps,'map.rbxl'),'<roblox version="4"><Item class="Workspace"><Properties><string name="Name">Workspace</string></Properties></Item></roblox>');
+  fs.writeFileSync(path.join(fonts,'humanoidAnimateLocalKeyframe2.rbxm'),'<roblox version="4"><Item class="LocalScript"><Properties><string name="Name">Animate</string><ProtectedString name="Source"><![CDATA[error("static analysis must never execute this"); local hold="rbxassetid://87654321"]]></ProtectedString></Properties></Item></roblox>');
+  fs.writeFileSync(path.join(lib,'87654321.rbxmx'),'<roblox version="4"></roblox>');
+  fs.writeFileSync(path.join(dir,'server/native/places.json'),JSON.stringify({places:{fixture:{file:'map.rbxl',id:1}}}));
+  const run=spawnSync(process.execPath,[path.join(projectRoot,'tools/seed-native-assets.mjs'),'--root',dir],{encoding:'utf8',timeout:20000});
+  assert.equal(run.status,0,run.stderr);
+  const report=JSON.parse(fs.readFileSync(path.join(dir,'server/native/asset-reports/fixture.json')));
+  assert.equal(report.discoveredAssets,1);assert.equal(report.statuses.local,1);
+  assert.deepEqual(report.nativeRuntimeDependencies.models[0].assetIds,['87654321']);
+  assert.equal(report.nativeRuntimeDependencies.models[0].resource,'fonts/humanoidAnimateLocalKeyframe2.rbxm');
+  assert.ok(report.nativeRuntimeDependencies.unavailableModels.includes('fonts/humanoidAnimateR15.rbxm'));
+  assert.equal(report.resourceReferences.find(r=>r.reference.includes('humanoidAnimateLocalKeyframe2')).status,'resolved');
+});
