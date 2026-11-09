@@ -4,6 +4,7 @@
 const $=id=>document.getElementById(id);
 const ROLES=["Unprivileged","ForumModerator","AssetManager","Moderator","Administrator","SuperAdmin"];
 let state={role:"Unprivileged",target:null,verified:false,auditPage:1,page:"dashboard",enrolled:false};
+let importPoll;
 const fmt=v=>v?new Date(v).toLocaleString():"—";
 const el=(tag,text,cls)=>{const e=document.createElement(tag);e.textContent=String(text??"");if(cls)e.className=cls;return e};
 function showMessage(msg,bad=false){const n=$("message");n.textContent=msg||"";n.className=bad?"error":"success";}
@@ -16,8 +17,9 @@ async function api(path,method="GET",body){
 async function perform(fn){try{showMessage("");await fn();}catch(e){showMessage(e.message,true);}}
 function can(role){return ROLES.indexOf(state.role)>=ROLES.indexOf(role);}
 function showPage(name){
-  state.page=name;$("title").textContent=({dashboard:"Dashboard",users:"User moderation",appeals:"Appeals",forums:"Forum moderation",banner:"Sitewide banner",infrastructure:"Server monitor",assets:"Asset inspector",features:"Site features",staff:"Staff roles",audit:"Audit log"})[name]||"2x2 Administration";
-  for(const p of ["dashboard","users","appeals","forums","banner","infrastructure","assets","features","staff","audit"])$(p).hidden=p!==name;
+  clearTimeout(importPoll);
+  state.page=name;$("title").textContent=({dashboard:"Dashboard",users:"User moderation",appeals:"Appeals",forums:"Forum moderation",banner:"Sitewide banner",infrastructure:"Server monitor",assets:"Asset inspector",imports:"Place imports",features:"Site features",staff:"Staff roles",audit:"Audit log"})[name]||"2x2 Administration";
+  for(const p of ["dashboard","users","appeals","forums","banner","infrastructure","assets","imports","features","staff","audit"])$(p).hidden=p!==name;
   for(const b of document.querySelectorAll("#nav button"))b.classList.toggle("active",b.dataset.page===name);
 }
 async function init(){
@@ -29,7 +31,7 @@ async function init(){
   $("authHelp").textContent=state.enrolled?"Enter your authenticator code to start a six-hour staff session.":"Verify your password, then enroll an authenticator app before using the admin panel.";
   for(const b of document.querySelectorAll("#nav button[data-min]"))b.hidden=!can(b.dataset.min);
   if(state.verified){showPage(state.page);await loadPage(state.page);}
-  else for(const p of ["dashboard","users","appeals","forums","banner","infrastructure","assets","features","staff","audit"])$(p).hidden=true;
+  else for(const p of ["dashboard","users","appeals","forums","banner","infrastructure","assets","imports","features","staff","audit"])$(p).hidden=true;
 }
 async function loadPage(p){
   if(p==="dashboard"){
@@ -45,9 +47,38 @@ async function loadPage(p){
   else if(p==="banner")await loadBanner();
   else if(p==="infrastructure")await loadInfra();
   else if(p==="assets")await inspectAssets();
+  else if(p==="imports")await loadImports();
   else if(p==="features")await loadFlags();
   else if(p==="staff")await loadStaff();
   else if(p==="audit")await loadAudit();
+}
+async function loadImports(){
+  clearTimeout(importPoll);
+  const {jobs}=await api('/native/imports');$('importRows').replaceChildren();
+  for(const job of jobs){
+    const row=el('tr');
+    for(const value of [job.name+' ('+job.slug+')',job.state,fmt(job.created_at)])row.append(el('td',value));
+    const result=el('td',job.error||'');
+    if(job.reportAvailable){const button=el('button','View report');button.onclick=()=>perform(async()=>{
+      const report=await api('/native/imports/'+job.id+'/report');
+      $('importReport').textContent=JSON.stringify(report,null,2);$('importReport').hidden=false;
+    });result.append(button);const launch=el('a',' Launch');launch.href=job.launchUrl;result.append(launch);}
+    row.append(result);$('importRows').append(row);
+  }
+  if(!jobs.length)$('importRows').append(el('tr','No places uploaded yet.'));
+  if(state.verified && state.page==='imports' && jobs.some(j=>['uploading','queued','running'].includes(j.state)))
+    importPoll=setTimeout(()=>perform(loadImports),3000);
+}
+async function uploadPlace(){
+  const file=$('importFile').files[0];
+  if(!file || !/\.rbxlx?$/i.test(file.name) || !file.size || file.size>128*1024*1024)throw Error('Choose an RBXL or RBXLX place up to 128 MiB.');
+  $('importSubmit').disabled=true;
+  try{
+    const query=new URLSearchParams({slug:$('importSlug').value.trim(),name:$('importName').value.trim(),filename:file.name});
+    const response=await fetch('/api/admin/native/imports/upload?'+query,{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/octet-stream'},body:file});
+    const result=await response.json();if(!response.ok)throw Error(result.error||'Upload failed.');
+    $('importFile').value='';showMessage('Place uploaded. Validation and dependency fetching are queued.');await loadImports();
+  }finally{$('importSubmit').disabled=false;}
 }
 async function findUsers(){
   const d=await api("/users?q="+encodeURIComponent($("userQuery").value.trim()));
@@ -214,6 +245,8 @@ $("saveStaff").onclick=()=>perform(saveStaff);
 $("saveBanner").onclick=()=>perform(saveBanner);
 $("refreshInfra").onclick=()=>perform(loadInfra);
 $("inspectAsset").onclick=()=>perform(inspectAssets);
+$('refreshImports').onclick=()=>perform(loadImports);
+$('importForm').onsubmit=event=>{event.preventDefault();perform(uploadPlace);};
 $("moreAudit").onclick=()=>perform(async()=>{state.auditPage++;await loadAudit();});
 perform(init);
 })();

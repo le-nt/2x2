@@ -17,6 +17,7 @@ h1,h2,h3{margin:0 0 13px}h1{font-size:24px}h2{font-size:20px}h3{font-size:16px}p
 table{border-collapse:collapse;width:100%}td,th{padding:10px;text-align:left;border-bottom:1px solid var(--border);vertical-align:top}th{color:var(--muted);font-weight:600}
 .scroller{overflow:auto}.hidden,[hidden]{display:none!important}code{word-break:break-all}.pill{background:#393056;color:#dfceff;padding:3px 8px;border-radius:99px;font-size:12px}
 #message{margin-bottom:14px;min-height:22px}nav{margin-top:15px}.small{font-size:12px}hr{border:0;border-top:1px solid var(--border);margin:20px 0}
+main{min-width:0}#importReport{max-height:70vh;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere}
 @media(max-width:750px){.wrap{grid-template-columns:1fr}.rail{border:0;border-bottom:1px solid var(--border)}.rail nav{display:flex;flex-wrap:wrap}.rail button{width:auto}main{padding:16px}}
 </style>
 </head>
@@ -33,6 +34,7 @@ table{border-collapse:collapse;width:100%}td,th{padding:10px;text-align:left;bor
 <button data-page="banner" data-min="Administrator">Sitewide banner</button>
 <button data-page="infrastructure" data-min="Administrator">Server monitor</button>
 <button data-page="assets" data-min="AssetManager">Asset inspector</button>
+<button data-page="imports" data-min="Administrator">Place imports</button>
 <button data-page="features" data-min="SuperAdmin">Site features</button>
 <button data-page="staff" data-min="SuperAdmin">Staff roles</button>
 <button data-page="audit" data-min="Administrator">Audit log</button>
@@ -100,6 +102,15 @@ table{border-collapse:collapse;width:100%}td,th{padding:10px;text-align:left;bor
 <div class="row"><input id="assetId" inputmode="numeric" placeholder="Asset ID (blank for recent cache sample)" maxlength="20"><button id="inspectAsset">Inspect</button></div>
 <p id="assetCount" class="muted"></p><div class="scroller"><table><thead><tr><th>Local filename</th><th>Size</th><th>Modified</th></tr></thead><tbody id="assetResults"></tbody></table></div>
 </div></section>
+<section id="imports" hidden>
+<div class="panel"><h2>Import a historical place</h2><p class="muted">Upload an RBXL or RBXLX place up to 128 MiB. Validation and available asset fetching start automatically. Original bytes are retained.</p>
+<form id="importForm"><p><label>Game ID <input id="importSlug" required pattern="[a-z0-9-]{1,100}" maxlength="100" placeholder="my-historical-game"></label></p>
+<p><label>Game name <input id="importName" required maxlength="120"></label></p>
+<p><label>Place file <input id="importFile" type="file" accept=".rbxl,.rbxlx" required></label></p>
+<button id="importSubmit" type="submit">Upload and import</button></form></div>
+<div class="panel"><h2>Import progress</h2><p><button id="refreshImports" class="secondary">Refresh</button></p>
+<div class="scroller"><table><thead><tr><th>Game</th><th>Status</th><th>Uploaded</th><th>Result</th></tr></thead><tbody id="importRows"></tbody></table></div>
+<pre id="importReport" hidden></pre></div></section>
 <section id="infrastructure" hidden>
 <div class="panel"><h2>Server and Arbiter monitor</h2><p class="muted">Read-only diagnostics for this Node server and registered native game jobs.</p>
 <div class="grid" id="infraMetrics"></div><p><button class="secondary" id="refreshInfra">Refresh status</button></p>

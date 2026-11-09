@@ -4,6 +4,8 @@ on:
   pull_request:
     paths:
       - 'server/lib/admin.mjs'
+      - 'server/lib/native-imports.mjs'
+      - 'tests/native-imports.test.mjs'
       - 'server/lib/api.mjs'
       - 'site/admin.html'
       - 'site/js/admin-console.js'
@@ -71,6 +73,6 @@ jobs:
           node --check site/js/not-approved.js
           node --check site/js/common.js
       - name: Admin API authorization and TOTP tests
-        run: node --test tests/admin.test.mjs
+        run: node --test tests/admin.test.mjs tests/native-imports.test.mjs
       - name: Native topbar chat health source tests
         run: python -m unittest discover -s tests -p test_engine_core_sources.py -v

@@ -43,7 +43,7 @@ test("admin port requires role and TOTP, audits enforcement and controls live fl
   const owner=db.prepare("SELECT * FROM users WHERE id=1").get();
   const player=db.prepare("SELECT * FROM users WHERE id=2").get();
   const cfg={secret:"test_secret_123",admins:[]};
-  const admin=createAdmin({db,cfg,secure:false});
+  const admin=createAdmin({db,cfg,secure:false,serverDir:dir});
   async function send(user,method,path,body,cookies={},webHash="test-session"){
     const call=request(method,"/api/admin"+path,body);
     await admin.handle(call.req,call.res,call.url,user,webHash,cookies,"127.0.0.1");
@@ -51,6 +51,7 @@ test("admin port requires role and TOTP, audits enforcement and controls live fl
   }
   assert.equal((await send(player,"GET","/status")).status,403);
   assert.equal((await send(owner,"GET","/dashboard")).status,403);
+  assert.equal((await send(owner,'GET','/native/imports')).status,403);
   assert.equal((await send(owner,"POST","/totp/setup",{password:"wrong"})).status,403);
   const setup=await send(owner,"POST","/totp/setup",{password:"OwnerPassword42"});
   assert.equal(setup.status,200);
@@ -61,8 +62,18 @@ test("admin port requires role and TOTP, audits enforcement and controls live fl
   assert.ok(token);
   assert.equal((await send(owner,"GET","/dashboard",undefined,{rbxcsa:token},"wrong-web-session")).status,403);
   assert.equal((await send(owner,"GET","/dashboard",undefined,{rbxcsa:token})).status,200);
+  assert.equal((await send(owner,'GET','/native/imports',undefined,{rbxcsa:token})).status,200);
+  async function binaryUpload(cookies={},origin='http://localhost:8080',user=owner){
+    const call=request('POST','/api/admin/native/imports/upload?slug=../invalid&name=Test&filename=place.rbxl');
+    call.req.headers['content-type']='application/octet-stream';call.req.headers.origin=origin;
+    await admin.handle(call.req,call.res,call.url,user,'test-session',cookies,'127.0.0.1');return call.result;
+  }
+  assert.equal((await binaryUpload()).status,403);
+  assert.equal((await binaryUpload({rbxcsa:token},'https://other.example')).status,403);
+  assert.equal((await binaryUpload({rbxcsa:token})).status,400);
   assert.equal((await send(owner,"POST","/staff",{userId:2,role:"Moderator"},{rbxcsa:token})).status,200);
   assert.equal(admin.role(player),"Moderator");
+  assert.equal((await binaryUpload({rbxcsa:token},'http://localhost:8080',player)).status,403);
   assert.equal((await send(owner,"POST","/users/2/action",{action:"Ban_1Day",reason:"Moderation test"},{rbxcsa:token})).status,200);
   assert.ok(admin.activeBan(2));
   assert.equal((await send(owner,"POST","/users/2/action",{action:"Unban",reason:"Appeal accepted"},{rbxcsa:token})).status,200);
