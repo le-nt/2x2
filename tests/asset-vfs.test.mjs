@@ -112,3 +112,39 @@ test('approved relocations pin original bytes and never override exact paths or 
     {from:'fonts/missing.rbxm',to:'avatar/scripts/health.rbxmx',sha256:hash,reason:'No chain'}]});
   assert.equal(vfs.resolve('fonts/start.rbxm').status,'unresolved');
 });
+
+test('versioned virtual mounts resolve original archive files without staging copies',async t=>{
+  const {roots,write}=fixture(t);
+  const first=write(0,'textures/icon.png','old icon');
+  const second=write(1,'textures/icon.png','new icon');
+  roots[0].virtualPrefix='archive/2009';roots[1].virtualPrefix='archive/2016';
+  const manifest=await inventoryArchives(roots);
+  assert.equal(manifest.collisions.length,0);
+  assert.equal(manifest.files[0].relativePath,'textures/icon.png');
+  // Manifest mount hints have no authority over the configured mount.
+  manifest.files[0].virtualPrefix='malicious';
+  const hash=manifest.files.find(e=>e.rootId==='2009').sha256;
+  const vfs=createAssetVfs({manifest,roots,mappings:[{from:'textures/icon.png',to:'archive/2009/textures/icon.png',sha256:hash,reason:'Original archive version'}]});
+  assert.equal(vfs.resolve('archive/2009/textures/icon.png').file,fs.realpathSync.native(first));
+  assert.equal(vfs.resolve('archive/2016/textures/icon.png').file,fs.realpathSync.native(second));
+  assert.equal(vfs.resolve('textures/icon.png').sha256,hash);
+  assert.equal(vfs.resolve('malicious/textures/icon.png').status,'unresolved');
+  fs.writeFileSync(first,'bad icon');
+  assert.equal(vfs.resolve('textures/icon.png').status,'integrity_mismatch');
+  roots[1].virtualPrefix='ARCHIVE/2009';
+  const conflict=await inventoryArchives(roots);
+  assert.equal(conflict.collisions[0].key,'content/archive/2009/textures/icon.png');
+  assert.equal(createAssetVfs({manifest:conflict,roots}).resolve('archive/2009/textures/icon.png').status,'conflict');
+});
+
+test('shareddata virtual mounts retain namespace and reject unsafe prefixes',async t=>{
+  const {roots,write}=fixture(t);write(2,'fonts/weapon.mesh','original mesh');
+  roots[2].virtualPrefix='novetus-1.3';
+  const manifest=await inventoryArchives(roots);
+  assert.equal(createAssetVfs({manifest,roots}).resolve('shareddata/novetus-1.3/fonts/weapon.mesh').status,'resolved');
+  for(const prefix of ['../escape','/absolute','a//b','a/','a\\b','C:/drive','x%2fescape','a?b','a/..','a.','a\u0000b',42]) {
+    const invalid=[{...roots[2],virtualPrefix:prefix}];
+    assert.throws(()=>createAssetVfs({manifest,roots:invalid}),/virtual prefix/);
+    await assert.rejects(inventoryArchives(invalid),/virtual prefix/);
+  }
+});

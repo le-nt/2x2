@@ -37,6 +37,23 @@ export function safeArchiveFile(root, relativePath) {
 }
 export const sha256 = bytes => crypto.createHash('sha256').update(bytes).digest('hex');
 
+// A mount prefix changes only the resource name, never the physical path.
+// Keep it in trusted root configuration so a manifest cannot remount itself.
+export function archiveVirtualPrefix(root) {
+  const prefix = root.virtualPrefix ?? '';
+  if (typeof prefix !== 'string' || prefix.length > 1024 ||
+      (prefix && (/%|[\\\x00-\x1f\x7f?#:]/.test(prefix) ||
+        prefix.split('/').some(s => !s || s === '.' || s === '..' || /[. ]$/.test(s)))))
+    throw Error('Invalid Asset VFS virtual prefix');
+  return prefix ? prefix + '/' : '';
+}
+
+export function archiveResource(root, relativePath) {
+  const ref = canonicalResource((root.namespace === 'shareddata' ? 'shareddata/' : '') +
+    archiveVirtualPrefix(root) + relativePath);
+  return ref?.namespace === root.namespace ? ref : null;
+}
+
 export function createAssetVfs({manifest, roots, mappings = [], maxEntries = 250000}) {
   if (manifest?.schemaVersion !== VFS_SCHEMA || !Array.isArray(manifest.files) || manifest.files.length > maxEntries)
     throw Error('Invalid or oversized Asset VFS manifest');
@@ -44,6 +61,7 @@ export function createAssetVfs({manifest, roots, mappings = [], maxEntries = 250
   // provenance only, never authority to read a path.
   const configured = new Map(roots.map(r => [r.id, r]));
   if(configured.size!==roots.length)throw Error('Duplicate Asset VFS root IDs');
+  for (const root of roots) archiveVirtualPrefix(root);
   if(!Array.isArray(mappings) || mappings.length>4096)throw Error('Invalid Asset VFS mappings');
   const mappedPaths=new Map();
   for(const mapping of mappings) {
@@ -58,7 +76,7 @@ export function createAssetVfs({manifest, roots, mappings = [], maxEntries = 250
   for (const entry of manifest.files) {
     if(!['content','shareddata'].includes(entry.namespace))continue;
     const root = configured.get(entry.rootId);
-    const ref = canonicalResource((entry.namespace === 'shareddata' ? 'shareddata/' : '') + entry.relativePath);
+    const ref = root && archiveResource(root, entry.relativePath);
     if (!root || !ref || root.namespace !== entry.namespace || !/^[a-f0-9]{64}$/.test(entry.sha256) ||
         !Number.isSafeInteger(entry.size) || entry.size <= 0 || entry.size > MAX_FILE) continue;
     if (!byKey.has(ref.key)) byKey.set(ref.key, []);

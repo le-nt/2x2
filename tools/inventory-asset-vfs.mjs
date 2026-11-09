@@ -5,13 +5,14 @@ import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import {fileURLToPath} from 'node:url';
-import {canonicalResource, VFS_SCHEMA} from '../server/lib/asset-vfs.mjs';
+import {archiveResource, archiveVirtualPrefix, VFS_SCHEMA} from '../server/lib/asset-vfs.mjs';
 
 export async function inventoryArchives(roots, {maxFiles=250000, maxBytes=100 * 1024 ** 3, maxDurationMs=120000, onProgress=null} = {}) {
   if (!Number.isSafeInteger(maxFiles) || maxFiles < 1 || maxFiles > 250000 || !Number.isSafeInteger(maxBytes) || maxBytes < 1 ||
       !Number.isSafeInteger(maxDurationMs) || maxDurationMs<1 || maxDurationMs>600000)
     throw Error('Invalid inventory limits');
   const ids = new Set(), files = [], diagnostics = [];
+  for (const root of roots) archiveVirtualPrefix(root);
   let visited = 0, hashedBytes = 0, truncated = false;
   const deadline=Date.now()+maxDurationMs;
   for (const root of roots) {
@@ -37,7 +38,7 @@ export async function inventoryArchives(roots, {maxFiles=250000, maxBytes=100 * 
         if (entry.isSymbolicLink()) { diagnostics.push({rootId:root.id, relativePath:rel, reason:'link_skipped'}); continue; }
         if (entry.isDirectory()) { if (!['.git','node_modules','build'].includes(entry.name)) pending.push(rel); continue; }
         if (!entry.isFile()) continue;
-        const ref = canonicalResource((root.namespace === 'shareddata' ? 'shareddata/' : '') + rel);
+        const ref = archiveResource(root, rel);
         const file = path.join(base,rel);
         try {
           const actual=await fs.promises.realpath(file),within=path.relative(base,actual);
@@ -63,8 +64,10 @@ export async function inventoryArchives(roots, {maxFiles=250000, maxBytes=100 * 
     if (truncated) break;
   }
   const keys = new Map();
+  const configured = new Map(roots.map(root => [root.id, root]));
   for (const entry of files) {
-    const key = entry.namespace + '/' + entry.relativePath.toLowerCase();
+    const root = configured.get(entry.rootId);
+    const key = entry.namespace + '/' + (archiveVirtualPrefix(root) + entry.relativePath).toLowerCase();
     if (!keys.has(key)) keys.set(key,[]);
     keys.get(key).push(entry);
   }
@@ -72,7 +75,7 @@ export async function inventoryArchives(roots, {maxFiles=250000, maxBytes=100 * 
     kind:new Set(v.map(e=>e.sha256)).size>1?'conflict':'duplicate',
     files:v.map(e=>({rootId:e.rootId,relativePath:e.relativePath,sha256:e.sha256}))}));
   return {schemaVersion:VFS_SCHEMA, generatedAt:new Date().toISOString(), complete:!truncated && !diagnostics.length,
-    truncated, visitedEntries:visited, hashedBytes, roots:roots.map(({id,namespace,clientVersion})=>({id,namespace,clientVersion})),
+    truncated, visitedEntries:visited, hashedBytes, roots:roots.map(({id,namespace,clientVersion,virtualPrefix})=>({id,namespace,clientVersion,...(virtualPrefix?{virtualPrefix}:{})})),
     files, collisions, diagnostics};
 }
 
