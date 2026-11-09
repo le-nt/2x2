@@ -11,6 +11,7 @@ import shutil
 from pathlib import Path
 
 FILES = {
+    'Rendering/GfxRender/TextureManager.cpp':'b1a0a7a884226c13db587588a4720b62886d0510e00041f4303e06dcfb9fad4f',
     'Network/Player.cpp':'274b3c72b9401e8177e76f7087c1f0e8e3153a92a6a65b12eede1b6afc8090bc',
     'Network/raknet/Source/GetTime.cpp':'2f490ed83467088b1bef15c4fe67bd790256103e6ff2471e178c4b8f6f07f59c',
     'UniversalClient/FunctionMarshaller.cpp':'e8c3bff74719b8c51b9deab4d7a65045677cbd45bbfbfca681b62a4a950200ef',

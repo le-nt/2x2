@@ -236,6 +236,12 @@ export function createNative({db,cfg,root,port,sessionUser,isGated,assetResolver
    if(/^[A-Za-z0-9_-]+\.(?:png|jpe?g|dds)$/i.test(name||'')){
     file=beneath(legacyTexturesRoot,name) ||
          beneath(engineTexturesRoot,name);
+    if(!file){
+     const archived=archiveVfs?.resolve('shareddata/textures/'+name);
+     if(archived && !['resolved','unresolved','vfs_not_configured'].includes(archived.status))
+      return json(res,archived.status==='conflict'?409:404,{error:'Archive resource unavailable.',reason:archived.status});
+     file=archived?.file;
+    }
     kind=path.extname(file||'');
     // Only use Cloud when a verified numeric asset ID is explicitly mapped.
     // The local built-in resource always takes precedence.

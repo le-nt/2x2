@@ -23,9 +23,20 @@ test('native protocol shares 2x2 identity, requires the key, and gates WebSocket
  fs.writeFileSync(path.join(tmp,'server/native/places.json'),JSON.stringify({format:1,places:{[classic]:{id:1,file:'test.rbxl'},'binary-map':{id:2,file:'binary.rbxl'}}}));
  const archive=path.join(tmp,'archive');fs.mkdirSync(path.join(archive,'sounds'),{recursive:true});
  fs.writeFileSync(path.join(archive,'sounds/Rocket whoosh 01.wav'),'original wav bytes');
- const archiveRoots=[{id:'test-archive',namespace:'content',path:archive}];
+ const sharedOne=path.join(tmp,'shared-one'),sharedTwo=path.join(tmp,'shared-two');
+ for(const dir of [sharedOne,sharedTwo])fs.mkdirSync(path.join(dir,'textures'),{recursive:true});
+ fs.mkdirSync(path.join(sharedOne,'recovered'));
+ const recoveredPng=Buffer.from([137,80,78,71,13,10,26,10,1,2,3]);
+ fs.writeFileSync(path.join(sharedOne,'recovered/Cake.png'),recoveredPng);
+ for(const name of ['conflict.png','local.png']){
+  fs.writeFileSync(path.join(sharedOne,'textures',name),'archive one');
+  fs.writeFileSync(path.join(sharedTwo,'textures',name),'archive two');
+ }
+ fs.mkdirSync(path.join(tmp,'site/native-legacy-assets/textures'),{recursive:true});
+ fs.writeFileSync(path.join(tmp,'site/native-legacy-assets/textures/local.png'),'existing local bytes');
+ const archiveRoots=[{id:'test-archive',namespace:'content',path:archive},{id:'shared-one',namespace:'shareddata',path:sharedOne},{id:'shared-two',namespace:'shareddata',path:sharedTwo}];
  fs.writeFileSync(path.join(tmp,'vfs-manifest.json'),JSON.stringify(await inventoryArchives(archiveRoots)));
- fs.writeFileSync(path.join(tmp,'vfs-config.json'),JSON.stringify({roots:archiveRoots,manifest:'vfs-manifest.json'}));
+ fs.writeFileSync(path.join(tmp,'vfs-config.json'),JSON.stringify({roots:archiveRoots,manifest:'vfs-manifest.json',mappings:[{from:'shareddata/textures/cake.png',to:'shareddata/recovered/Cake.png',sha256:createHash('sha256').update(recoveredPng).digest('hex'),reason:'Original archive texture relocation'}]}));
  const realPlaces=JSON.parse(fs.readFileSync(path.join(root,'server/native/places.json'))).places;
  const cross=realPlaces['2008m-crossroads'];
  if(cross){fs.copyFileSync(path.join(root,'server/native/maps',cross.file),path.join(tmp,'server/native/maps','crossroads.rbxl'));const fixture=JSON.parse(fs.readFileSync(path.join(tmp,'server/native/places.json')));fixture.places['2008m-crossroads']={id:294,file:'crossroads.rbxl'};fs.writeFileSync(path.join(tmp,'server/native/places.json'),JSON.stringify(fixture));}
@@ -103,6 +114,15 @@ test('native protocol shares 2x2 identity, requires the key, and gates WebSocket
   assert.equal(archived.status,200);assert.equal(await archived.text(),'original wav bytes');
   assert.equal((await request('/native/archive-content?path='+encodeURIComponent('../secret.wav'),{headers:{AccessKey:key}},'')).status,404);
   assert.equal((await request('/native/archive-content?path=sounds/missing.wav',{headers:{AccessKey:'wrong'}},'')).status,401);
+  const recoveredTexture=await request('/native/legacy-texture?name=cake.png',{headers:{AccessKey:key}},'');
+  assert.equal(recoveredTexture.status,200);assert.equal(recoveredTexture.headers.get('content-type'),'image/png');
+  assert.deepEqual(Buffer.from(await recoveredTexture.arrayBuffer()),recoveredPng);
+  assert.equal((await request('/native/legacy-texture?name=conflict.png',{headers:{AccessKey:key}},'')).status,409);
+  assert.equal(await(await request('/native/legacy-texture?name=local.png',{headers:{AccessKey:key}},'')).text(),'existing local bytes');
+  assert.equal((await request('/native/legacy-texture?name=cake.png',{headers:{AccessKey:'wrong'}},'')).status,401);
+  fs.writeFileSync(path.join(sharedOne,'recovered/Cake.png'),'changed archive bytes');
+  const damagedTexture=await request('/native/legacy-texture?name=cake.png',{headers:{AccessKey:key}},'');
+  assert.equal(damagedTexture.status,404);assert.equal((await damagedTexture.json()).reason,'integrity_mismatch');
   const mesh=await request('/native/asset?id=34854608',{headers:{AccessKey:key}},'');
   assert.equal(mesh.status,200);assert.equal(await mesh.text(),'version 1.00\n');
   const overlay=await request('/api/asset?id=34854607',{headers:{AccessKey:key}},'');

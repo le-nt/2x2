@@ -7,7 +7,10 @@
 #include <vector>
 
 static std::atomic<long long> wallUs{100000000};
-extern "C" int gettimeofday(timeval* value, void*) noexcept
+extern "C" int gettimeofday(timeval* value, void*)
+#ifndef __EMSCRIPTEN__
+    noexcept
+#endif
 {
     const auto now = wallUs.load();
     value->tv_sec = now / 1000000;

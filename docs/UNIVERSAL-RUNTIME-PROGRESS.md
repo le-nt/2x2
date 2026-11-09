@@ -286,6 +286,31 @@ comparison reports `missing,missing,missing` with the previous executable and
 the original hash-verified archived model and creates only a disposable local
 test player; no game script is replaced.
 
+TextureManager's local-file shortcut also bypassed ContentProvider for missing
+`rbxasset://` images. Missing packaged textures on the native server path now use
+the existing archive-aware asynchronous provider; existing packaged images keep
+their file path. The legacy-texture endpoint now honors hash-verified VFS
+relocations before an explicitly mapped numeric upstream fallback. HTTP tests
+cover original bytes, local precedence, conflicts, corruption and authentication.
+RCC and UniversalClient release builds pass, and Killbots now renders its
+original red sky in the browser instead of the fallback blue sky.
+
+The newer official Novetus 1.3 archive also contains all eleven missing Killbots
+weapon resources: two meshes, five WAVs and four textures/icons. Bounded HTTP
+ranges retrieved 1,723,940 bytes from the 783,137,061-byte ZIP, using a stable
+ETag and ZIP member CRC32 checks. Per-file SHA-256 values are recorded locally;
+the whole ZIP's metadata SHA-1 is recorded but was not verified by a full
+download. Versioned, hash-pinned mappings preserve original filenames and add
+these eleven previously unresolved paths without replacing existing entries.
+All eleven resources and five global legacy textures pass native endpoint
+byte checks. The original pistol and shotgun icons now render in Killbots.
+[Official archive file](https://archive.org/download/novetus-13-archive/v3.2024.1/Novetus_13_v3_2024.zip).
+
+The network clock regression also passes as an actual Emscripten pthread build
+under Node, including cross-thread readings and elapsed-time checks. Intermittent
+browser disconnections remain under investigation; these tests do not close
+that gameplay issue.
+
 Repository trees and relevant files were inspected through GitHub, including
 Novetus map descriptions and ClientScriptTestForm. No external implementation
 was copied for this foundation. License files were read before considering reuse:
