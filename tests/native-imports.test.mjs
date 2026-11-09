@@ -5,17 +5,18 @@ import path from 'node:path';
 import os from 'node:os';
 import crypto from 'node:crypto';
 import {Readable,PassThrough} from 'node:stream';
+import http from 'node:http';
 import {openDb} from '../server/lib/db.mjs';
 import {createNativeImports} from '../server/lib/native-imports.mjs';
 
 const hash=bytes=>crypto.createHash('sha256').update(bytes).digest('hex');
-function fixture(t){
+function fixture(t,environment={}){
   const root=fs.mkdtempSync(path.join(os.tmpdir(),'2x2-native-imports-'));
   const server=path.join(root,'server');fs.mkdirSync(path.join(server,'native'),{recursive:true});
   fs.mkdirSync(path.join(root,'site'));
   fs.writeFileSync(path.join(server,'native/places.json'),JSON.stringify({format:1,places:{}}));
   const db=openDb(server);
-  const queue=createNativeImports({db,projectRoot:root,environment:{...process.env,ROBLOX_OPEN_CLOUD_API_KEY:'',ROBLOX_ASSET_FETCH:'0',AYA_ASSET_FALLBACK_URL:'',RBX_ASSET_VFS_CONFIG:''}});
+  const queue=createNativeImports({db,projectRoot:root,environment:{...process.env,ROBLOX_OPEN_CLOUD_API_KEY:'',ROBLOX_ASSET_FETCH:'0',AYA_ASSET_FALLBACK_URL:'',RBX_ASSET_VFS_CONFIG:'',...environment}});
   t.after(async()=>{await queue.close();db.close();fs.rmSync(root,{recursive:true,force:true});});
   return {root,db,queue};
 }
@@ -26,6 +27,26 @@ async function completed(queue,id){
   throw Error('Import did not finish within the regression timeout');
 }
 const place=Buffer.from('<roblox version="4"><Item class="Workspace" referent="RBX0"><Properties><string name="Name">Workspace</string></Properties><Item class="Script" referent="RBX1"><Properties><string name="Name">OriginalScript</string><ProtectedString name="Source">print("original gameplay")</ProtectedString></Properties></Item></Item></roblox>');
+
+test('slow upstream discovery releases the registry lock and interruption permits later imports',async t=>{
+  let received;
+  const pending=new Promise(resolve=>{received=resolve;});
+  const server=http.createServer((_req,res)=>{received();res.on('error',()=>{});});
+  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
+  t.after(()=>{server.closeAllConnections();server.close();});
+  const {root,queue,db}=fixture(t,{AYA_ASSET_FALLBACK_URL:'http://127.0.0.1:'+server.address().port});
+  const bytes=Buffer.from(place.toString().replace('original gameplay','rbxassetid://87654321'));
+  const first=await queue.upload(request(bytes),{slug:'slow-upload',name:'Slow',filename:'slow.rbxlx'},1);
+  let timeout;
+  try{await Promise.race([pending,new Promise((_,reject)=>{timeout=setTimeout(()=>reject(Error('Upstream was not reached')),15000);})]);}
+  finally{clearTimeout(timeout);}
+  assert.equal(fs.existsSync(path.join(root,'server/native/places.json.import.lock')),false);
+  await queue.close();assert.equal(queue.get(first.id).state,'interrupted');
+  const next=createNativeImports({db,projectRoot:root,environment:{...process.env,ROBLOX_OPEN_CLOUD_API_KEY:'',ROBLOX_ASSET_FETCH:'0',AYA_ASSET_FALLBACK_URL:'',RBX_ASSET_VFS_CONFIG:''}});
+  t.after(()=>next.close());
+  const second=await next.upload(request(place),{slug:'later-upload',name:'Later',filename:'later.rbxlx'},1);
+  assert.equal((await completed(next,second.id)).state,'succeeded');
+});
 
 test('uploaded places automatically use the real importer, preserve bytes and publish dependency reports',async t=>{
   const {root,queue}=fixture(t),meta={slug:'new-upload',name:'Original uploaded place',filename:'historical.rbxlx'};

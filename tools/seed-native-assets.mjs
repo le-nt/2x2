@@ -20,19 +20,19 @@ import {prepareAssetVfs} from './prepare-asset-vfs.mjs';
 
 const defaultRoot=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 function flags(argv) {
-  const options={download:false,maxFetch:250,maxAssets:10000,maxDepth:4,place:null,root:null};
+  const options={download:false,maxFetch:250,maxAssets:10000,maxDepth:4,maxDurationMs:300000,place:null,root:null};
   for (let i=0;i<argv.length;i++) {
     const arg=argv[i];
     if (arg==='--download') options.download=true;
     else if (arg==='--place') options.place=argv[++i];
     else if (arg==='--root') options.root=argv[++i];
-    else if (['--max-fetch','--max-assets','--max-depth'].includes(arg)) {
+    else if (['--max-fetch','--max-assets','--max-depth','--max-duration-ms'].includes(arg)) {
       const n=Number(argv[++i]);
       if (!Number.isSafeInteger(n)||n<0) throw Error('Invalid value for '+arg);
-      options[arg==='--max-fetch'?'maxFetch':arg==='--max-assets'?'maxAssets':'maxDepth']=n;
+      options[arg==='--max-fetch'?'maxFetch':arg==='--max-assets'?'maxAssets':arg==='--max-depth'?'maxDepth':'maxDurationMs']=n;
     } else throw Error('Unknown option: '+arg);
   }
-  if (options.maxAssets>100000 || options.maxFetch>10000 || options.maxDepth>12)
+  if (options.maxAssets>100000 || options.maxFetch>10000 || options.maxDepth>12 || options.maxDurationMs>600000)
     throw Error('Safety limit exceeded');
   return options;
 }
@@ -200,13 +200,20 @@ for(const [placeId,entry] of Object.entries(places)) {
   }catch(error){diagnostics.push({place:placeId,reason:error.code||error.message});}
 }
 
+const fetchDeadline=performance.now()+opts.maxDurationMs;
 while(queue.length) {
   const task=queue.shift();
   const record=ids.get(task.id);
   if(!record)continue;
   let found=resolver.lookup(task.id);
   let downloaded=false;
-  if(!found && opts.download && stats.upstreamAttempts<opts.maxFetch) {
+  if(!found && opts.download && performance.now()>=fetchDeadline) {
+    if(record.status==='pending') {
+      record.status='deferred';record.reason='upstream_time_budget_exhausted';
+    }
+    cappedPlaces.add(task.placeId);
+  }
+  if(!found && opts.download && performance.now()<fetchDeadline && stats.upstreamAttempts<opts.maxFetch) {
     stats.upstreamAttempts++;
     try {found=await resolver.resolve(task.id);downloaded=!!found;}
     catch(error){record.reason=error.code||'network_error';}

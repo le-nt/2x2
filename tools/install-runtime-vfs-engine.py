@@ -11,12 +11,15 @@ import shutil
 from pathlib import Path
 
 FILES = {
+    'Base/RbxFormat.cpp':'18683056d24aa8352bbf8dba96e1ce2d837d48af478687974a161cccf4970bc0',
     'App/v8datamodel/factoryregistration.cpp':'404ffde4f36756cd13611b62ec661fd2b2b078e752b601ec6828885a7d62e85e',
-    'Network/raknet/Source/RakPeer.cpp':'6aa3a104bdf8c744e91770efff2c38131557ece201f2b307bce1e3a412bda177',
+    'Network/raknet/Source/RakPeer.cpp':('6aa3a104bdf8c744e91770efff2c38131557ece201f2b307bce1e3a412bda177',
+                                      '4cb1f5269a9f1c90f0cdc2a7c6b5c26a6830432775b3644029fe4d49f13872bf'),
     'Network/raknet/Source/ReliabilityLayer.cpp':'7ab4d827287a4aafc97a4da4b1c3eeb8988d62369e6e27773709246fa800106b',
     'App/include/v8datamodel/PVInstance.h':'dc41a6e23e5d6f1efad45c6322fef05cfb445001a0fd95216055d19eea969f3d',
     'App/v8datamodel/PVInstance.cpp':('4f206f3d976ec517d60aaa3f5b3843a6b6fc2e10660fd296714f1553ca492cbd',
-                                   '385e5034cfe064e117e651b592c3a64125153d4fad61a3b295cf9562f988a5af'),
+                                   '385e5034cfe064e117e651b592c3a64125153d4fad61a3b295cf9562f988a5af',
+                                   '0a012a08507287b3c91a3517b1ccafa6f63e2d3b9359a6d8971b620edb6eb2fc'),
     'UniversalClient/Application.cpp':('8b27bca37d8bdfcdf9f5762c428c66d4ea72c972f0e85e4258fbf6226a4e4b81',
                                        '47196147b18d00d2192d4a0b2d7fd7d127fc951291e9d4d6bb8b40f75fb74507'),
     'Rendering/GfxRender/TextureManager.cpp':'b1a0a7a884226c13db587588a4720b62886d0510e00041f4303e06dcfb9fad4f',

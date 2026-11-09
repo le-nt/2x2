@@ -10,6 +10,22 @@ import {createAssetResolver} from '../server/lib/asset-resolver.mjs';
 import {inventoryArchives} from '../tools/inventory-asset-vfs.mjs';
 
 const projectRoot=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
+test('expired download budget still archives local assets and publishes deferred coverage',t=>{
+  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'2x2-seed-budget-'));
+  t.after(()=>fs.rmSync(dir,{recursive:true,force:true}));
+  const native=path.join(dir,'server/native');
+  for(const folder of ['maps','asset-library'])fs.mkdirSync(path.join(native,folder),{recursive:true});
+  fs.writeFileSync(path.join(native,'maps/map.rbxl'),'<roblox version="4"><Item class="Workspace"><Properties><string name="Name">rbxassetid://12345 rbxassetid://98765</string></Properties></Item></roblox>');
+  fs.writeFileSync(path.join(native,'asset-library/12345.png'),'available original asset');
+  fs.writeFileSync(path.join(native,'places.json'),JSON.stringify({places:{fixture:{file:'map.rbxl',id:1}}}));
+  const run=spawnSync(process.execPath,[path.join(projectRoot,'tools/seed-native-assets.mjs'),'--root',dir,'--download','--max-duration-ms','0'],{encoding:'utf8',timeout:20000});
+  assert.equal(run.status,0,run.stderr);
+  const report=JSON.parse(fs.readFileSync(path.join(native,'asset-reports/fixture.json')));
+  assert.equal(report.statuses.local,1);assert.equal(report.statuses.deferred,1);
+  assert.equal(report.complete,false);assert.equal(report.truncated,true);
+  assert.equal(report.assets.find(a=>a.id==='98765').reason,'upstream_time_budget_exhausted');
+  assert.equal(JSON.parse(fs.readFileSync(path.join(native,'asset-index.json'))).stats.upstreamAttempts,0);
+});
 test('asset crawler detects old Roblox, Project Pizda, SBCR, and Script source references',()=>{
   const xml='<roblox><Item><string name="Script">local texture="rbxassetid://12345"</string>' +
     '<url>https://www.projectpizza.net/api/asset?id=998</url>' +

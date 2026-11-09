@@ -10,6 +10,7 @@ import { promisify } from 'node:util';
 import { gunzipSync } from 'node:zlib';
 import { issue,verify,equal,clientTicket,safeRelative } from './native-security.mjs';
 import {createNativeChat} from './native-chat.mjs';
+import {createNativeDataStore} from './native-datastore.mjs';
 import {rewriteLegacyAssetUrls} from './asset-resolver.mjs';
 import {inspectAvatarDependencies} from './native-avatar-deps.mjs';
 import {loadLegacyTextureMap,legacyTextureAssetId} from './legacy-texture-map.mjs';
@@ -63,8 +64,8 @@ export function createNative({db,cfg,root,port,sessionUser,isGated,assetResolver
  const places=new Map();
  let registryFingerprint='',registryCheck=0;
  function refreshPlaces(){
-  if(Date.now()<registryCheck)return;
-  registryCheck=Date.now()+1000;
+  if(performance.now()<registryCheck)return;
+  registryCheck=performance.now()+1000;
   try {
    const file=path.join(serverDir,'native/places.json'),stat=fs.statSync(file);
    if(stat.size>8*1024*1024)throw Error('Place registry exceeds size limit');
@@ -87,6 +88,16 @@ export function createNative({db,cfg,root,port,sessionUser,isGated,assetResolver
  // A server restart invalidates transports; do not advertise old jobs as ready.
  db.prepare('UPDATE native_jobs SET closed=1').run();
  const spawning=new Map(),early=new Map(),sockets=new Set();
+ const persistence=createNativeDataStore({db,signingKey:n.signingKey,authorize(req,placeId){
+  const jobId=req.headers['roblox-game-id'];
+  if(Number(req.headers['roblox-place-id'])!==placeId || !places.has(placeId) || typeof jobId!=='string' || !/^[A-Za-z0-9-]{1,100}$/.test(jobId))return null;
+  const job=db.prepare('SELECT place_id,last_heartbeat,closed FROM native_jobs WHERE job_id=?').get(jobId);
+  if(job && job.place_id===placeId && job.last_heartbeat>Date.now()-120000)return {jobId,placeId};
+  // Native scripts can issue their first request while OpenJob is still
+  // running. The worker key and engine-owned job/place headers remain required.
+  if(!job && spawning.has(placeId))return {jobId,placeId};
+  return null;
+ }});
  async function arbiter(endpoint,payload){
   if(!n.arbiterOrigin)throw Error('Configure native.arbiterOrigin first.');
   const target=new URL(endpoint,origin(n.arbiterOrigin));
@@ -127,7 +138,7 @@ export function createNative({db,cfg,root,port,sessionUser,isGated,assetResolver
  function appearance(id){const row=db.prepare('SELECT avatar FROM users WHERE id=?').get(id);let avatar={};try{avatar=JSON.parse(row?.avatar||'{}');}catch{}return avatar;}
  function appearanceURL(id){return `${base}/appearance/${id}`;}
  function avatarPaths(av){return inspectAvatarDependencies(charRoot,av).files;}
- function machineAllowed(url){return /^\/native\/(?:archive-content\/?$|legacy-shared\/?$|legacy-texture\/?$|content-asset\/?$|asset\/?$|appearance\/\d+$|bodycolors\/\d+$|content$|api\/game\/players\/[1-9][0-9]{0,15}$|api\/moderation\/filtertext$|internal\/gameserver\/(?:heartbeat|shutdown)$|Game\/LoadPlaceInfo\.ashx)$/.test(url.pathname);}
+ function machineAllowed(url){return /^\/native\/(?:archive-content\/?$|legacy-shared\/?$|legacy-texture\/?$|content-asset\/?$|asset\/?$|appearance\/\d+$|bodycolors\/\d+$|content$|persistence\/(?:getV2|set|increment|getSortedValues)$|api\/game\/players\/[1-9][0-9]{0,15}$|api\/moderation\/filtertext$|internal\/gameserver\/(?:heartbeat|shutdown)$|Game\/LoadPlaceInfo\.ashx)$/.test(url.pathname);}
  function machine(req,url){return machineAllowed(url)&&!!n.accessKey&&equal(req.headers.accesskey,n.accessKey);}
  async function route(req,res,url,user,sessionHash){
   refreshPlaces();
@@ -158,6 +169,7 @@ export function createNative({db,cfg,root,port,sessionUser,isGated,assetResolver
   if(!p.startsWith('/native/'))return false;
   const service=machine(req,url);
   if(!service&&!user)return json(res,401,{error:'A current 2x2 session is required.'});
+  if(await persistence(req,res,url,{service}))return;
   if(req.method!=='GET'&&req.method!=='HEAD'&&req.method!=='POST')return json(res,405,{error:'Method not supported.'});
   if(await chat(req,res,url,{service,user}))return;
   if(p==='/native/negotiate'){res.writeHead(200,{'Content-Type':'text/plain','Cache-Control':'no-store'});return res.end('OK');}

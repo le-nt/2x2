@@ -106,6 +106,18 @@ test('native protocol shares 2x2 identity, requires the key, and gates WebSocket
   const poll='/native/game/placelauncher?placeId=1';let joining;
   for(let i=0;i<50;i++){const r=await request(poll,{method:'POST'});const data=await r.json();if(data.status===2){joining=data;break;}await new Promise(r=>setTimeout(r,25));}
   assert.ok(joining,logs);assert.equal(starts,1);
+  const datastore='/native/persistence/getV2?placeId=1&type=standard&scope=global';
+  const dsHeaders={AccessKey:key,'Roblox-Game-Id':'job-test','Roblox-Place-Id':'1','Content-Type':'application/x-www-form-urlencoded'};
+  const dsBody=new URLSearchParams({'qkeys[0].scope':'global','qkeys[0].key':'fixture','qkeys[0].target':'score'}).toString();
+  const dsMissing=await request(datastore,{method:'POST',headers:dsHeaders,body:dsBody},'');
+  assert.equal(dsMissing.status,200);assert.deepEqual(await dsMissing.json(),{data:[]});
+  assert.equal((await request(datastore,{method:'POST',body:dsBody})).status,403,'website login alone cannot read game persistence');
+  assert.equal((await request(datastore,{method:'POST',headers:{...dsHeaders,'Roblox-Game-Id':'unknown-job'},body:dsBody},'')).status,403);
+  assert.equal((await request(datastore.replace('placeId=1','placeId=2'),{method:'POST',headers:dsHeaders,body:dsBody},'')).status,403,'worker headers must match the requested place');
+  const dsSet=await request('/native/persistence/set?placeId=1&type=standard&scope=global&key=fixture&target=score&valueLength=1',{method:'POST',headers:dsHeaders,body:'value=7'},'');
+  assert.equal(dsSet.status,200);assert.deepEqual(await dsSet.json(),{data:'7'});
+  const dsSaved=await request(datastore,{method:'POST',headers:dsHeaders,body:dsBody},'');
+  assert.equal((await dsSaved.json()).data[0].Value,'7');
   const info=await(await request(new URL(joining.joinScriptUrl).pathname+new URL(joining.joinScriptUrl).search)).json();assert.equal(info.UserName,me.user.username);assert.equal(info.UserId,me.user.id);assert.equal(info.PlaceId,1);assert.ok(!JSON.stringify(info).includes(key));assert.equal(info.ClientTicket.split(';').length,3);
   const app=await request('/native/appearance/'+me.user.id);assert.equal(app.status,200);assert.ok((await app.text()).includes('/native/bodycolors/'+me.user.id));
   const binaryResponse=await request('/native/asset?id=2',{headers:{AccessKey:key}},'');assert.deepEqual(Buffer.from(await binaryResponse.arrayBuffer()),binary,'binary map bytes must not be decoded as UTF-8');
@@ -140,7 +152,7 @@ test('native protocol shares 2x2 identity, requires the key, and gates WebSocket
   updated.places['new-import']={id:3,file:'new.rbxl'};
   fs.writeFileSync(registryFile+'.tmp',JSON.stringify(updated));fs.renameSync(registryFile+'.tmp',registryFile);
   await new Promise(resolve=>setTimeout(resolve,1100));
-  const imported=await request('/api/native/launch?id=new-import');assert.equal(imported.status,200);assert.equal((await imported.json()).placeId,3);
+  const imported=await request('/api/native/launch?id=new-import');const importedBody=await imported.text();assert.equal(imported.status,200,importedBody);assert.equal(JSON.parse(importedBody).placeId,3);
   const broken={...updated,places:{...updated.places,duplicate:{id:3,file:'new.rbxl'}}};
   fs.writeFileSync(registryFile+'.tmp',JSON.stringify(broken));fs.renameSync(registryFile+'.tmp',registryFile);
   await new Promise(resolve=>setTimeout(resolve,1100));

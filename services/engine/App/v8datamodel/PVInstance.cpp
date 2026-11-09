@@ -46,7 +46,10 @@ const char *const sPVInstance = "PVInstance";
 
 REFLECTION_BEGIN();
 static const Reflection::PropDescriptor<PVInstance, CoordinateFrame> desc_CoordFrame("CoordinateFrame", category_Data, &PVInstance::getPVGridOffsetLegacy, &PVInstance::setPVGridOffsetLegacy, Reflection::PropertyDescriptor::UI);
-static const Reflection::EnumPropDescriptor<PVInstance, PVInstance::ControllerType> desc_Controller("Controller", category_Behavior, &PVInstance::getLegacyController, &PVInstance::setLegacyController);
+// Runtime adapter only: archived motor flags retain the existing loader's
+// behavior. They must not enter the player-only setter during deserialization.
+static const Reflection::EnumPropDescriptor<PVInstance, PVInstance::ControllerType> desc_Controller("Controller", category_Behavior, &PVInstance::getLegacyController, &PVInstance::setLegacyController,
+	static_cast<Reflection::PropertyDescriptor::Functionality>(Reflection::PropertyDescriptor::SCRIPTING | Reflection::PropertyDescriptor::REPLICATE_CLONE));
 REFLECTION_END();
 
 PVInstance::PVInstance(const char* name) :

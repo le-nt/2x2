@@ -82,12 +82,17 @@ player.CharacterAdded:connect(function(character)
 end)
 for i=1,3 do player:LoadCharacter() end'''
     if legacy_controller:
+        archived=ET.SubElement(workspace,'Item',{'class':'Model','referent':'RBXArchivedMotorFlags'})
+        archived_props=ET.SubElement(archived,'Properties')
+        ET.SubElement(archived_props,'string',name='Name').text='ArchivedMotorFlags'
+        ET.SubElement(archived_props,'token',name='Controller').text='1'
         item=ET.SubElement(workspace,'Item',{'class':'Script','referent':'RBXControllerProbe'})
         props=ET.SubElement(item,'Properties')
         ET.SubElement(props,'string',name='Name').text='ProbeLegacyController'
         ET.SubElement(props,'ProtectedString',name='Source').text='''local sentinel=Instance.new("StringValue",workspace);sentinel.Name="LegacyControllerSentinel"
 local ok,err=pcall(function()
  assert(Enum.ControllerType.Player.Value==7 and Enum.ControllerType.None.Value==0)
+ assert(workspace.ArchivedMotorFlags.Controller==Enum.ControllerType.None,"Archived motor flags must retain the baseline loader behavior")
  for _,class in pairs({"Model","Part"}) do
   local object=Instance.new(class);assert(object.Controller==Enum.ControllerType.None)
   object.Controller=7;assert(object.Controller==Enum.ControllerType.Player)

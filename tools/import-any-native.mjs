@@ -46,6 +46,7 @@ const registry=path.join(native,'places.json');
 // A stale lock after interruption requires explicit operator inspection.
 const lockFile=registry+'.import.lock';
 const lock=fs.openSync(lockFile,'wx');
+let importedPlaceId;
 try {
 const original=JSON.parse(fs.readFileSync(registry,'utf8'));
 if(!original.places||typeof original.places!=='object')throw Error('Invalid place registry');
@@ -73,11 +74,16 @@ places[opts.id]={...previous,id:previous?.id||nextId,file:fileName,name:opts.nam
 const temp=registry+'.'+crypto.randomUUID()+'.tmp';
 try{fs.writeFileSync(temp,JSON.stringify(original,null,2)+'\n');fs.renameSync(temp,registry);}
 finally{try{fs.unlinkSync(temp);}catch{}}
+importedPlaceId=places[opts.id].id;
+} finally {fs.closeSync(lock);fs.unlinkSync(lockFile);}
+// Network discovery does not allocate IDs or mutate the registry. Release its
+// lock before slow upstream requests so an interrupted download cannot block
+// subsequent uploads of unrelated places.
 const args=[path.join(project,'tools/seed-native-assets.mjs'),'--root',opts.root,'--place',opts.id];
 if(opts.download&&opts.maxFetch)args.push('--download','--max-fetch',String(opts.maxFetch));
 const run=spawnSync(process.execPath,args,{cwd:opts.root,stdio:'inherit',windowsHide:true});
 if(run.status!==0)throw Error('Import saved, but asset seeding failed; rerun tools/seed-native-assets.mjs --place '+opts.id);
-console.log('Imported',opts.id,'native place ID',places[opts.id].id);
+console.log('Imported',opts.id,'native place ID',importedPlaceId);
 console.log('Coverage: server/native/asset-reports/'+opts.id+'.json');
 const reportFile=path.join(native,'asset-reports',opts.id+'.json');
 const report=JSON.parse(fs.readFileSync(reportFile,'utf8'));
@@ -86,4 +92,3 @@ report.compatibilityStatus=report.complete?'dependencies_resolved':'dependencies
 const reportTemp=reportFile+'.'+crypto.randomUUID()+'.tmp';
 try{fs.writeFileSync(reportTemp,JSON.stringify(report,null,2)+'\n',{flag:'wx'});fs.renameSync(reportTemp,reportFile);}
 finally{try{fs.unlinkSync(reportTemp);}catch{}}
-} finally {fs.closeSync(lock);fs.unlinkSync(lockFile);}
