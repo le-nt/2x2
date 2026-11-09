@@ -259,6 +259,24 @@ source alignment is not evidence that the browser disconnect cause is solved.
 
 ## Reference inspection
 
+The Linux/WASM RakNet clock now uses a thread-safe monotonic origin instead of
+`gettimeofday`. The old implementation fails a compiled backward-wall-clock
+test through unsigned underflow; the replacement passes backward/forward jumps,
+concurrent reads and elapsed-time checks. RCC and UniversalClient release builds
+pass. A two-player Undead round now distributes the original pistol and keeps
+both clients connected for several minutes; this does not establish every
+earlier disconnect cause or full game compatibility.
+
+The official Novetus archive supplied the original six red-sky images and five
+missing cake/vortex/disappearing textures. Its 270,380,341-byte RC3 ZIP has SHA-256
+`b907205eb63dd4bba0dd77defd956b9d32236b54d742fc62db45c9ea03a9f246`.
+Only asset files were extracted; no bundled executable was run. A versioned VFS
+root inventories 549 assets, with hash-pinned relocations for 177 previously
+unresolved paths. Every existing resolution was compared before activation and
+preserved. All 11 targeted resources return their exact original PNG bytes from
+the isolated native HTTP endpoint. The machine-specific archive and mappings
+remain local. [Official source](https://archive.org/download/novetus-archive/1.0%20Release%20Candidates/Novetus%20v1.0%20RC3.zip).
+
 Repository trees and relevant files were inspected through GitHub, including
 Novetus map descriptions and ClientScriptTestForm. No external implementation
 was copied for this foundation. License files were read before considering reuse:

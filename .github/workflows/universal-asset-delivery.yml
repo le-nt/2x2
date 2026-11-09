@@ -27,6 +27,9 @@ on:
       - 'services/engine/UniversalClient/FunctionMarshaller.h'
       - 'tests/native-function-marshaller.cpp'
       - 'tests/test_native_function_marshaller.py'
+      - 'services/engine/Network/raknet/Source/GetTime.cpp'
+      - 'tests/native-raknet-clock.cpp'
+      - 'tests/test_native_raknet_clock.py'
       - 'server/lib/native.mjs'
       - 'server/lib/native-asset-prefetch.mjs'
       - 'server/lib/legacy-shared-assets.mjs'
@@ -73,3 +76,5 @@ jobs:
         run: python -m unittest discover -s tests -p test_browser_validation_isolation.py -v
       - name: Stress threaded browser render marshalling
         run: python -m unittest discover -s tests -p test_native_function_marshaller.py -v
+      - name: Verify monotonic network deadlines
+        run: python -m unittest discover -s tests -p test_native_raknet_clock.py -v
