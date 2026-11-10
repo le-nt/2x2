@@ -1,0 +1,16 @@
+{
+  "originalResult": "Workspace.ProbeRespawnTimers:9: Old death timer replaced the newer character",
+  "fixedResult": "normal respawn manual replacement disabled loading passed",
+  "normalRespawnVerified": true,
+  "manualReplacementPreserved": true,
+  "disablingAutoLoadsCancelsPendingRespawn": true,
+  "healthBootstrap": "present,present,present",
+  "legacyController": "player controller numeric enum clone reset passed",
+  "sourceBeforeSha256": "8d6a91d46037eccff1748b588fc2f8dbcabbae815a45f424b7fc7fc27d27932b",
+  "sourceAfterSha256": "9be09ac1817f811de82faddec58c548229dc286574af74c7d071444fd7ac18af",
+  "productionChanged": false,
+  "limitations": [
+    "This fixture proves timer behavior, not that the timer explains every repeated zombie morph.",
+    "Browser build/link and original-game retest are tracked separately."
+  ]
+}

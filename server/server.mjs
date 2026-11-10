@@ -293,4 +293,4 @@ function onUpgrade(req, socket, head) {
 server.on("upgrade", onUpgrade);
 const tlsServer = startHttps({ ...cfg, httpsPort }, here, handler);
 tlsServer?.on("upgrade", onUpgrade);
-server.on("close", () => native.close());
+server.on("close", () => {native.close();admin.close();});

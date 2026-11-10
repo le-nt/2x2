@@ -7,10 +7,12 @@ Limits chunk expansion and instance counts for resilience to malformed files.
 import hashlib
 import re
 import struct
+from urllib.parse import urlsplit, parse_qsl
 from collections import Counter
 from pathlib import Path
 
 MAGIC = b'<roblox!\x89\xff\r\n\x1a\n'
+END_TAG = b'END\0'  # SerializerBinary.cpp kChunkEnd, including its NUL byte.
 MAX_INSTANCES = 2_000_000
 MAX_CHUNK = 128 * 1024 * 1024
 MAX_STRING = 16 * 1024 * 1024
@@ -19,6 +21,67 @@ TOOL_CLASSES = {'Tool', 'HopperBin'}
 ASSET_PROPERTIES = {'Texture', 'TextureID', 'TextureId', 'MeshId', 'MeshID', 'SoundId', 'SoundID',
                     'AnimationId', 'ShirtTemplate', 'PantsTemplate', 'Graphic', 'LinkedSource'}
 ASSET_RE = re.compile(r'(?:rbxassetid://|https?://(?:www\.)?roblox\.com/asset/?\?[^\s\"\x27<>]{0,256}?\bid=|https?://assetdelivery\.roblox\.com/v[12]/asset/?\?[^\s\"\x27<>]{0,256}?\bid=|https?://(?:www\.)?projectpizza\.net/(?:api/)?asset/?\?[^\s\"\x27<>]{0,256}?\bid=|h?rbxasset://(?:\.\./|\./)*shareddata/(?:SBCR|assets)/)([1-9][0-9]{0,15})(?!\d)', re.I)
+
+_LONG_COMMENT = re.compile(r'--\[(=*)\[')
+_ASSET_URL = re.compile(r'https?://(?:www\.)?(?:roblox\.com|assetdelivery\.roblox\.com|apis\.roblox\.com)/[^\x00-\x20\"\x27<>]{1,1024}',re.I)
+_PATH_ASSET = re.compile(r'https?://(?:assetdelivery\.roblox\.com/v[12]|apis\.roblox\.com/asset-delivery-api/v1)/assetId/([1-9][0-9]{0,15})(?!\d)',re.I)
+
+def source_asset_ids(text):
+    return set(ASSET_RE.findall(text)) | set(_PATH_ASSET.findall(text))
+
+def unversioned_asset_ids(text):
+    stripped = _ASSET_URL.sub(lambda match:'' if versioned_asset_references(match[0]) else match[0],text)
+    return source_asset_ids(stripped)
+
+def versioned_asset_references(text):
+    refs = set()
+    text = re.sub(r'&amp;|&#38;|&#x26;', '&', text, flags=re.I)
+    for match in re.finditer(r'https?://(?:www\.)?(?:roblox\.com|assetdelivery\.roblox\.com|apis\.roblox\.com)/[^\x00-\x20\"\x27<>]{1,1024}', text, re.I):
+        try:
+            url=urlsplit(match[0]);query={k.lower():v for k,v in parse_qsl(url.query)}
+            pin=re.fullmatch(r'(?:/v[12]|/asset-delivery-api/v1)/assetId/([1-9][0-9]{0,15})/version/([1-9][0-9]{0,15})/?',url.path,re.I)
+            if not ((url.hostname=='assetdelivery.roblox.com' and re.match(r'/v[12]/',url.path,re.I)) or (url.hostname=='apis.roblox.com' and re.match(r'/asset-delivery-api/v1/',url.path,re.I))):
+                pin=None
+            allowed=(url.hostname=='assetdelivery.roblox.com' and re.fullmatch(r'/v[12]/asset/?',url.path,re.I)) or (url.hostname in ('roblox.com','www.roblox.com') and re.fullmatch(r'/asset/?',url.path,re.I))
+            asset,version=pin.groups() if pin else (query.get('id'),query.get('version')) if allowed else (None,None)
+            if asset and version and re.fullmatch(r'[1-9][0-9]{0,15}',asset) and re.fullmatch(r'[1-9][0-9]{0,15}',version) and max(int(asset),int(version))<=9007199254740991:
+                refs.add((asset,int(version)))
+        except ValueError:
+            pass
+    return [{'id':asset,'version':version} for asset,version in sorted(refs)]
+
+def classify_script_source(source):
+    """Detect empty/comment-only archives without parsing or executing Lua."""
+    pos = 1 if source.startswith('\ufeff') else 0
+    comment = False
+    while pos < len(source):
+        if source[pos].isspace():
+            pos += 1
+            continue
+        if not source.startswith('--', pos):
+            return 'code_present_unverified'
+        comment = True
+        match = _LONG_COMMENT.match(source, pos)
+        if match:
+            delimiter = ']' + match[1] + ']'
+            end = source.find(delimiter, match.end())
+            if end < 0:
+                return 'unknown_unclosed_comment'
+            pos = end + len(delimiter)
+        else:
+            end = source.find('\n', pos)
+            pos = end + 1 if end >= 0 else len(source)
+    return 'comments_only' if comment else 'empty'
+
+def summarize_script_sources(scripts):
+    counts = Counter(script.get('sourceStatus', 'empty') for script in scripts)
+    linked = sum(bool(script.get('linkedSourceId') or script.get('linkedSource')) for script in scripts)
+    code = counts['code_present_unverified']
+    unknown = counts['unknown_unclosed_comment']
+    status = ('no_scripts' if not scripts else 'code_present_unverified' if code else
+              'external_sources_required' if linked else 'unknown' if unknown else 'no_code_in_archive')
+    return {'total':len(scripts), 'withCode':code, 'commentOnly':counts['comments_only'],
+            'empty':counts['empty'], 'unknown':unknown, 'linkedSourceReferences':linked, 'status':status}
 
 class BinaryFormatError(ValueError):
     pass
@@ -98,6 +161,9 @@ def inspect_binary(path):
     names = {}
     source_info = {}
     assets = set()
+    resources = set()
+    versioned = set()
+    unversioned = set()
     unsupported = set()
     linked_sources = {}
     with Path(path).open('rb') as f:
@@ -122,7 +188,7 @@ def inspect_binary(path):
             payload = f.read(compressed or expanded)
             if len(payload) != (compressed or expanded):
                 raise BinaryFormatError('Truncated chunk payload')
-            if tag == b'END.':
+            if tag == END_TAG:
                 ended = True
                 break
             if tag not in (b'INST', b'PROP', b'PRNT'):
@@ -145,19 +211,22 @@ def inspect_binary(path):
                     if pname in ({'Name', 'Source'} | ASSET_PROPERTIES):
                         unsupported.add(cname+'.'+pname+'(type '+str(typ)+')')
                     continue
-                if pname not in ({'Name', 'Source'} | ASSET_PROPERTIES):
-                    continue
                 # PROP string values use consecutive length-prefixed strings.
                 for ref in ids:
                     val = r.string()
+                    resources.update(m.rstrip() for m in re.findall(r'h?rbxasset://[^\x00-\x1f<>\"\x27\r\n]{1,1024}', val, re.I))
                     # Scan every decoded string property that may contain asset IDs,
                     # including Source strings embedded in Scripts/LocalScripts.
-                    if pname != 'Name':
-                        assets.update(ASSET_RE.findall(val))
+                    assets.update(source_asset_ids(val))
+                    unversioned.update(unversioned_asset_ids(val))
+                    for reference in versioned_asset_references(val):
+                        assets.add(reference['id'])
+                        versioned.add((reference['id'],reference['version']))
                     if pname == 'Name': names[ref] = val
                     elif pname == 'Source' and cname in SCRIPT_CLASSES:
                         encoded = val.encode('utf-8')
                         source_info[ref] = {'sourcePresent': bool(val),
+                            'sourceStatus': classify_script_source(val),
                             'sourceSha256': hashlib.sha256(encoded).hexdigest() if val else None,
                             'sourceBytes': len(encoded)}
                     elif pname in ASSET_PROPERTIES:
@@ -187,10 +256,14 @@ def inspect_binary(path):
         if kind in TOOL_CLASSES:
             tools.append(item)
         else:
-            item.update(source_info.get(ref, {'sourcePresent':False,'sourceSha256':None,'sourceBytes':0}))
+            item.update(source_info.get(ref, {'sourcePresent':False,'sourceStatus':'empty','sourceSha256':None,'sourceBytes':0}))
             item['linkedSourceId'] = linked_sources.get(ref)
             item['containerTool'] = next((n for k,n in reversed(chain[:-1]) if k in TOOL_CLASSES),None)
             scripts.append(item)
     return {'scripts':scripts, 'tools':tools, 'assetIds':sorted(assets, key=lambda x:(len(x),x)),
+            'versionedReferences':[{'id':asset,'version':version} for asset,version in sorted(versioned)],
+            'unversionedAssetIds':sorted(unversioned,key=lambda x:(len(x),x)),
+            'scriptSourceCoverage':summarize_script_sources(scripts),
+            'resourceReferences':sorted(resources), 'analysisCoverage':'binary_string_properties_partial',
             'classCounts':dict(Counter(instances.values())),
             'unsupportedBinaryProperties':sorted(unsupported), 'binaryInstanceCount':len(instances)}

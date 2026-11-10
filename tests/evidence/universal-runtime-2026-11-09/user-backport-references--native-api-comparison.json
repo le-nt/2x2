@@ -1,0 +1,27 @@
+{
+  "globals": {
+    "tableClear": "nil",
+    "TweenInfo": "nil",
+    "mathClamp": "function",
+    "tableFind": "nil",
+    "typeof": "nil"
+  },
+  "tween": {
+    "GetValue": false,
+    "Create": false
+  },
+  "instance": {
+    "FindFirstAncestorOfClass": true,
+    "GetAttributeChangedSignal": false,
+    "WaitForChild": true,
+    "ClearAllChildren": true,
+    "SetAttribute": false,
+    "FindFirstChildWhichIsA": true,
+    "FindFirstAncestorWhichIsA": true,
+    "GetDescendants": true,
+    "FindFirstAncestor": true,
+    "GetAttribute": false,
+    "IsDescendantOf": true,
+    "FindFirstChildOfClass": true
+  }
+}

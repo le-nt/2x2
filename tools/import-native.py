@@ -37,7 +37,7 @@ print('Missing IDs are recorded in server/native/missing-maps.json. No substitut
 # unless explicitly enabled or an Open Cloud key is configured on the server.
 if imported and not a.skip_asset_seed:
  cmd=['node',str(root/'tools/seed-native-assets.mjs'),'--root',str(root)]
- if a.download_assets or os.environ.get('ROBLOX_OPEN_CLOUD_API_KEY'):
+ if a.download_assets or os.environ.get('ROBLOX_OPEN_CLOUD_API_KEY') or os.environ.get('ROBLOX_ASSET_FETCH')=='1' or os.environ.get('AYA_ASSET_FALLBACK_URL'):
   cmd+=['--download','--max-fetch','100']
  print('Discovering imported game assets (network:', '--download' in cmd, ')',flush=True)
  subprocess.run(cmd,cwd=root,check=True)

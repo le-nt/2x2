@@ -1,0 +1,98 @@
+{
+  "observedEvents": [
+    {
+      "path": "Workspace.PreservationPeer.Pistol",
+      "kind": "tool_activated",
+      "time": 1794248689.096407,
+      "name": "Pistol"
+    },
+    {
+      "path": "Workspace.Projectile",
+      "creator": "Players.PreservationPeer",
+      "kind": "projectile_created",
+      "time": 1794248689.098239,
+      "name": "Projectile"
+    }
+  ],
+  "objectValues": [
+    {
+      "path": "Workspace.Zombies.FastZombie",
+      "hasValue": true,
+      "valuePath": "FastZombie"
+    },
+    {
+      "path": "Workspace.Zombies.KamiZombie",
+      "hasValue": true,
+      "valuePath": "KamiZombie"
+    },
+    {
+      "path": "Workspace.Zombies.Zombie",
+      "hasValue": true,
+      "valuePath": "Zombie"
+    },
+    {
+      "path": "Workspace.Weapons.Pistol",
+      "hasValue": true,
+      "valuePath": "Pistol"
+    }
+  ],
+  "toolActivations": [
+    {
+      "path": "Workspace.PreservationPeer.Pistol",
+      "name": "Pistol",
+      "time": 1794248689.096437,
+      "userId": 2
+    }
+  ],
+  "humanoids": [
+    {
+      "path": "Workspace.PreservationPeer",
+      "position": {
+        "z": -0.0005213863914832473,
+        "y": 3.382800340652466,
+        "x": 33.999603271484375
+      },
+      "health": 100
+    },
+    {
+      "path": "Workspace.PreservationProbe",
+      "position": {
+        "z": -0.001615304732695222,
+        "y": 9.444828987121582,
+        "x": 33.9989128112793
+      },
+      "health": 100
+    }
+  ],
+  "instanceCount": 413,
+  "projectiles": [],
+  "players": [
+    {
+      "teamColor": "Bright red",
+      "equipped": [],
+      "backpack": [],
+      "name": "PreservationProbe",
+      "position": {
+        "z": -0.001615304732695222,
+        "y": 9.444828987121582,
+        "x": 33.9989128112793
+      },
+      "health": 100,
+      "userId": 1
+    },
+    {
+      "teamColor": "Bright red",
+      "equipped": [],
+      "backpack": [],
+      "name": "PreservationPeer",
+      "position": {
+        "z": -0.0005213863914832473,
+        "y": 3.382800340652466,
+        "x": 33.999603271484375
+      },
+      "health": 100,
+      "userId": 2
+    }
+  ],
+  "placeId": 6
+}

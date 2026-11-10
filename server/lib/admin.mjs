@@ -4,6 +4,7 @@ import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import { sha256, randomToken, cookie, verifyPassword, RateLimiter } from "./auth.mjs";
+import {createNativeImports} from './native-imports.mjs';
 
 const ROLES = ["Unprivileged", "ForumModerator", "AssetManager", "Moderator", "Administrator", "SuperAdmin"];
 const RANK = Object.fromEntries(ROLES.map((r, i) => [r, i]));
@@ -74,6 +75,11 @@ function sameOrigin(req, cfg) {
   } catch { return false; }
 }
 export function createAdmin({ db, cfg, secure, serverDir }) {
+  let nativeImports;
+  const imports=()=>{
+    if(!serverDir)throw [503,'Native import storage is unavailable.'];
+    return nativeImports ||= createNativeImports({db,projectRoot:path.dirname(serverDir)});
+  };
   db.exec(`
     CREATE TABLE IF NOT EXISTS admin_staff (user_id INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
       role TEXT NOT NULL CHECK (role IN ('ForumModerator','AssetManager','Moderator','Administrator','SuperAdmin')));
@@ -150,9 +156,10 @@ export function createAdmin({ db, cfg, secure, serverDir }) {
       const p = url.pathname.replace(/^\/api\/admin/, "");
       const method = req.method;
       const write = !["GET", "HEAD"].includes(method);
-      if (write && (!sameOrigin(req,cfg) || !/^application\/json\b/i.test(req.headers["content-type"] || "")))
-        throw [403, "Same-origin JSON request required."];
-      const body = write ? await bodyJson(req) : {};
+      const upload=p==='/native/imports/upload' && method==='POST';
+      if (write && (!sameOrigin(req,cfg) || !(upload?/^application\/octet-stream\b/i:/^application\/json\b/i).test(req.headers["content-type"] || "")))
+        throw [403, upload?'Same-origin place upload required.':"Same-origin JSON request required."];
+      const body = write && !upload ? await bodyJson(req) : {};
       const enrolled = q("SELECT pending FROM admin_totp WHERE user_id=?").get(user.id);
       const verified = authed(user, sessionHash, cookies);
       const requireRole = name => {
@@ -206,6 +213,23 @@ export function createAdmin({ db, cfg, secure, serverDir }) {
         if(cookies.rbxcsa)q("DELETE FROM admin_sessions WHERE token_hash=?").run(sha256(cookies.rbxcsa));
         res.setHeader("Set-Cookie",cookie("rbxcsa","",{maxAge:0,secure}));
         return ok({ok:true});
+      }
+
+      if(p==='/native/imports' && method==='GET') {
+        requireRole('Administrator');return ok({jobs:imports().list()});
+      }
+      if(upload) {
+        requireRole('Administrator');
+        const job=await imports().upload(req,{slug:url.searchParams.get('slug'),name:url.searchParams.get('name'),filename:url.searchParams.get('filename')},user.id);
+        audit(user,'NATIVE_IMPORT',job.slug,JSON.stringify({jobId:job.id,sha256:job.sha256,bytes:job.bytes}));
+        return send(res,202,{job});
+      }
+      const importJob=p.match(/^\/native\/imports\/([a-f0-9-]{36})(\/report)?$/);
+      if(importJob && method==='GET') {
+        requireRole('Administrator');
+        if(importJob[2])return ok(imports().report(importJob[1]));
+        const job=imports().get(importJob[1]);if(!job)throw [404,'Import job not found.'];
+        return ok({job});
       }
 
       if (p === "/banner" && method === "GET") {
@@ -374,5 +398,5 @@ export function createAdmin({ db, cfg, secure, serverDir }) {
       send(res,status,{error:Array.isArray(e)?e[1]:"Internal admin error."});
     }
   }
-  return {handle,activeBan,latestNotice,role};
+  return {handle,activeBan,latestNotice,role,close(){return nativeImports?.close();}};
 }

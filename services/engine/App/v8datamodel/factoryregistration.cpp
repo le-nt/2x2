@@ -621,6 +621,7 @@ RBX_REGISTER_ENUM(Camera::CameraType);
 RBX_REGISTER_ENUM(Camera::CameraMode);
 RBX_REGISTER_ENUM(Camera::CameraPanMode);
 RBX_REGISTER_ENUM(LegacyController::InputType);
+RBX_REGISTER_ENUM(PVInstance::ControllerType);
 RBX_REGISTER_ENUM(DataModelArbiter::ConcurrencyModel);
 RBX_REGISTER_ENUM(DataModelMesh::LODType);
 RBX_REGISTER_ENUM(DebugSettings::ErrorReporting);

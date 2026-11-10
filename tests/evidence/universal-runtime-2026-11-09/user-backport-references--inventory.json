@@ -1,0 +1,573 @@
+[
+  {
+    "file": "backportedsetattributeandgetattribute (1).rbxm",
+    "sha256": "9ddc6c21bf3388d61e3cea54a7f5e4425b2389e10fb570d3eb3b8a9591211156",
+    "bytes": 637,
+    "executed": false,
+    "scripts": [
+      {
+        "name": "Attributes",
+        "lines": 31,
+        "functions": [
+          "isTableEmpty",
+          "module.GetAttribute",
+          "module.SetAttribute"
+        ]
+      }
+    ]
+  },
+  {
+    "file": "backportedtweenservice (2).rbxm",
+    "sha256": "2f291fbbaf55190ca862ed2bcc69971c79de276dc0294d207e7db068454c6345",
+    "bytes": 4663,
+    "executed": false,
+    "scripts": [
+      {
+        "name": "TweenService",
+        "lines": 17,
+        "functions": [
+          "TweenService:GetValue",
+          "TweenService:Create"
+        ]
+      },
+      {
+        "name": "EasingStyle",
+        "lines": 5,
+        "functions": []
+      },
+      {
+        "name": "Quad",
+        "lines": 3,
+        "functions": []
+      },
+      {
+        "name": "Quart",
+        "lines": 3,
+        "functions": []
+      },
+      {
+        "name": "Quint",
+        "lines": 3,
+        "functions": []
+      },
+      {
+        "name": "Sine",
+        "lines": 6,
+        "functions": []
+      },
+      {
+        "name": "Linear",
+        "lines": 3,
+        "functions": []
+      },
+      {
+        "name": "Cubic",
+        "lines": 3,
+        "functions": []
+      },
+      {
+        "name": "Circular",
+        "lines": 3,
+        "functions": []
+      },
+      {
+        "name": "Exponential",
+        "lines": 5,
+        "functions": []
+      },
+      {
+        "name": "Bounce",
+        "lines": 21,
+        "functions": []
+      },
+      {
+        "name": "Elastic",
+        "lines": 8,
+        "functions": []
+      },
+      {
+        "name": "Back",
+        "lines": 7,
+        "functions": []
+      },
+      {
+        "name": "EasingDirection",
+        "lines": 5,
+        "functions": []
+      },
+      {
+        "name": "In",
+        "lines": 5,
+        "functions": []
+      },
+      {
+        "name": "Out",
+        "lines": 5,
+        "functions": []
+      },
+      {
+        "name": "InOut",
+        "lines": 14,
+        "functions": []
+      },
+      {
+        "name": "OutIn",
+        "lines": 14,
+        "functions": []
+      },
+      {
+        "name": "Tween",
+        "lines": 173,
+        "functions": [
+          "DataCheck",
+          "typeof",
+          "Tween.new",
+          "Tween:Play",
+          "Tween:Pause",
+          "Tween:Cancel"
+        ]
+      },
+      {
+        "name": "Interpolate",
+        "lines": 8,
+        "functions": []
+      },
+      {
+        "name": "number",
+        "lines": 3,
+        "functions": []
+      },
+      {
+        "name": "boolean",
+        "lines": 8,
+        "functions": []
+      },
+      {
+        "name": "CFrame",
+        "lines": 3,
+        "functions": []
+      },
+      {
+        "name": "Rect",
+        "lines": 13,
+        "functions": []
+      },
+      {
+        "name": "Color3",
+        "lines": 3,
+        "functions": []
+      },
+      {
+        "name": "UDim",
+        "lines": 13,
+        "functions": []
+      },
+      {
+        "name": "UDim2",
+        "lines": 16,
+        "functions": [
+          "lerp",
+          "UDim2Lerp"
+        ]
+      },
+      {
+        "name": "Vector2",
+        "lines": 3,
+        "functions": []
+      },
+      {
+        "name": "Vector2int16",
+        "lines": 14,
+        "functions": []
+      },
+      {
+        "name": "Vector3",
+        "lines": 3,
+        "functions": []
+      },
+      {
+        "name": "TweenInfo",
+        "lines": 18,
+        "functions": [
+          "TweenInfo.new"
+        ]
+      }
+    ]
+  },
+  {
+    "file": "message (1).lua",
+    "sha256": "7a6154cb1fbadeca527f1723af3718b72ef0c3259fdd6ceebc8e86d9d18230f3",
+    "bytes": 2140,
+    "executed": false,
+    "scripts": [
+      {
+        "name": "message (1).lua",
+        "lines": 82,
+        "functions": [
+          "RbxMethods:FindFirstChildOfClass",
+          "RbxMethods:WaitForChild",
+          "RbxMethods:GetRandomChild",
+          "RbxMethods:GetDescendants",
+          "GetChildren",
+          "RbxMethods:FindFirstDescendant",
+          "RbxMethods:FindFirstDescendantOfClass",
+          "RbxMethods:WaitForDescendant",
+          "RbxMethods:GetRandomDescendant"
+        ]
+      }
+    ]
+  },
+  {
+    "file": "RbxGui.lua",
+    "sha256": "768cbb2a7289759558eaeca170166d53a9c6ccdecf35ff246b18a26cfed284e1",
+    "bytes": 133632,
+    "executed": false,
+    "scripts": [
+      {
+        "name": "RbxGui.lua",
+        "lines": 4031,
+        "functions": [
+          "ScopedConnect",
+          "getScreenGuiAncestor",
+          "CreateButtons",
+          "setSliderPos",
+          "cancelSlide",
+          "scrollDown",
+          "scrollUp",
+          "layoutGuiObjectsHelper",
+          "positionScrollBar",
+          "drillDownSetHighLow",
+          "resetHighLow",
+          "recalculate",
+          "setSliderSizeAndPosition",
+          "doScrollUp",
+          "doScrollDown",
+          "scrollUp",
+          "scrollDown",
+          "heightCheck",
+          "highLowRecheck",
+          "descendantChanged",
+          "binaryGrow",
+          "binaryShrink",
+          "getGuiOwner",
+          "changeText",
+          "TransitionTutorialPages",
+          "getVisiblePageAndHideOthers",
+          "CreateBasicTutorialPage",
+          "basicHandleResize",
+          "handleResize",
+          "handleResize",
+          "drillDownSetZIndex",
+          "createWaterGui",
+          "createSetGui",
+          "createSetButton",
+          "buildSetButton",
+          "processCategory",
+          "handleResize",
+          "makeInsertAssetButton",
+          "showLargePreview",
+          "selectTerrainShape",
+          "createTerrainTypeButton",
+          "createTerrainDropDownMenu",
+          "createDropDownMenuButton",
+          "buildInsertButton",
+          "realignButtonGrid",
+          "setInsertButtonImageBehavior",
+          "loadSectionOfItems",
+          "setSetIndex",
+          "selectSet",
+          "selectCategoryPage",
+          "selectCategory",
+          "resetAllSetButtonSelection",
+          "populateSetsFrame",
+          "getEnumFromName",
+          "getNameFromEnum",
+          "updateMaterialChoice",
+          "goToNewMaterial",
+          "createMaterialButton",
+          "createMenuButton",
+          "switchMinimize"
+        ]
+      }
+    ]
+  },
+  {
+    "file": "hierarchy.lua",
+    "sha256": "ced1cbcaeb2c0d85da09199a6acd65c798d96318706cb22a101daf0ac940ac6f",
+    "bytes": 3378,
+    "executed": false,
+    "scripts": [
+      {
+        "name": "hierarchy.lua",
+        "lines": 153,
+        "functions": [
+          "hierarchy:FindFirstChildOfClass",
+          "hierarchy:WaitForChildOfClass",
+          "hierarchy:GetRandomChild",
+          "hierarchy:GetDescendants",
+          "collectChildrenOfDescendant",
+          "hierarchy:FindFirstDescendant",
+          "hierarchy:FindFirstDescendantOfClass",
+          "hierarchy:WaitForDescendant",
+          "hierarchy:WaitForDescendantOfClass",
+          "hierarchy:GetRandomDescendant",
+          "hierarchy:FindFirstAncestor",
+          "hierarchy:FindFirstAncestorOfClass"
+        ]
+      }
+    ]
+  },
+  {
+    "file": "MathUtility.lua",
+    "sha256": "3d3abb062a1a1b364bba2df4156e08edd1c47969ef63515e612a1e2d307adc62",
+    "bytes": 622,
+    "executed": false,
+    "scripts": [
+      {
+        "name": "MathUtility.lua",
+        "lines": 28,
+        "functions": [
+          "mathUtility.lerp",
+          "mathUtility.clamp",
+          "mathUtility.approach",
+          "mathUtility.round"
+        ]
+      }
+    ]
+  },
+  {
+    "file": "Signal.lua",
+    "sha256": "66ef7b3f00dbf17dab6d9ff18f26124e6ffa9c2f1451421f521457cef6e5a3a5",
+    "bytes": 3452,
+    "executed": false,
+    "scripts": [
+      {
+        "name": "Signal.lua",
+        "lines": 118,
+        "functions": [
+          "Signal.createSignal",
+          "signal:Fire",
+          "to",
+          "signal:Connect",
+          "connection.Disconnect",
+          "signal:Destroy",
+          "Signal.createSafeSignal",
+          "signal:Fire",
+          "to",
+          "signal:Connect",
+          "connection.Disconnect",
+          "signal:Destroy"
+        ]
+      }
+    ]
+  },
+  {
+    "file": "backports.rbxm",
+    "sha256": "1715d7bd63466b43b05f7f1fcd35ce9e42041d1852fc79176d184e07456073d1",
+    "bytes": 9219,
+    "executed": false,
+    "scripts": [
+      {
+        "name": "Backports - StarterPlayerScripts",
+        "lines": 1,
+        "functions": []
+      },
+      {
+        "name": "Backports",
+        "lines": 162,
+        "functions": [
+          "shared.Color3_fromRGB",
+          "shared.lerp",
+          "shared.clamp",
+          "shared.approach",
+          "shared.round",
+          "shared.find",
+          "shared.split",
+          "getDescendants",
+          "shared.waitForChild",
+          "shared.clearAllChildren",
+          "shared.findFirstAncestor",
+          "shared.findFirstAncestorOfClass",
+          "shared.findFirstChildOfClass",
+          "shared.findFirstChildWhichIsA",
+          "shared.IsDescendantOf"
+        ]
+      },
+      {
+        "name": "TweenService",
+        "lines": 17,
+        "functions": [
+          "TweenService:GetValue",
+          "TweenService:Create"
+        ]
+      },
+      {
+        "name": "EasingStyle",
+        "lines": 5,
+        "functions": []
+      },
+      {
+        "name": "Quad",
+        "lines": 3,
+        "functions": []
+      },
+      {
+        "name": "Quart",
+        "lines": 3,
+        "functions": []
+      },
+      {
+        "name": "Quint",
+        "lines": 3,
+        "functions": []
+      },
+      {
+        "name": "Sine",
+        "lines": 6,
+        "functions": []
+      },
+      {
+        "name": "Linear",
+        "lines": 3,
+        "functions": []
+      },
+      {
+        "name": "Cubic",
+        "lines": 3,
+        "functions": []
+      },
+      {
+        "name": "Circular",
+        "lines": 3,
+        "functions": []
+      },
+      {
+        "name": "Exponential",
+        "lines": 5,
+        "functions": []
+      },
+      {
+        "name": "Bounce",
+        "lines": 21,
+        "functions": []
+      },
+      {
+        "name": "Elastic",
+        "lines": 8,
+        "functions": []
+      },
+      {
+        "name": "Back",
+        "lines": 7,
+        "functions": []
+      },
+      {
+        "name": "EasingDirection",
+        "lines": 5,
+        "functions": []
+      },
+      {
+        "name": "In",
+        "lines": 5,
+        "functions": []
+      },
+      {
+        "name": "Out",
+        "lines": 5,
+        "functions": []
+      },
+      {
+        "name": "InOut",
+        "lines": 14,
+        "functions": []
+      },
+      {
+        "name": "OutIn",
+        "lines": 14,
+        "functions": []
+      },
+      {
+        "name": "Tween",
+        "lines": 173,
+        "functions": [
+          "DataCheck",
+          "typeof",
+          "Tween.new",
+          "Tween:Play",
+          "Tween:Pause",
+          "Tween:Cancel"
+        ]
+      },
+      {
+        "name": "Interpolate",
+        "lines": 8,
+        "functions": []
+      },
+      {
+        "name": "number",
+        "lines": 3,
+        "functions": []
+      },
+      {
+        "name": "boolean",
+        "lines": 8,
+        "functions": []
+      },
+      {
+        "name": "CFrame",
+        "lines": 3,
+        "functions": []
+      },
+      {
+        "name": "Rect",
+        "lines": 13,
+        "functions": []
+      },
+      {
+        "name": "Color3",
+        "lines": 3,
+        "functions": []
+      },
+      {
+        "name": "UDim",
+        "lines": 13,
+        "functions": []
+      },
+      {
+        "name": "UDim2",
+        "lines": 16,
+        "functions": [
+          "lerp",
+          "UDim2Lerp"
+        ]
+      },
+      {
+        "name": "Vector2",
+        "lines": 3,
+        "functions": []
+      },
+      {
+        "name": "Vector2int16",
+        "lines": 14,
+        "functions": []
+      },
+      {
+        "name": "Vector3",
+        "lines": 3,
+        "functions": []
+      },
+      {
+        "name": "TweenInfo",
+        "lines": 18,
+        "functions": [
+          "TweenInfo.new"
+        ]
+      },
+      {
+        "name": "Backports - ServerScriptService",
+        "lines": 1,
+        "functions": []
+      }
+    ]
+  }
+]

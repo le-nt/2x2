@@ -102,6 +102,23 @@ void UserInput::processUserInputMessage(SDL_Event* event)
     case SDL_MOUSEWHEEL:
         processMouseEvents(event);
         break;
+    case SDL_MOUSEBUTTONDOWN:
+    case SDL_MOUSEBUTTONUP:
+    {
+        // Preserve both edges when a complete click arrives between steps.
+        // Sampling SDL's current state alone loses such clicks entirely.
+        if (event->button.button != SDL_BUTTON_LEFT &&
+            event->button.button != SDL_BUTTON_RIGHT &&
+            event->button.button != SDL_BUTTON_MIDDLE)
+            break;
+        Uint32 buttons = (prevLeftButtonDown ? SDL_BUTTON_LMASK : 0) |
+            (prevRightButtonDown ? SDL_BUTTON_RMASK : 0) |
+            (prevMiddleButtonDown ? SDL_BUTTON_MMASK : 0);
+        const Uint32 changed = SDL_BUTTON(event->button.button);
+        handleMouseButtons(event->type == SDL_MOUSEBUTTONDOWN ?
+            buttons | changed : buttons & ~changed);
+        break;
+    }
     case SDL_KEYDOWN:
     case SDL_KEYUP:
         handleKeyboardEvent(&event->key);
@@ -316,19 +333,10 @@ void UserInput::sendMouseEvent(InputObject::UserInputType mouseEventType,
 {
     FASTLOG1(FLog::UserInputProfile, "Processing mouse event from the queue, event: %u", mouseEventType);
     
-    shared_ptr<InputObject> mouseEventObject = inputObjectMap[mouseEventType];
-    if (!mouseEventObject)
-    {
-        mouseEventObject = Creatable<Instance>::create<InputObject>(
-            mouseEventType, mouseEventState, position, delta, game->getDataModel().get());
-        inputObjectMap[mouseEventType] = mouseEventObject;
-    }
-    else
-    {
-        mouseEventObject->setInputState(mouseEventState);
-        mouseEventObject->setPosition(position);
-        mouseEventObject->setDelta(delta);
-    }
+    // UserInputService queues shared pointers for later processing. Reusing a
+    // mutable object lets mouse-up overwrite a still-queued mouse-down.
+    shared_ptr<InputObject> mouseEventObject = Creatable<Instance>::create<InputObject>(
+        mouseEventType, mouseEventState, position, delta, game->getDataModel().get());
     
     sendEvent(mouseEventObject);
 }

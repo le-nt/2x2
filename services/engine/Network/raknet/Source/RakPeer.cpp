@@ -15,6 +15,18 @@
 #include "FastLog.h"
 LOGGROUP(RakNetDisconnect)
 
+#ifdef EMSCRIPTEN
+#include <atomic>
+#include <emscripten/threading.h>
+static std::atomic<unsigned int> browserReceiveStage(0), browserReceivePolls(0);
+static void setBrowserReceiveStage(unsigned int stage)
+{
+	if (FLog::RakNetDisconnect) browserReceiveStage.store(stage, std::memory_order_relaxed);
+}
+#else
+static void setBrowserReceiveStage(unsigned int) {}
+#endif
+
 #ifdef _WIN32
 
 #else
@@ -5801,31 +5813,56 @@ RAK_THREAD_DECLARATION(RakNet::RecvFromLoop)
 	unsigned int extraSocketOptions = rpai->extraSocketOptions;
 
 	rakPeer->isRecvFromLoopThreadActive.Increment();
+	unsigned int diagnosticPackets = 0;
+	RakNet::TimeMS nextDiagnostic = 0;
 
 	RakPeer::RecvFromStruct *recvFromStruct;
 	while ( rakPeer->endThreads == false )
 	{
+		int diagnosticRead = 0;
+		setBrowserReceiveStage(1); // queue allocation
 		recvFromStruct=rakPeer->bufferedPackets.Allocate( _FILE_AND_LINE_ );
 		if (recvFromStruct != NULL)
 		{
 			recvFromStruct->s=s;
 			recvFromStruct->remotePortRakNetWasStartedOn_PS3=remotePortRakNetWasStartedOn_PS3;
 			recvFromStruct->extraSocketOptions=extraSocketOptions;
+			setBrowserReceiveStage(2); // socket receive / browser proxy
 			SocketLayer::RecvFromBlocking(s, rakPeer, remotePortRakNetWasStartedOn_PS3, extraSocketOptions, recvFromStruct->data, &recvFromStruct->bytesRead, &recvFromStruct->systemAddress, &recvFromStruct->timeRead);
+			setBrowserReceiveStage(3);
+			diagnosticRead = recvFromStruct->bytesRead;
 
 			if (recvFromStruct->bytesRead>0)
 			{
+				++diagnosticPackets;
 				RakAssert(recvFromStruct->systemAddress.GetPort());
+				setBrowserReceiveStage(4); // queue publication
 				rakPeer->bufferedPackets.Push(recvFromStruct);
+				setBrowserReceiveStage(5); // wake update thread
 				rakPeer->quitAndDataEvents.SetEvent();
 			}
 			else
 			{
+				setBrowserReceiveStage(6); // queue release
 				rakPeer->bufferedPackets.Deallocate(recvFromStruct, _FILE_AND_LINE_);
+#ifdef EMSCRIPTEN
+				// SOCKFS UDP recvmsg returns EAGAIN instead of blocking. Yield
+				// between empty polls; keep draining available packets immediately.
+				setBrowserReceiveStage(7);
+				if (FLog::RakNetDisconnect) browserReceivePolls.fetch_add(1, std::memory_order_relaxed);
+				emscripten_thread_sleep(1);
+#endif
 			}
 		}
 		else
 			RakSleep(30);
+		setBrowserReceiveStage(8); // diagnostic output
+		if (FLog::RakNetDisconnect && RakNet::GetTimeMS() >= nextDiagnostic)
+		{
+			nextDiagnostic = RakNet::GetTimeMS() + 5000;
+			FASTLOG3(FLog::RakNetDisconnect, "RakNet: receive loop packets %u, lastRead %d, socket %u",
+				diagnosticPackets, diagnosticRead, (unsigned int)s);
+		}
 	}
 	rakPeer->isRecvFromLoopThreadActive.Decrement();
 
@@ -5880,6 +5917,8 @@ RAK_THREAD_DECLARATION(RakNet::UpdateNetworkLoop)
 	RakNet::TimeMS timeMS;
 
 	rakPeer->isMainLoopThreadActive = true;
+	unsigned int diagnosticCycles = 0;
+	RakNet::TimeMS nextDiagnostic = 0;
 
 	while ( rakPeer->endThreads == false )
 	{
@@ -5897,6 +5936,17 @@ RAK_THREAD_DECLARATION(RakNet::UpdateNetworkLoop)
 			rakPeer->userUpdateThreadPtr(rakPeer, rakPeer->userUpdateThreadData);
 
 		rakPeer->RunUpdateCycle(timeNS, timeMS, updateBitStream);
+		++diagnosticCycles;
+		if (FLog::RakNetDisconnect && RakNet::GetTimeMS() >= nextDiagnostic)
+		{
+			nextDiagnostic = RakNet::GetTimeMS() + 5000;
+			FASTLOG3(FLog::RakNetDisconnect, "RakNet: update loop cycles %u, receiveThreads %u, clock %u",
+				diagnosticCycles, rakPeer->isRecvFromLoopThreadActive.GetValue(), (unsigned int)RakNet::GetTimeMS());
+#ifdef EMSCRIPTEN
+			FASTLOG2(FLog::RakNetDisconnect, "RakNet: browser receive stage %u, emptyPolls %u",
+				browserReceiveStage.load(std::memory_order_relaxed), browserReceivePolls.load(std::memory_order_relaxed));
+#endif
+		}
 
 		// Pending sends go out this often, unless quitAndDataEvents is set
 		rakPeer->quitAndDataEvents.WaitOnEvent(10);

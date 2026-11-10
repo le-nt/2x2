@@ -3,7 +3,7 @@
 #include "FastLog.h"
 
 #include <math.h>
-#include "boost/scoped_array.hpp"
+#include <memory>
 
 #define NEWLINE "\r\n"
 
@@ -59,7 +59,7 @@ namespace RBX {
 		else 
 		{
 			// Use the heap.
-			boost::scoped_array<char> heapBuffer;
+			std::unique_ptr<char[]> heapBuffer;
 
 			if (actualSize > maxSize)
 				actualSize = maxSize;
@@ -72,7 +72,14 @@ namespace RBX {
 		}
 #else 
 		char stackBuffer[stackBufferSize];
-		int actualSize = vsnprintf(stackBuffer, stackBufferSize, fmt, argPtr);
+		// POSIX vsnprintf consumes its va_list. Keep the caller's arguments
+		// intact for the heap retry when a URL/message exceeds the stack buffer.
+		va_list stackArgs;
+		va_copy(stackArgs, argPtr);
+		int actualSize = vsnprintf(stackBuffer, stackBufferSize, fmt, stackArgs);
+		va_end(stackArgs);
+		if (actualSize < 0)
+			return "";
 		if (actualSize < stackBufferSize)
 			return stackBuffer;
 
@@ -80,8 +87,11 @@ namespace RBX {
 		if (actualSize > maxSize)
 			actualSize = maxSize;
 
-		boost::scoped_array<char> heapBuffer(new char[actualSize + 1]);
-		vsnprintf(heapBuffer.get(), actualSize + 1, fmt, argPtr);            
+		std::unique_ptr<char[]> heapBuffer(new char[actualSize + 1]);
+		va_list heapArgs;
+		va_copy(heapArgs, argPtr);
+		vsnprintf(heapBuffer.get(), actualSize + 1, fmt, heapArgs);
+		va_end(heapArgs);
 		heapBuffer[actualSize] = '\0';
 
 		std::string result(heapBuffer.get());

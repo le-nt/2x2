@@ -5,6 +5,18 @@ import path from 'node:path';
 import os from 'node:os';
 import {createNativeAssetPrefetch} from '../server/lib/native-asset-prefetch.mjs';
 
+test('prefetch carries deferred version pins separately rather than replacing them with latest',async t=>{
+ const temp=fs.mkdtempSync(path.join(os.tmpdir(),'2x2-pinned-prefetch-'));t.after(()=>fs.rmSync(temp,{recursive:true,force:true}));
+ const dir=path.join(temp,'native/asset-reports');fs.mkdirSync(dir,{recursive:true});
+ fs.writeFileSync(path.join(dir,'example.json'),JSON.stringify({placeId:'example',assets:[{id:'123',version:1,status:'deferred'},{id:'123',version:2,status:'missing'},{id:'123',version:1,status:'missing'}]}));
+ const previous=process.env.ROBLOX_ASSET_FETCH;process.env.ROBLOX_ASSET_FETCH='1';
+ t.after(()=>{if(previous===undefined)delete process.env.ROBLOX_ASSET_FETCH;else process.env.ROBLOX_ASSET_FETCH=previous;});
+ const seen=[];const prefetch=createNativeAssetPrefetch({serverDir:temp,assetResolver:{lookup:()=>null,resolve:async(id,options)=>{seen.push({id,version:options.version});}},logger:{log(){},warn(){}}});
+ assert.equal(prefetch.launch('example'),2);
+ for(let i=0;i<30&&prefetch.stats().pending;i++)await new Promise(resolve=>setTimeout(resolve,5));
+ assert.deepEqual(seen,[{id:'123',version:1},{id:'123',version:2}]);
+});
+
 test('prefetch uses verified per-game IDs, deduplicates launches and keeps queue bounded',async()=>{
  const temp=fs.mkdtempSync(path.join(os.tmpdir(),'2x2-prefetch-'));
  const dir=path.join(temp,'native/asset-reports');
@@ -32,6 +44,26 @@ test('prefetch uses verified per-game IDs, deduplicates launches and keeps queue
  }finally{
   if(before===undefined)delete process.env.ROBLOX_OPEN_CLOUD_API_KEY;
   else process.env.ROBLOX_OPEN_CLOUD_API_KEY=before;
+  fs.rmSync(temp,{recursive:true,force:true});
+ }
+});
+
+test('explicit public retrieval can prefetch without a Cloud key and offline mode stays offline',async()=>{
+ const temp=fs.mkdtempSync(path.join(os.tmpdir(),'2x2-public-prefetch-'));
+ const directory=path.join(temp,'native/asset-reports');fs.mkdirSync(directory,{recursive:true});
+ fs.writeFileSync(path.join(directory,'example.json'),JSON.stringify({placeId:'example',assets:[{id:'182393478',status:'missing'}]}));
+ const names=['ROBLOX_OPEN_CLOUD_API_KEY','AYA_ASSET_FALLBACK_URL','ROBLOX_ASSET_FETCH'];
+ const before=Object.fromEntries(names.map(name=>[name,process.env[name]]));
+ try {
+  delete process.env.ROBLOX_OPEN_CLOUD_API_KEY;delete process.env.AYA_ASSET_FALLBACK_URL;
+  process.env.ROBLOX_ASSET_FETCH='0';const seen=[];
+  const p=createNativeAssetPrefetch({serverDir:temp,assetResolver:{lookup:()=>null,resolve:async id=>{seen.push(id);return null;}},logger:{log(){},warn(){}}});
+  assert.equal(p.launch('example'),0);assert.deepEqual(seen,[]);
+  process.env.ROBLOX_ASSET_FETCH='1';assert.equal(p.launch('example'),1);
+  for(let i=0;i<20 && p.stats().pending;i++)await new Promise(resolve=>setTimeout(resolve,5));
+  assert.deepEqual(seen,['182393478']);
+ } finally {
+  for(const name of names)if(before[name]===undefined)delete process.env[name];else process.env[name]=before[name];
   fs.rmSync(temp,{recursive:true,force:true});
  }
 });

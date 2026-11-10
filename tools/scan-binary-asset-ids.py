@@ -16,6 +16,8 @@ if __name__ == '__main__':
     try:
         result=inspect_binary(file)
         print(json.dumps({'ids':result['assetIds'],
+                          'resourceReferences':result['resourceReferences'],
+                          'coverage':result['analysisCoverage'],
                           'unsupportedProperties':result['unsupportedBinaryProperties'],
                           'binaryInstanceCount':result['binaryInstanceCount']}))
     except (BinaryFormatError, ValueError, OSError) as exc:

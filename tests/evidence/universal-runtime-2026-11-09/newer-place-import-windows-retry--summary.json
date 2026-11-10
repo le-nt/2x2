@@ -1,0 +1,38 @@
+[
+  {
+    "slug": "newer-reason-2-die-2014",
+    "statuses": {
+      "local": 176,
+      "missing": 130
+    },
+    "discoveredAssets": 306,
+    "compatibilityStatus": "dependencies_partially_resolved"
+  },
+  {
+    "slug": "newer-sunset-2018",
+    "statuses": {
+      "local": 129,
+      "missing": 1063
+    },
+    "discoveredAssets": 1192,
+    "compatibilityStatus": "dependencies_partially_resolved"
+  },
+  {
+    "slug": "newer-mogadishu-transit-christmas",
+    "statuses": {
+      "local": 108,
+      "missing": 1055
+    },
+    "discoveredAssets": 1163,
+    "compatibilityStatus": "dependencies_partially_resolved"
+  },
+  {
+    "slug": "newer-roblox-gaming-room",
+    "statuses": {
+      "local": 41,
+      "missing": 152
+    },
+    "discoveredAssets": 193,
+    "compatibilityStatus": "dependencies_partially_resolved"
+  }
+]

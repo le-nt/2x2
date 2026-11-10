@@ -93,7 +93,7 @@ pub mod util {
     async fn start_rcc_instance(
         base_url: &str,
         access_key: &str,
-    ) -> Result<(Child, i32), ArbiterError> {
+    ) -> Result<(Child, i32, crate::ports::PortLease), ArbiterError> {
         let rcc_path = tokio::task::spawn_blocking(|| {
             // Prefer explicit RCC path if set via CLI, otherwise fall back to ./RobloxRCC/RCCService
             if let Some(p) = rcc::get_rcc_path() {
@@ -131,9 +131,12 @@ pub mod util {
             )
         })?;
 
-        let soap_port = cfg::get_usable_port_soap()?;
+        let mut soap_lease = cfg::get_usable_port_soap()?;
+        let soap_port = soap_lease.port();
+        soap_lease.release_bind();
 
         let mut child = Command::new(&rcc_binary_path)
+            .kill_on_drop(true)
             .current_dir(rcc_working_dir)
             .arg(format!("-BaseUrl:{}", base_url))
             .arg("-Port")
@@ -155,7 +158,7 @@ pub mod util {
             match bsoap::client::HelloWorld(soap_port).await {
                 SoapResult::Success(_) => {
                     log::info!("RCCService:{} connected", soap_port);
-                    return Ok((child, soap_port));
+                    return Ok((child, soap_port, soap_lease));
                 }
                 SoapResult::InternalServerError | SoapResult::BadRequest => {
                     break;
@@ -176,7 +179,8 @@ pub mod util {
         let script_content = resources::get_gameserver_script().to_string();
 
         let config = cfg::get_config().expect("Failed to get config");
-        let ns_port = cfg::get_usable_port_game()?;
+        let mut network_lease = cfg::get_usable_port_game()?;
+        let ns_port = network_lease.port();
 
         let args = rcc::build_args(vec![
             resources::LuaArg::Number(place_id),
@@ -184,7 +188,7 @@ pub mod util {
             resources::LuaArg::String(config.base_url.to_string()),
         ]);
 
-        let (mut child, soap_port) =
+        let (mut child, soap_port, _soap_lease) =
             match start_rcc_instance(&config.base_url, &config.access_key).await {
                 Ok(instance) => instance,
                 Err(e) => {
@@ -192,6 +196,7 @@ pub mod util {
                 }
             };
 
+        network_lease.release_bind();
         let result = bsoap::client::OpenJobEx(
             soap_port,
             job_id.clone(),
@@ -501,7 +506,7 @@ pub mod util {
         sizes: Vec<SizeObject>,
     ) -> Result<(), ArbiterError> {
         let config = cfg::get_config().expect("Failed to get config");
-        let (mut child, soap_port) =
+        let (mut child, soap_port, _soap_lease) =
             start_rcc_instance(&config.base_url, &config.access_key).await?;
         let config_ref = &config;
 
@@ -589,7 +594,7 @@ pub mod util {
             resources::LuaArg::String(config.base_url.to_string()),
         ]);
 
-        let (mut child, soap_port) = rcc::util::start_rcc_instance(&config.base_url, &config.access_key).await?;
+        let (mut child, soap_port, _soap_lease) = rcc::util::start_rcc_instance(&config.base_url, &config.access_key).await?;
         let result = bsoap::client::BatchJobEx(
             soap_port,
             job_id.clone(),
@@ -630,7 +635,7 @@ pub mod util {
         }
         let lua_script = resources::thumb::get_script_by_thumbnail_type(thumbnail_type.clone());
         let config_ref = cfg::get_config().expect("Failed to get config");
-        let (mut child, soap_port) = rcc::util::start_rcc_instance(&config_ref.base_url, &config_ref.access_key).await?;
+        let (mut child, soap_port, _soap_lease) = rcc::util::start_rcc_instance(&config_ref.base_url, &config_ref.access_key).await?;
 
         for size in sizes {
             let mut args = resources::get_script_args(

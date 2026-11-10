@@ -1,0 +1,263 @@
+Ported Functions
+soretexan
+OP
+ — 1/23/2026 12:22 PM
+Re-directed from RBXLegacy's Wiki on about Ported Functions. Thank you!
+Modern versions of ROBLOX include many new features and functions which provide an easier experience for creators to make their own game. Because of this, older ROBLOX clients have far less features and therefore functions to offer. Fortunately, due to these limitations, ROBLOXians have - in the past, and in the now - made their own functions to serve the same purpose as their counterparts in the present. 
+
+WaitForChild
+This function keeps cycling around the requested parent until a child with the requested name is found. 
+
+local function waitForChild(parent, name)
+    while not parent:FindFirstChild(name, false) do
+        wait(0.03)
+    end
+
+    return parent:FindFirstChild(name, false)
+end
+
+
+GetDescendants
+This function is also considered a replacement to a very important function. It returns a table which contains all objects found within a requested object. 
+
+local function getDescendants(instance)
+    local descendants = {}
+
+    for i, v in next, instance:GetChildren() do
+        table.insert(descendants, v)
+
+        for j, w in next, getDescendants(v) do
+            table.insert(descendants, w)
+        end
+    end
+
+    return descendants
+end
+
+
+ClearAllChildren
+Use this when working with releases before 49.
+
+local function clearAllChildren(instance)
+    for index, value in ipairs(instance:GetChildren()) do
+        value:Remove()
+    end
+end
+
+
+FindFirstAncestor
+local function findFirstAncestor(instance, name)
+    local ancestor = instance.Parent
+
+    while ancestor and ancestor ~= game do
+        if ancestor.Name == name then
+            return ancestor
+        else
+            ancestor = ancestor.Parent
+        end
+    end
+
+    return nil
+end
+
+
+Special thanks to RBXLegacy Wiki, IceyTamim, Tekrinn, SpringierTrain, Cubp, Micro, and Playervalley for the contribution ❤️ 
+soretexan
+OP
+ — 1/23/2026 12:25 PM
+FindFirstAncestorOfClass
+local function findFirstAncestorOfClass(instance, className)
+    local ancestor = instance.Parent
+
+    while ancestor and ancestor ~= game do
+        if ancestor.ClassName == className then
+            return ancestor
+        else
+            ancestor = ancestor.Parent
+        end
+    end
+
+    return nil
+end
+FindFirstChildOfClass
+local function findFirstChildOfClass(instance, className)
+    for _, value in next, instance:GetChildren() do
+        if value.ClassName == className then
+            return value
+        end
+    end
+
+    return nil
+end
+ 
+valley (no dms, open ticket) [COZY],  — 1/24/2026 3:29 AM
+FindFirstChildWhichIsA
+local function findFirstChildWhichIsA(instance, className)
+    for _, value in next, instance:GetChildren() do
+        if value:IsA(className) then
+            return value
+        end
+    end
+
+    return nil
+end
+IceyTamim [CYBR],  — 3/22/2026 6:57 AM
+local Attributes = require(ReplicatedStorage:WaitForChild("Attributes"))
+local GetAttribute,SetAttribute = Attributes.GetAttribute,Attributes.SetAttribute
+
+GetAttribute, SetAttribute thank you content_theft
+
+Anything in the game already has attributes set and not created by SetAttribute? Use SetAttribute on them before using GetAttribute, that way it works correctly. 
+Attachment file type: unknown
+backportedsetattributeandgetattribute.rbxm
+637 bytes
+IsDescendantOf
+local function IsDescendantOf(instance, parent)
+    local tal = getDescendants(parent)
+
+    for i, v in next, tal do
+        if v == instance then
+            return true
+        end
+    end
+
+    return false
+end
+Forwarded
+function find = function(thisTable, entry)
+    for index, value in pairs(thisTable) do
+        if value == entry then
+            return index
+        end
+    end
+    
+    return nil
+end
+
+Kanvas Launcher | Autumn  •  2/13/2026
+Forwarded
+function split(inputstr, sep)
+    if sep == nil then
+        sep = "%s"
+    end
+    local t = {}
+    for str in string.gmatch(inputstr, "([^"..sep.."]+)") do
+        table.insert(t, str)
+    end
+    return t
+end
+
+Kanvas Launcher | Autumn  •  2/13/2026
+thanks tekrinn
+IceyTamim [CYBR],  — 3/22/2026 7:04 AM
+wait gotta add typeof impl into it rq so it can work on like 2015E or even 2014 clients
+i just found typeof reimpl exists so im gonna try that
+IceyTamim [CYBR],  — 3/22/2026 7:32 AM
+alright typeof reimpl doesn't work as intended @tekrinn 
+If you give it a Vector3 like 0, 5, 0 then it says it's userdata while it isnt 
+IceyTamim [CYBR],  — 3/22/2026 8:20 AM
+found a better typeof reimpl which works on 2014+ clients https://devforum.roblox.com/t/distinguishing-userdata-types/1096 
+Developer Forum | Roblox
+Distinguishing Userdata Types
+Recently I programmed a data-to-string compiler/decompiler, very similar to JSON but mine supports userdata (Vector3, BrickColor, CFrame, Instance etc.) and is less human readable. I needed to be able to find the DataType of any lua_State. Of course the “type” method can be using to distinguish string, number, nil, userdata etc. but there se...
+Image
+    local GetDataType
+
+    local function DataCheck(data, key)
+        return (pcall(function()
+            _ = data[key]
+        end))
+    end
+    function GetDataType(data)
+        local t = type(data)
+        if t ~= "userdata" then
+            return t
+        end
+        if DataCheck(data, "ClassName") then
+            return data.ClassName
+        elseif DataCheck(data, "y") then
+            if DataCheck(data, "z") then
+                if DataCheck(data, "components") then
+                    return "CFrame"
+                else
+                    return "Vector3"
+                end
+            else            
+                return "Vector2"
+            end
+        elseif DataCheck(data, "X") then
+            return "UDim2"
+        elseif DataCheck(data, "Scale") then
+            return "UDim"
+        elseif DataCheck(data, "ClosestPoint") then
+            return "Ray"
+        elseif DataCheck(data, "Number") then
+            return "BrickColor"
+        elseif DataCheck(data, "r") then
+            return "Color3"
+        elseif DataCheck(data, "Value") then
+            return "Enumeration"
+        end
+        error("Invalid argument exception, userdata type fetch has not yet been implemented")
+    end
+ 
+If i try vector3 on it it works as intended
+fixing a issue with backported tweenservice rn before i release it 
+IceyTamim [CYBR],  — 3/22/2026 12:03 PM
+Backported Tweenservice version support has been upgraded to 2015E+ instead of 2016L+
+@Ms. Game  sending now
+Tweening the part in action
+IceyTamim [CYBR],  — 3/22/2026 12:19 PM
+I did this for Color3:Lerp when i could just have realized im supposed to use lerp instead of Lerp, ig just use this for 2013L 😭 
+local function Color3Lerp(aa, bb, t) 
+    return aa.r + (bb.r - aa.r) * t, aa.g + (bb.g - aa.g) * t, aa.b + (bb.b - aa.b) * t
+end
+
+return function(alpha, initial, final)
+    local r,g,b = Color3Lerp(initial, final, alpha)
+    return Color3.new(r,g,b)
+end
+ 
+Renaming every single Lerp to lerp now
+ [CYBR], 
+tekrinn — 3/22/2026 12:22 PM
+oddly i havent encountered this issue yet
+i use it for an attribute reimplimentation and it works as intended
+IceyTamim [CYBR],  — 3/22/2026 12:23 PM
+nice, i found other typeof impl and it does vector3 correctly
+its sent here above
+IceyTamim [CYBR],  — 3/22/2026 12:24 PM
+Run print(typeof(Vector3.new()))
+the one you sent, says userdata, while the other one says Vector3
+tekrinn — 3/22/2026 12:25 PM
+Image
+Image
+works as intended
+IceyTamim [CYBR],  — 3/22/2026 12:27 PM
+Forwarded
+function typeof = function(Anyvalue)
+  local AnyvalueType = type(Anyvalue)
+  local Ran, Error = pcall(string.dump, Anyvalue)
+  if not (Ran) then
+    if (string.find(Error, "got (%w+)")) then
+      AnyvalueType = string.match(Error, "got (%w+)")
+    end
+  end
+
+  if not (AnyvalueType) then
+    AnyvalueType = type(AnyvalueType)
+  end
+
+  if (AnyvalueType == "Object") then
+    AnyvalueType = "Instance"
+  end
+  return AnyvalueType
+end
+
+Kanvas Launcher | Autumn  •  2/13/2026
+I refer to this one you sent, the issue happens here
+ [CYBR], 
+tekrinn — 3/22/2026 12:47 PM
+what client did u have ur issue on
+i wonder if that might be the issue
+cus the function i used was for when typeof was disabled but already implemented beforehand

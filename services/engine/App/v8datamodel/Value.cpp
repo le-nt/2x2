@@ -1,6 +1,7 @@
 #include "stdafx.h"
 
 #include "v8datamodel/Value.h"
+#include "v8datamodel/DataModel.h"
 
 namespace RBX
 {
@@ -147,12 +148,35 @@ namespace RBX
 		return v.get();
 	}
 
+	void ObjectValue::refreshDetachedValue()
+	{
+		shared_ptr<Instance> target = value.lock();
+		// Only a DataModel-rooted keeper may own an orphan. A target that
+		// contains this keeper (or is the DataModel itself) must remain weak.
+		if (target && DataModel::get(this) && !target->getParent()
+			&& !Instance::fastDynamicCast<DataModel>(target.get())
+			&& target.get() != this && !target->isAncestorOf(this))
+			detachedValue = target;
+		else
+			detachedValue.reset();
+	}
+
+	void ObjectValue::onAncestorChanged(const AncestorChanged& event)
+	{
+		Instance::onAncestorChanged(event);
+		refreshDetachedValue();
+	}
+
 	void ObjectValue::setValue(Instance* value)
 	{
 		shared_ptr<Instance> v = this->value.lock();
 		if (v.get() != value)
 		{
+			valueAncestryConnection.disconnect();
 			this->value = shared_from(value);
+			if (value)
+				valueAncestryConnection = value->ancestryChangedSignal.connect(boost::bind(&ObjectValue::refreshDetachedValue, this));
+			refreshDetachedValue();
 			this->raisePropertyChanged(desc_Value);
 			valueChangedSignal(this->value.lock());
 		}

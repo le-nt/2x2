@@ -12,6 +12,10 @@
 #include "v8xml/WebParser.h"
 #include "network/api.h"
 #include "util/SoundService.h"
+#include <cstdio>
+#include <cstring>
+
+LOGGROUP(RakNetDisconnect)
 
 #ifdef EMSCRIPTEN
 #include "emscripten.h"
@@ -26,6 +30,16 @@ static bool preloadShuttingDown = false;
 static boost::thread releaseGameThread;
 
 namespace RBX {
+	// Disconnect traces already exist in RakNet's opt-in FastLog group. Expose
+	// only those messages in the browser console, never arbitrary FastLog URLs
+	// or authentication data. Enable FLogRakNetDisconnect=255 when diagnosing.
+	static void nativeNetworkLog(FLog::Channel, const char* message)
+	{
+		// Preserve other enabled groups in the existing bounded history.
+		if (message) FLog::FastLogS(1, "%s", message);
+		if (message && (std::strstr(message, "Raknet:") || std::strstr(message, "RakNet:")))
+			std::printf("[2x2 network] %.900s\n", message);
+	}
 	static std::string readStringValue(shared_ptr<const Reflection::ValueTable> jsonResult, std::string name) 
 	{
 		Reflection::ValueTable::const_iterator itData = jsonResult->find(name);
@@ -235,6 +249,9 @@ namespace RBX {
 				LoadClientSettingsFromString(CLIENT_APP_SETTINGS_STRING, fastFlags, &RBX::ClientAppSettings::singleton());
 			}
 		#endif
+
+		if (FLog::RakNetDisconnect > LOGCHANNELS)
+			FLog::SetExternalLogFunc(&nativeNetworkLog);
 
 		#ifdef RBX_SECURE_DOUBLE
 			LuaSecureDouble::initDouble();

@@ -384,10 +384,16 @@ bool TextureManager::loadAsync(const ContentId& id, const std::string& context)
 		(caps.supportsTexturePartialMipChain ? 0 : Image::Load_ForceFullMipChain);
 
     bool useRetina = caps.retina;
+    ContentProvider* provider = visualEngine->getContentProvider();
+    // Missing packaged images must enter the same archive-aware provider as
+    // models and sounds. Direct file loading otherwise bypasses native VFS.
+    const bool archiveFallback = loadId.isAsset() && provider &&
+        provider->getBaseUrl().find("/native") != std::string::npos &&
+        ContentProvider::findAsset(loadId).empty();
 
     try
 	{
-        if (loadId.isAsset() || loadId.isAppContent())
+        if ((loadId.isAsset() || loadId.isAppContent()) && !archiveFallback)
         {
 			outstandingRequests++;
 
@@ -395,7 +401,7 @@ bool TextureManager::loadAsync(const ContentId& id, const std::string& context)
 
             return true;
         }
-		else if (loadId.isHttp() || loadId.isAssetId() || loadId.isRbxHttp() || loadId.isNamedAsset())
+		else if (archiveFallback || loadId.isHttp() || loadId.isAssetId() || loadId.isRbxHttp() || loadId.isNamedAsset())
         {
 			if (ContentProvider* cp = visualEngine->getContentProvider())
 			{

@@ -1,0 +1,72 @@
+{
+  "automaticRestartCleanup": {
+    "jobId": "1d1a860f-6d36-41f1-9f95-c87d29e22c22",
+    "previousPid": 30044,
+    "processExited": true,
+    "pendingAcknowledged": true
+  },
+  "legacyOrphansQueued": [
+    {
+      "jobId": "2d95a12b-5789-480b-b306-70c609710778",
+      "pid": 26243,
+      "verifiedLivePlayers": 0
+    },
+    {
+      "jobId": "dba21cbf-106d-4250-9afb-58a8b04a9692",
+      "pid": 26471,
+      "verifiedLivePlayers": 0
+    },
+    {
+      "jobId": "b3b45cd1-60ea-4760-b0a0-bb7df738ee1e",
+      "pid": 26609,
+      "verifiedLivePlayers": 0
+    },
+    {
+      "jobId": "b0ed0fd7-4d64-49b8-8a28-05d5c7f24cd4",
+      "pid": 26844,
+      "verifiedLivePlayers": 0
+    },
+    {
+      "jobId": "91a78b61-d255-4dfc-a60c-7b395325ac19",
+      "pid": 27279,
+      "verifiedLivePlayers": 0
+    },
+    {
+      "jobId": "958ec897-ded3-4b62-a1bf-ef63f25c472d",
+      "pid": 27386,
+      "verifiedLivePlayers": 0
+    },
+    {
+      "jobId": "3e14b3e0-44c2-47a8-b5a0-a7ce53b7df38",
+      "pid": 27453,
+      "verifiedLivePlayers": 0
+    },
+    {
+      "jobId": "d741ce9b-b511-466f-8fc4-addd95982419",
+      "pid": 28894,
+      "verifiedLivePlayers": 0
+    },
+    {
+      "jobId": "d0807dfc-afe9-43d2-bab0-b51a728cee74",
+      "pid": 29269,
+      "verifiedLivePlayers": 0
+    },
+    {
+      "jobId": "f7bbb8d4-a16d-471d-9426-af451fa8e01c",
+      "pid": 29561,
+      "verifiedLivePlayers": 0
+    }
+  ],
+  "baselinePrivateWorkers": 12,
+  "allBaselineProcessesExited": true,
+  "cleanupQueueEmpty": true,
+  "newActiveGamePreserved": {
+    "jobId": "4915a727-2722-4226-9d6e-fcc2ab4f89f5",
+    "placeId": 6,
+    "userIds": [
+      1,
+      2
+    ]
+  },
+  "productionChanged": false
+}

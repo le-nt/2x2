@@ -8,9 +8,7 @@ use rocket::serde::json::Json;
 
 use rocket::futures::{SinkExt, StreamExt};
 use rocket_ws::{Message, WebSocket};
-use std::sync::Arc;
 use tokio::net::UdpSocket;
-use tokio::sync::mpsc;
 
 #[get("/health")]
 #[allow(non_snake_case, dead_code)]
@@ -208,7 +206,7 @@ pub fn SocketForwarding(job_id: String, ws: WebSocket, _key: AccessKey) -> rocke
                         job_id,
                         socket.local_addr().unwrap()
                     );
-                    Arc::new(socket)
+                    socket
                 }
                 Err(e) => {
                     eprintln!("Failed to bind UDP socket: {}", e);
@@ -219,61 +217,16 @@ pub fn SocketForwarding(job_id: String, ws: WebSocket, _key: AccessKey) -> rocke
             let udp_target = format!("127.0.0.1:{}", port);
             println!("UDP target for job_id {}: {}", job_id, udp_target);
 
-            let (tx, mut rx) = mpsc::channel::<Vec<u8>>(100);
-            let udp_rx_socket = udp_socket.clone();
-            tokio::spawn(async move {
-                let mut buf = [0u8; 2048];
-                loop {
-                    match udp_rx_socket.recv_from(&mut buf).await {
-                        Ok((len, _)) => {
-                            if tx.send(buf[..len].to_vec()).await.is_err() {
-                                println!("Receiver dropped, stopping UDP->WS forwarding");
-                                break;
-                            }
-                        }
-                        Err(e) => {
-                            eprintln!("UDP receive error: {}", e);
-                            break;
-                        }
-                    }
-                }
-            });
-
-            loop {
-                tokio::select! {
-                    Some(udp_message) = rx.recv() => {
-                        if stream.send(Message::Binary(udp_message)).await.is_err() {
-                            break;
-                        }
-                    }
-
-                    Some(ws_message) = stream.next() => {
-                        match ws_message {
-                            Ok(Message::Binary(bin)) => {
-                                let _ = udp_socket.send_to(&bin, &udp_target).await;
-                            }
-                            Ok(Message::Close(_)) => {
-                                println!("WebSocket closed by client");
-                                break;
-                            }
-                            Ok(other) => {
-                                println!("Received non-binary ws message: {:?}", other);
-                                // ignore other message types
-                            }
-                            Err(e) => {
-                                eprintln!("WebSocket error: {}", e);
-                                break;
-                            }
-                        }
-                    }
-                    else => {
-                        println!("No more messages, closing connection for job_id {}", job_id);
-                        break;
-                    }
-                }
+            // Filter incoming datagrams to this job's native server. Keeping
+            // receive in the relay future also releases the socket on EOF or
+            // handler cancellation, even when no further UDP packet arrives.
+            if let Err(error) = udp_socket.connect(&udp_target).await {
+                eprintln!("UDP connect failed for job_id {}: {}", job_id, error);
+                let _ = stream.send(Message::Close(None)).await;
+                return Ok(());
             }
-
-            println!("Connection for job_id {} closed", job_id);
+            let reason = crate::udp_relay::forward(stream, udp_socket).await;
+            println!("Connection for job_id {} closed: {:?}", job_id, reason);
             Ok(())
         })
     })

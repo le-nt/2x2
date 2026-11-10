@@ -919,7 +919,20 @@ void Player::onCharacterDied()
 	{
 		calculateNextSpawnLocation(ServiceProvider::findServiceProvider(this));
 		if (TimerService* timer = ServiceProvider::create<TimerService>(this)) {
-			timer->delay(boost::bind(&Player::loadCharacter, shared_from(this), true, ""), 5.0);
+			boost::weak_ptr<Player> weakPlayer(shared_from(this));
+			boost::weak_ptr<ModelInstance> deadCharacter(character);
+			timer->delay([weakPlayer, deadCharacter]() {
+				shared_ptr<Player> player = weakPlayer.lock();
+				shared_ptr<ModelInstance> expected = deadCharacter.lock();
+				if (!player || !expected || player->getCharacter() != expected.get())
+					return;
+				Players* players = ServiceProvider::find<Players>(player.get());
+				Humanoid* humanoid = Humanoid::modelIsCharacter(expected.get());
+				// Scripts may replace the character or disable automatic loading
+				// while the death timer waits. Never overwrite that newer state.
+				if (players && players->getCharacterAutoSpawnProperty() && humanoid && humanoid->getHealth() <= 0)
+					player->loadCharacter(true, "");
+			}, 5.0);
 		}
 	}
 }
@@ -1886,10 +1899,19 @@ Player::SpawnData Player::calculateSpawnLocation(const std::string& preferedSpaw
 	return SpawnData(location, forcefieldDuration, cf);
 }
 
-static void CharacterLoadHelper(shared_ptr<ModelInstance> model, AsyncHttpQueue::RequestResult result, shared_ptr<Instances> instances)
+static void loadDefaultCharacterHealth(ContentProvider* provider, shared_ptr<ModelInstance> model)
 {
-	if(result == AsyncHttpQueue::Succeeded){
-		std::for_each(instances->begin(), instances->end(), boost::bind(&addChild, model, _1));	
+	if (model->findFirstChildByName("Health")) return;
+	try {
+		// CharacterAdded listeners in historical places immediately inspect or
+		// disable Health. Insert the original resource before publishing the
+		// character, as we already do for Sound and Animate.
+		Instances health;
+		provider->blockingLoadInstances(ContentId::fromAssets("fonts/humanoidHealthRegenScript.rbxm"), health);
+		std::for_each(health.begin(), health.end(), boost::bind(&addChild, model, _1));
+	} catch (const std::exception& error) {
+		// Missing optional bootstrap assets must not prevent character spawn.
+		StandardOut::singleton()->printf(MESSAGE_WARNING, "Character Health script unavailable before CharacterAdded: %s", error.what());
 	}
 }
 
@@ -2048,7 +2070,7 @@ void Player::loadCharacter(bool inGame, std::string preferedSpawnName)
 			if (inGame && !overrideHealthScript)
 			{
 				// new rbxm (storing in humanoidHealthRegenScript.rbxm to make turning flag on easy) only contains server script that does humanoid health regen (gui script is now core script)
-				ServiceProvider::create<ContentProvider>(this)->loadContent(ContentId::fromAssets("fonts/humanoidHealthRegenScript.rbxm"), ContentProvider::PRIORITY_SCRIPT, boost::bind(&CharacterLoadHelper, model, _1, _2), AsyncHttpQueue::AsyncWrite);
+				loadDefaultCharacterHealth(ServiceProvider::create<ContentProvider>(this), model);
 			}
 
 			if (!overrideAnimateScript)
@@ -2075,7 +2097,7 @@ void Player::loadCharacter(bool inGame, std::string preferedSpawnName)
 		if(inGame)
 		{
 			// new rbxm (storing in humanoidHealthRegenScript.rbxm to make turning flag on easy) only contains server script that does humanoid health regen (gui script is now core script)
-			ServiceProvider::create<ContentProvider>(this)->loadContent(ContentId::fromAssets("fonts/humanoidHealthRegenScript.rbxm"), ContentProvider::PRIORITY_SCRIPT, boost::bind(&CharacterLoadHelper, model, _1, _2), AsyncHttpQueue::AsyncWrite);
+			loadDefaultCharacterHealth(ServiceProvider::create<ContentProvider>(this), model);
 		}
 
 		Instances extraAnimate;

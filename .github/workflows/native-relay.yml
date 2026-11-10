@@ -1,0 +1,17 @@
+name: Native relay regressions
+on:
+  pull_request:
+    paths:
+      - 'services/arbiter/**'
+      - '.github/workflows/native-relay.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  udp-relay:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test native transport framing, port reservations and cleanup
+        working-directory: services/arbiter
+        run: cargo test --locked --release

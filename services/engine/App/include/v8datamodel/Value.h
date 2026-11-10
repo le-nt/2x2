@@ -260,6 +260,11 @@ namespace RBX
 		, public IValue
 	{
 		weak_ptr<Instance> value;
+		// Rooted values keep detached templates alive. Parented targets remain
+		// weak, so ordinary references do not introduce ownership cycles.
+		shared_ptr<Instance> detachedValue;
+		rbx::event_signals::scoped_connection valueAncestryConnection;
+		void refreshDetachedValue();
 	public:
 		ObjectValue() 
 		{
@@ -274,6 +279,7 @@ namespace RBX
 		static RBX::Reflection::RefPropDescriptor<ObjectValue, Instance> desc_Value;
 		rbx::signal<void(shared_ptr<Instance>)> valueChangedSignal;
 	protected:
+		virtual void onAncestorChanged(const AncestorChanged& event);
 		virtual bool askSetParent(const Instance* instance) const {
 			// Values are willing to be placed anywhere
 			return true;

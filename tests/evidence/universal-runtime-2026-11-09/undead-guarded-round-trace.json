@@ -1,0 +1,917 @@
+{
+  "finished": true,
+  "events": [
+    {
+      "kind": "message",
+      "time": 1794249614.158244,
+      "data": {
+        "path": "Workspace.Message",
+        "text": "Waiting for two or more players..."
+      }
+    },
+    {
+      "kind": "character",
+      "time": 1794249614.158292,
+      "data": {
+        "team": "Bright red",
+        "userId": 1
+      }
+    },
+    {
+      "kind": "character",
+      "time": 1794249614.97669,
+      "data": {
+        "team": "Bright red",
+        "userId": 1
+      }
+    },
+    {
+      "kind": "message",
+      "time": 1794249630.327967,
+      "data": {
+        "path": "Workspace.Message",
+        "text": "Human team, survive the zombie team for 15 minutes to win the game, or else zombies win!"
+      }
+    },
+    {
+      "kind": "message",
+      "time": 1794249630.330811,
+      "data": {
+        "path": "Workspace.Message",
+        "text": "Humans left: 1 | Time left: 14:59 | Zombies: 1"
+      }
+    },
+    {
+      "kind": "message",
+      "time": 1794249629.468103,
+      "data": {
+        "path": "Workspace.Message",
+        "text": "Humans left: 1 | Time left: 14:58 | Zombies: 1"
+      }
+    },
+    {
+      "kind": "message",
+      "time": 1794249630.477008,
+      "data": {
+        "path": "Workspace.Message",
+        "text": "Humans left: 1 | Time left: 14:57 | Zombies: 1"
+      }
+    },
+    {
+      "kind": "message",
+      "time": 1794249631.489466,
+      "data": {
+        "path": "Workspace.Message",
+        "text": "Humans left: 1 | Time left: 14:56 | Zombies: 1"
+      }
+    },
+    {
+      "kind": "message",
+      "time": 1794249632.49395,
+      "data": {
+        "path": "Workspace.Message",
+        "text": "Humans left: 1 | Time left: 14:55 | Zombies: 1"
+      }
+    },
+    {
+      "kind": "message",
+      "time": 1794249633.507952,
+      "data": {
+        "path": "Workspace.Message",
+        "text": "Humans left: 1 | Time left: 14:54 | Zombies: 1"
+      }
+    },
+    {
+      "kind": "message",
+      "time": 1794249634.513195,
+      "data": {
+        "path": "Workspace.Message",
+        "text": "Humans left: 1 | Time left: 14:53 | Zombies: 1"
+      }
+    },
+    {
+      "kind": "message",
+      "time": 1794249635.521351,
+      "data": {
+        "path": "Workspace.Message",
+        "text": "Humans left: 1 | Time left: 14:52 | Zombies: 1"
+      }
+    },
+    {
+      "kind": "message",
+      "time": 1794249636.523292,
+      "data": {
+        "path": "Workspace.Message",
+        "text": "Humans left: 1 | Time left: 14:51 | Zombies: 1"
+      }
+    },
+    {
+      "kind": "message",
+      "time": 1794249637.535559,
+      "data": {
+        "path": "Workspace.Message",
+        "text": "Humans left: 1 | Time left: 14:50 | Zombies: 1"
+      }
+    },
+    {
+      "kind": "message",
+      "time": 1794249638.552851,
+      "data": {
+        "path": "Workspace.Message",
+        "text": "Humans left: 1 | Time left: 14:49 | Zombies: 1"
+      }
+    },
+    {
+      "kind": "message",
+      "time": 1794249639.555584,
+      "data": {
+        "path": "Workspace.Message",
+        "text": "Humans left: 1 | Time left: 14:48 | Zombies: 1"
+      }
+    },
+    {
+      "kind": "message",
+      "time": 1794249640.569852,
+      "data": {
+        "path": "Workspace.Message",
+        "text": "Humans left: 1 | Time left: 14:47 | Zombies: 1"
+      }
+    },
+    {
+      "kind": "message",
+      "time": 1794249641.584911,
+      "data": {
+        "path": "Workspace.Message",
+        "text": "Humans left: 1 | Time left: 14:46 | Zombies: 1"
+      }
+    },
+    {
+      "kind": "team",
+      "time": 1794249642.469019,
+      "data": {
+        "team": "Br. yellowish green",
+        "userId": 1
+      }
+    },
+    {
+      "kind": "died",
+      "time": 1794249642.469096,
+      "data": {
+        "team": "Br. yellowish green",
+        "userId": 1
+      }
+    },
+    {
+      "kind": "message",
+      "time": 1794249642.59404,
+      "data": {
+        "path": "Workspace.Message",
+        "text": "Humans left: 0 | Time left: 14:45 | Zombies: 2"
+      }
+    },
+    {
+      "kind": "message",
+      "time": 1794249642.608935,
+      "data": {
+        "path": "Workspace.Message",
+        "text": "Zombies have won by successfully infecting all humans within 15 minutes!"
+      }
+    },
+    {
+      "kind": "team",
+      "time": 1794249642.609071,
+      "data": {
+        "team": "Bright red",
+        "userId": 1
+      }
+    },
+    {
+      "kind": "character",
+      "time": 1794249647.503482,
+      "data": {
+        "team": "Bright red",
+        "userId": 1
+      }
+    },
+    {
+      "kind": "team",
+      "time": 1794249650.617607,
+      "data": {
+        "team": "Br. yellowish green",
+        "userId": 1
+      }
+    },
+    {
+      "kind": "message",
+      "time": 1794249650.618215,
+      "data": {
+        "path": "Workspace.Message",
+        "text": "Human team, survive the zombie team for 15 minutes to win the game, or else zombies win!"
+      }
+    },
+    {
+      "kind": "message",
+      "time": 1794249650.731597,
+      "data": {
+        "path": "Workspace.Message",
+        "text": "Humans left: 1 | Time left: 14:59 | Zombies: 1"
+      }
+    },
+    {
+      "kind": "died",
+      "time": 1794249650.732263,
+      "data": {
+        "team": "Br. yellowish green",
+        "userId": 1
+      }
+    },
+    {
+      "kind": "message",
+      "time": 1794249651.74323,
+      "data": {
+        "path": "Workspace.Message",
+        "text": "Humans left: 1 | Time left: 14:58 | Zombies: 1"
+      }
+    },
+    {
+      "kind": "message",
+      "time": 1794249652.750724,
+      "data": {
+        "path": "Workspace.Message",
+        "text": "Humans left: 1 | Time left: 14:57 | Zombies: 1"
+      }
+    },
+    {
+      "kind": "message",
+      "time": 1794249653.759434,
+      "data": {
+        "path": "Workspace.Message",
+        "text": "Humans left: 1 | Time left: 14:56 | Zombies: 1"
+      }
+    },
+    {
+      "kind": "message",
+      "time": 1794249654.765363,
+      "data": {
+        "path": "Workspace.Message",
+        "text": "Humans left: 1 | Time left: 14:55 | Zombies: 1"
+      }
+    },
+    {
+      "kind": "character",
+      "time": 1794249655.761086,
+      "data": {
+        "team": "Br. yellowish green",
+        "userId": 1
+      }
+    },
+    {
+      "kind": "message",
+      "time": 1794249655.802525,
+      "data": {
+        "path": "Workspace.Message",
+        "text": "Humans left: 1 | Time left: 14:54 | Zombies: 1"
+      }
+    },
+    {
+      "kind": "character",
+      "time": 1794249657.020505,
+      "data": {
+        "team": "Br. yellowish green",
+        "userId": 1
+      }
+    },
+    {
+      "kind": "message",
+      "time": 1794249657.028837,
+      "data": {
+        "path": "Workspace.Message",
+        "text": "Humans left: 1 | Time left: 14:53 | Zombies: 1"
+      }
+    },
+    {
+      "kind": "message",
+      "time": 1794249658.042769,
+      "data": {
+        "path": "Workspace.Message",
+        "text": "Humans left: 1 | Time left: 14:52 | Zombies: 1"
+      }
+    },
+    {
+      "kind": "message",
+      "time": 1794249659.050506,
+      "data": {
+        "path": "Workspace.Message",
+        "text": "Humans left: 1 | Time left: 14:51 | Zombies: 1"
+      }
+    },
+    {
+      "kind": "message",
+      "time": 1794249660.063944,
+      "data": {
+        "path": "Workspace.Message",
+        "text": "Humans left: 1 | Time left: 14:50 | Zombies: 1"
+      }
+    },
+    {
+      "kind": "message",
+      "time": 1794249661.070582,
+      "data": {
+        "path": "Workspace.Message",
+        "text": "Humans left: 1 | Time left: 14:49 | Zombies: 1"
+      }
+    },
+    {
+      "kind": "message",
+      "time": 1794249660.193583,
+      "data": {
+        "path": "Workspace.Message",
+        "text": "Humans left: 1 | Time left: 14:48 | Zombies: 1"
+      }
+    },
+    {
+      "kind": "message",
+      "time": 1794249661.206264,
+      "data": {
+        "path": "Workspace.Message",
+        "text": "Humans left: 1 | Time left: 14:47 | Zombies: 1"
+      }
+    },
+    {
+      "kind": "message",
+      "time": 1794249662.223085,
+      "data": {
+        "path": "Workspace.Message",
+        "text": "Humans left: 1 | Time left: 14:46 | Zombies: 1"
+      }
+    },
+    {
+      "kind": "message",
+      "time": 1794249663.235777,
+      "data": {
+        "path": "Workspace.Message",
+        "text": "Humans left: 1 | Time left: 14:45 | Zombies: 1"
+      }
+    },
+    {
+      "kind": "message",
+      "time": 1794249664.239438,
+      "data": {
+        "path": "Workspace.Message",
+        "text": "Humans left: 1 | Time left: 14:44 | Zombies: 1"
+      }
+    },
+    {
+      "kind": "message",
+      "time": 1794249665.246431,
+      "data": {
+        "path": "Workspace.Message",
+        "text": "Humans left: 1 | Time left: 14:43 | Zombies: 1"
+      }
+    },
+    {
+      "kind": "message",
+      "time": 1794249666.247895,
+      "data": {
+        "path": "Workspace.Message",
+        "text": "Humans left: 1 | Time left: 14:42 | Zombies: 1"
+      }
+    },
+    {
+      "kind": "message",
+      "time": 1794249667.249648,
+      "data": {
+        "path": "Workspace.Message",
+        "text": "Humans left: 1 | Time left: 14:41 | Zombies: 1"
+      }
+    },
+    {
+      "kind": "message",
+      "time": 1794249668.253606,
+      "data": {
+        "path": "Workspace.Message",
+        "text": "Humans left: 1 | Time left: 14:40 | Zombies: 1"
+      }
+    },
+    {
+      "kind": "message",
+      "time": 1794249669.268513,
+      "data": {
+        "path": "Workspace.Message",
+        "text": "Humans left: 1 | Time left: 14:39 | Zombies: 1"
+      }
+    },
+    {
+      "kind": "message",
+      "time": 1794249670.278135,
+      "data": {
+        "path": "Workspace.Message",
+        "text": "Humans left: 1 | Time left: 14:38 | Zombies: 1"
+      }
+    },
+    {
+      "kind": "message",
+      "time": 1794249671.280363,
+      "data": {
+        "path": "Workspace.Message",
+        "text": "Humans left: 1 | Time left: 14:37 | Zombies: 1"
+      }
+    },
+    {
+      "kind": "message",
+      "time": 1794249672.294126,
+      "data": {
+        "path": "Workspace.Message",
+        "text": "Humans left: 1 | Time left: 14:36 | Zombies: 1"
+      }
+    },
+    {
+      "kind": "message",
+      "time": 1794249673.300431,
+      "data": {
+        "path": "Workspace.Message",
+        "text": "Humans left: 1 | Time left: 14:35 | Zombies: 1"
+      }
+    },
+    {
+      "kind": "message",
+      "time": 1794249674.304456,
+      "data": {
+        "path": "Workspace.Message",
+        "text": "Humans left: 1 | Time left: 14:34 | Zombies: 1"
+      }
+    },
+    {
+      "kind": "message",
+      "time": 1794249675.31497,
+      "data": {
+        "path": "Workspace.Message",
+        "text": "Humans left: 1 | Time left: 14:33 | Zombies: 1"
+      }
+    },
+    {
+      "kind": "message",
+      "time": 1794249676.330857,
+      "data": {
+        "path": "Workspace.Message",
+        "text": "Humans left: 0 | Time left: 14:32 | Zombies: 2"
+      }
+    },
+    {
+      "kind": "message",
+      "time": 1794249676.330984,
+      "data": {
+        "path": "Workspace.Message",
+        "text": "Zombies have won by successfully infecting all humans within 15 minutes!"
+      }
+    },
+    {
+      "kind": "died",
+      "time": 1794249676.331147,
+      "data": {
+        "team": "Br. yellowish green",
+        "userId": 1
+      }
+    },
+    {
+      "kind": "team",
+      "time": 1794249681.339526,
+      "data": {
+        "team": "Bright red",
+        "userId": 1
+      }
+    },
+    {
+      "kind": "character",
+      "time": 1794249681.343386,
+      "data": {
+        "team": "Bright red",
+        "userId": 1
+      }
+    },
+    {
+      "kind": "team",
+      "time": 1794249684.353037,
+      "data": {
+        "team": "Br. yellowish green",
+        "userId": 1
+      }
+    },
+    {
+      "kind": "message",
+      "time": 1794249684.353127,
+      "data": {
+        "path": "Workspace.Message",
+        "text": "Human team, survive the zombie team for 15 minutes to win the game, or else zombies win!"
+      }
+    },
+    {
+      "kind": "message",
+      "time": 1794249684.355848,
+      "data": {
+        "path": "Workspace.Message",
+        "text": "Humans left: 1 | Time left: 14:59 | Zombies: 1"
+      }
+    },
+    {
+      "kind": "died",
+      "time": 1794249684.373934,
+      "data": {
+        "team": "Br. yellowish green",
+        "userId": 1
+      }
+    },
+    {
+      "kind": "message",
+      "time": 1794249685.359425,
+      "data": {
+        "path": "Workspace.Message",
+        "text": "Humans left: 1 | Time left: 14:58 | Zombies: 1"
+      }
+    },
+    {
+      "kind": "message",
+      "time": 1794249686.372163,
+      "data": {
+        "path": "Workspace.Message",
+        "text": "Humans left: 1 | Time left: 14:57 | Zombies: 1"
+      }
+    },
+    {
+      "kind": "message",
+      "time": 1794249687.385633,
+      "data": {
+        "path": "Workspace.Message",
+        "text": "Humans left: 1 | Time left: 14:56 | Zombies: 1"
+      }
+    },
+    {
+      "kind": "message",
+      "time": 1794249688.399286,
+      "data": {
+        "path": "Workspace.Message",
+        "text": "Humans left: 1 | Time left: 14:55 | Zombies: 1"
+      }
+    },
+    {
+      "kind": "character",
+      "time": 1794249689.386043,
+      "data": {
+        "team": "Br. yellowish green",
+        "userId": 1
+      }
+    },
+    {
+      "kind": "message",
+      "time": 1794249689.413051,
+      "data": {
+        "path": "Workspace.Message",
+        "text": "Humans left: 1 | Time left: 14:54 | Zombies: 1"
+      }
+    },
+    {
+      "kind": "character",
+      "time": 1794249690.400502,
+      "data": {
+        "team": "Br. yellowish green",
+        "userId": 1
+      }
+    },
+    {
+      "kind": "message",
+      "time": 1794249690.419022,
+      "data": {
+        "path": "Workspace.Message",
+        "text": "Humans left: 1 | Time left: 14:53 | Zombies: 1"
+      }
+    },
+    {
+      "kind": "message",
+      "time": 1794249691.434066,
+      "data": {
+        "path": "Workspace.Message",
+        "text": "Humans left: 1 | Time left: 14:52 | Zombies: 1"
+      }
+    },
+    {
+      "kind": "message",
+      "time": 1794249690.482908,
+      "data": {
+        "path": "Workspace.Message",
+        "text": "Humans left: 1 | Time left: 14:51 | Zombies: 1"
+      }
+    },
+    {
+      "kind": "message",
+      "time": 1794249691.492536,
+      "data": {
+        "path": "Workspace.Message",
+        "text": "Humans left: 1 | Time left: 14:50 | Zombies: 1"
+      }
+    },
+    {
+      "kind": "message",
+      "time": 1794249692.499995,
+      "data": {
+        "path": "Workspace.Message",
+        "text": "Humans left: 1 | Time left: 14:49 | Zombies: 1"
+      }
+    },
+    {
+      "kind": "message",
+      "time": 1794249693.511135,
+      "data": {
+        "path": "Workspace.Message",
+        "text": "Humans left: 1 | Time left: 14:48 | Zombies: 1"
+      }
+    },
+    {
+      "kind": "message",
+      "time": 1794249694.52019,
+      "data": {
+        "path": "Workspace.Message",
+        "text": "Humans left: 1 | Time left: 14:47 | Zombies: 1"
+      }
+    },
+    {
+      "kind": "message",
+      "time": 1794249695.531586,
+      "data": {
+        "path": "Workspace.Message",
+        "text": "Humans left: 1 | Time left: 14:46 | Zombies: 1"
+      }
+    },
+    {
+      "kind": "message",
+      "time": 1794249696.537279,
+      "data": {
+        "path": "Workspace.Message",
+        "text": "Humans left: 1 | Time left: 14:45 | Zombies: 1"
+      }
+    },
+    {
+      "kind": "message",
+      "time": 1794249697.547208,
+      "data": {
+        "path": "Workspace.Message",
+        "text": "Humans left: 1 | Time left: 14:44 | Zombies: 1"
+      }
+    },
+    {
+      "kind": "message",
+      "time": 1794249698.555778,
+      "data": {
+        "path": "Workspace.Message",
+        "text": "Humans left: 1 | Time left: 14:43 | Zombies: 1"
+      }
+    },
+    {
+      "kind": "message",
+      "time": 1794249699.56209,
+      "data": {
+        "path": "Workspace.Message",
+        "text": "Humans left: 1 | Time left: 14:42 | Zombies: 1"
+      }
+    },
+    {
+      "kind": "message",
+      "time": 1794249700.568962,
+      "data": {
+        "path": "Workspace.Message",
+        "text": "Humans left: 1 | Time left: 14:41 | Zombies: 1"
+      }
+    },
+    {
+      "kind": "message",
+      "time": 1794249701.575683,
+      "data": {
+        "path": "Workspace.Message",
+        "text": "Humans left: 1 | Time left: 14:40 | Zombies: 1"
+      }
+    },
+    {
+      "kind": "message",
+      "time": 1794249702.592148,
+      "data": {
+        "path": "Workspace.Message",
+        "text": "Humans left: 1 | Time left: 14:39 | Zombies: 1"
+      }
+    },
+    {
+      "kind": "message",
+      "time": 1794249703.601769,
+      "data": {
+        "path": "Workspace.Message",
+        "text": "Humans left: 1 | Time left: 14:38 | Zombies: 1"
+      }
+    },
+    {
+      "kind": "message",
+      "time": 1794249704.615962,
+      "data": {
+        "path": "Workspace.Message",
+        "text": "Humans left: 1 | Time left: 14:37 | Zombies: 1"
+      }
+    },
+    {
+      "kind": "message",
+      "time": 1794249705.626168,
+      "data": {
+        "path": "Workspace.Message",
+        "text": "Humans left: 1 | Time left: 14:36 | Zombies: 1"
+      }
+    },
+    {
+      "kind": "message",
+      "time": 1794249706.633075,
+      "data": {
+        "path": "Workspace.Message",
+        "text": "Humans left: 1 | Time left: 14:35 | Zombies: 1"
+      }
+    },
+    {
+      "kind": "message",
+      "time": 1794249707.645539,
+      "data": {
+        "path": "Workspace.Message",
+        "text": "Humans left: 1 | Time left: 14:34 | Zombies: 1"
+      }
+    },
+    {
+      "kind": "message",
+      "time": 1794249708.645784,
+      "data": {
+        "path": "Workspace.Message",
+        "text": "Humans left: 0 | Time left: 14:33 | Zombies: 2"
+      }
+    },
+    {
+      "kind": "message",
+      "time": 1794249708.645867,
+      "data": {
+        "path": "Workspace.Message",
+        "text": "Zombies have won by successfully infecting all humans within 15 minutes!"
+      }
+    },
+    {
+      "kind": "died",
+      "time": 1794249708.646085,
+      "data": {
+        "team": "Br. yellowish green",
+        "userId": 1
+      }
+    },
+    {
+      "kind": "team",
+      "time": 1794249713.656236,
+      "data": {
+        "team": "Bright red",
+        "userId": 1
+      }
+    },
+    {
+      "kind": "character",
+      "time": 1794249713.672606,
+      "data": {
+        "team": "Bright red",
+        "userId": 1
+      }
+    },
+    {
+      "kind": "team",
+      "time": 1794249716.66072,
+      "data": {
+        "team": "Br. yellowish green",
+        "userId": 1
+      }
+    },
+    {
+      "kind": "message",
+      "time": 1794249716.660857,
+      "data": {
+        "path": "Workspace.Message",
+        "text": "Human team, survive the zombie team for 15 minutes to win the game, or else zombies win!"
+      }
+    },
+    {
+      "kind": "message",
+      "time": 1794249716.662817,
+      "data": {
+        "path": "Workspace.Message",
+        "text": "Humans left: 1 | Time left: 14:59 | Zombies: 1"
+      }
+    },
+    {
+      "kind": "died",
+      "time": 1794249716.69241,
+      "data": {
+        "team": "Br. yellowish green",
+        "userId": 1
+      }
+    },
+    {
+      "kind": "message",
+      "time": 1794249717.672055,
+      "data": {
+        "path": "Workspace.Message",
+        "text": "Humans left: 1 | Time left: 14:58 | Zombies: 1"
+      }
+    },
+    {
+      "kind": "message",
+      "time": 1794249718.680391,
+      "data": {
+        "path": "Workspace.Message",
+        "text": "Humans left: 1 | Time left: 14:57 | Zombies: 1"
+      }
+    },
+    {
+      "kind": "message",
+      "time": 1794249719.694477,
+      "data": {
+        "path": "Workspace.Message",
+        "text": "Humans left: 1 | Time left: 14:56 | Zombies: 1"
+      }
+    },
+    {
+      "kind": "message",
+      "time": 1794249720.705871,
+      "data": {
+        "path": "Workspace.Message",
+        "text": "Humans left: 1 | Time left: 14:55 | Zombies: 1"
+      }
+    },
+    {
+      "kind": "character",
+      "time": 1794249721.695491,
+      "data": {
+        "team": "Br. yellowish green",
+        "userId": 1
+      }
+    },
+    {
+      "kind": "message",
+      "time": 1794249721.718588,
+      "data": {
+        "path": "Workspace.Message",
+        "text": "Humans left: 1 | Time left: 14:54 | Zombies: 1"
+      }
+    },
+    {
+      "kind": "character",
+      "time": 1794249720.826055,
+      "data": {
+        "team": "Br. yellowish green",
+        "userId": 1
+      }
+    },
+    {
+      "kind": "message",
+      "time": 1794249720.826374,
+      "data": {
+        "path": "Workspace.Message",
+        "text": "Humans left: 1 | Time left: 14:53 | Zombies: 1"
+      }
+    },
+    {
+      "kind": "message",
+      "time": 1794249721.839175,
+      "data": {
+        "path": "Workspace.Message",
+        "text": "Humans left: 1 | Time left: 14:52 | Zombies: 1"
+      }
+    },
+    {
+      "kind": "message",
+      "time": 1794249722.848923,
+      "data": {
+        "path": "Workspace.Message",
+        "text": "Humans left: 1 | Time left: 14:51 | Zombies: 1"
+      }
+    },
+    {
+      "kind": "message",
+      "time": 1794249723.859541,
+      "data": {
+        "path": "Workspace.Message",
+        "text": "Humans left: 1 | Time left: 14:50 | Zombies: 1"
+      }
+    },
+    {
+      "kind": "message",
+      "time": 1794249724.870575,
+      "data": {
+        "path": "Workspace.Message",
+        "text": "Humans left: 1 | Time left: 14:49 | Zombies: 1"
+      }
+    },
+    {
+      "kind": "message",
+      "time": 1794249725.878535,
+      "data": {
+        "path": "Workspace.Message",
+        "text": "Humans left: 1 | Time left: 14:48 | Zombies: 1"
+      }
+    }
+  ]
+}

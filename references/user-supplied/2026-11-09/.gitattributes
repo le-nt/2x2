@@ -1,0 +1,2 @@
+# Preserve the exact bytes covered by manifest.json, including line endings.
+* -text

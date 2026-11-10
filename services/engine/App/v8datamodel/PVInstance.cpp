@@ -15,6 +15,30 @@
 
 namespace RBX {
 
+namespace Reflection {
+template<> EnumDesc<PVInstance::ControllerType>::EnumDesc() : EnumDescriptor("ControllerType")
+{
+	// Verified against the 2009E native enum registration at 0x685254.
+	addPair(PVInstance::CONTROLLER_NONE, "None");
+	addPair(PVInstance::CONTROLLER_KEYBOARD_RIGHT, "KeyboardRight");
+	addPair(PVInstance::CONTROLLER_KEYBOARD_LEFT, "KeyboardLeft");
+	addPair(PVInstance::CONTROLLER_JOYPAD1, "Joypad1");
+	addPair(PVInstance::CONTROLLER_JOYPAD2, "Joypad2");
+	addPair(PVInstance::CONTROLLER_CHASE, "Chase");
+	addPair(PVInstance::CONTROLLER_FLEE, "Flee");
+	addPair(PVInstance::CONTROLLER_PLAYER, "Player");
+}
+template<> PVInstance::ControllerType& Variant::convert<PVInstance::ControllerType>()
+{
+	return genericConvert<PVInstance::ControllerType>();
+}
+}
+
+template<> bool StringConverter<PVInstance::ControllerType>::convertToValue(const std::string& text, PVInstance::ControllerType& value)
+{
+	return Reflection::EnumDesc<PVInstance::ControllerType>::singleton().convertToValue(text.c_str(), value);
+}
+
 const char *const sPVInstance = "PVInstance";
 
 ///////////////////////////
@@ -22,11 +46,27 @@ const char *const sPVInstance = "PVInstance";
 
 REFLECTION_BEGIN();
 static const Reflection::PropDescriptor<PVInstance, CoordinateFrame> desc_CoordFrame("CoordinateFrame", category_Data, &PVInstance::getPVGridOffsetLegacy, &PVInstance::setPVGridOffsetLegacy, Reflection::PropertyDescriptor::UI);
+// Runtime adapter only: archived motor flags retain the existing loader's
+// behavior. They must not enter the player-only setter during deserialization.
+static const Reflection::EnumPropDescriptor<PVInstance, PVInstance::ControllerType> desc_Controller("Controller", category_Behavior, &PVInstance::getLegacyController, &PVInstance::setLegacyController,
+	static_cast<Reflection::PropertyDescriptor::Functionality>(Reflection::PropertyDescriptor::SCRIPTING | Reflection::PropertyDescriptor::REPLICATE_CLONE));
 REFLECTION_END();
 
 PVInstance::PVInstance(const char* name) :
-	Reflection::Described<PVInstance, sPVInstance, Instance >(name)
+	Reflection::Described<PVInstance, sPVInstance, Instance >(name), legacyController(CONTROLLER_NONE)
 {
+}
+
+void PVInstance::setLegacyController(ControllerType value)
+{
+	if (value != CONTROLLER_NONE && value != CONTROLLER_PLAYER)
+		throw std::runtime_error("Legacy Controller motor/AI mode is not supported by this runtime");
+	// Player mode is fulfilled by the native Player.Character ownership and
+	// Humanoid input pipeline, including models assigned after this property.
+	if (legacyController != value) {
+		legacyController = value;
+		raisePropertyChanged(desc_Controller);
+	}
 }
 
 void PVInstance::moveToPointNoUnjoinNoJoin(Vector3 point)

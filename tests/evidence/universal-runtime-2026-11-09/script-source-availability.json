@@ -1,0 +1,53 @@
+[
+  {
+    "slug": "newer-mogadishu-transit-christmas",
+    "sha256": "fecabcf25433dff42cabfd2dd4e7b1e4be750544154fc0808174a55a2f188397",
+    "scripts": 285,
+    "emptySources": 0,
+    "commentOnlySources": 285,
+    "sourcesWithCode": 0,
+    "shortSourceExamples": [
+      "-- Decompiling is disabled"
+    ]
+  },
+  {
+    "slug": "newer-reason-2-die-2014",
+    "sha256": "5b36f58739e58056b48c48b39fe1b267c0c344675cf3d780d7e43529c329261f",
+    "scripts": 507,
+    "emptySources": 0,
+    "commentOnlySources": 0,
+    "sourcesWithCode": 507,
+    "shortSourceExamples": [
+      "wait(7)\nscript.Parent:remove();",
+      "wait(1)\nwhile (_G[\"SpawnItem\"] == nil) do\n\twait(1)\nend\n_G.SpawnItem(script.Parent);\nscript.Parent:remove();\n",
+      "wait(0.1)\nscript.Parent.Disabled = false\nscript:Destroy()",
+      "function run()\n\t_G.TryOpenDoor(script.Parent.Parent.Parent.Torso);\nend\n\nscript.Parent.Changed:connect(run);"
+    ]
+  },
+  {
+    "slug": "newer-roblox-gaming-room",
+    "sha256": "3e19af4106319d7f6b18d72b2e62facab9ba8aab3d116127d7ea95549b9bd095",
+    "scripts": 501,
+    "emptySources": 0,
+    "commentOnlySources": 1,
+    "sourcesWithCode": 500,
+    "shortSourceExamples": [
+      "repeat wait() until script:findFirstChild(\"Code\")\r\nloadstring(script.Code.Value)()",
+      "\nwhile true do\n\tscript.Parent.Rotation = script.Parent.Rotation + 7\n\twait()\nend\n",
+      "\nscript.Parent._DISC.Parent = game.ServerStorage\nwait(1)\nscript:Destroy()\n",
+      "local label=script.Parent\n\nwhile true do\n\twait(0.1)\n\tlabel.Rotation=label.Rotation+60\nend\n"
+    ]
+  },
+  {
+    "slug": "newer-sunset-2018",
+    "sha256": "438d6a6bd5193337739e6121aabc444ef9f7c3f6a2f5f15f03300f949fe37793",
+    "scripts": 331,
+    "emptySources": 0,
+    "commentOnlySources": 331,
+    "sourcesWithCode": 0,
+    "shortSourceExamples": [
+      "-- Decompiling is disabled",
+      "-- Server scripts can NOT be decompiled\n"
+    ]
+  }
+]

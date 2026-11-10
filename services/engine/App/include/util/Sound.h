@@ -38,6 +38,10 @@ namespace RBX
 			shared_ptr<FMOD_SYSTEM> const system;
 			int refCount;  // Sadly, we can't use shared_ptr logic to manage the lifetime of fmod_sound
 			bool isStreaming;
+#ifdef EMSCRIPTEN
+            // FMOD memory streams borrow encoded bytes until sound release.
+            shared_ptr<const std::string> streamContent;
+#endif
 
 		public:
 			SoundId const id;
@@ -46,7 +50,12 @@ namespace RBX
 			~Sound() { release(); }
 			FMOD_SOUND* get() {return fmod_sound;}
 			FMOD_SOUND* tryLoad(const RBX::Instance* context);
-			void detatch() { fmod_sound = 0; }
+			void detatch() {
+                fmod_sound = 0;
+#ifdef EMSCRIPTEN
+                streamContent.reset();
+#endif
+            }
 			void release();
 
 			bool isReferenced() const { return refCount > 0; }

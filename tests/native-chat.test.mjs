@@ -11,7 +11,7 @@ test('native chat uses worker authorization, legacy response keys and bounded lo
   const root=fs.mkdtempSync(path.join(os.tmpdir(),'2x2-native-chat-'));
   // No game worker or real account database is required to exercise HTTP routing.
   const db={exec(){},prepare(sql){return {
-    run(){},get(id){return sql.includes('FROM users WHERE id=')&&id===2?{id:2}:undefined;}
+    run(){},all(){return [];},get(id){return sql.includes('FROM users WHERE id=')&&id===2?{id:2}:undefined;}
   };}};
   const native=createNative({db,cfg:{native:{accessKey:'worker-secret',chat:{blockedTerms:['bad.word']}}},
     root,port:8090,sessionUser:()=>({}),isGated:()=>false});

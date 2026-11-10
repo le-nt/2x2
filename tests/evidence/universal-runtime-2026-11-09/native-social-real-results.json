@@ -1,0 +1,14 @@
+{
+  "ok": true,
+  "result": {
+    "rank": 0,
+    "pass": false,
+    "member": false,
+    "role": "Guest"
+  },
+  "jobId": "1d1a860f-6d36-41f1-9f95-c87d29e22c22",
+  "placeId": 281,
+  "userId": 1,
+  "mutatedMemberships": false,
+  "mutatedPurchases": false
+}

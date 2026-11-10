@@ -1,0 +1,60 @@
+{
+  "baselineExit": -6,
+  "baselineSignal": 6,
+  "fixedRegression": "passed",
+  "realRccPersistence": {
+    "ok": true,
+    "result": {
+      "objectRoundTrip": true,
+      "missingIsNil": true,
+      "increment": 3,
+      "orderedFirst": {
+        "value": 9,
+        "key": "high"
+      },
+      "updated": 4,
+      "orderedSecond": {
+        "value": 2,
+        "key": "low"
+      }
+    },
+    "jobId": "f21db768-a69d-41bc-92d6-1d87e9fd0260",
+    "placeId": 1,
+    "store": "2x2probe_54c335f1f5ea48c5a3f5e34c108a830d",
+    "persistedEntries": [
+      {
+        "placeId": 1,
+        "type": "sorted",
+        "key": "high",
+        "value": 9
+      },
+      {
+        "placeId": 1,
+        "type": "sorted",
+        "key": "low",
+        "value": 2
+      },
+      {
+        "placeId": 1,
+        "type": "standard",
+        "key": "count",
+        "value": 3
+      },
+      {
+        "placeId": 1,
+        "type": "standard",
+        "key": "object",
+        "value": {
+          "label": "original native data",
+          "score": 7
+        }
+      },
+      {
+        "placeId": 1,
+        "type": "standard",
+        "key": "updated",
+        "value": 4
+      }
+    ]
+  }
+}

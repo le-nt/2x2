@@ -45,8 +45,6 @@ class UserInput : public UserInputBase
 	SDL_Window* window;
 
 	// InputObject stuff
-	boost::unordered_map<RBX::InputObject::UserInputType,shared_ptr<RBX::InputObject> > inputObjectMap;
-
 	shared_ptr<RunService> runService;
 
 	G3D::Vector2 posToWrapTo;

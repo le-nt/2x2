@@ -3,6 +3,7 @@
 // Never blocks player joins or downloads assets without an approved resolver.
 import fs from 'node:fs';
 import path from 'node:path';
+import {validAssetVersion} from './asset-resolver.mjs';
 
 export function createNativeAssetPrefetch({serverDir,assetResolver,maxPerLaunch=24,concurrency=2,logger=console}){
   const perLaunch=Math.min(100,Math.max(0,Math.trunc(maxPerLaunch)));
@@ -15,15 +16,16 @@ export function createNativeAssetPrefetch({serverDir,assetResolver,maxPerLaunch=
   const validPlace=s=>typeof s==='string' && /^[a-zA-Z0-9_-]{1,120}$/.test(s);
   function pump(){
     while(!stopped && active<cap && queue.length){
-      const id=queue.shift();
+      const {id,version,key}=queue.shift();
       active++;
-      Promise.resolve().then(()=>assetResolver.resolve(id)).catch(err=>{
+      Promise.resolve().then(()=>assetResolver.resolve(id,{version})).catch(err=>{
         logger.warn?.('[2x2 prefetch] Failed',id,err.message);
-      }).finally(()=>{pending.delete(id);active--;pump();});
+      }).finally(()=>{pending.delete(key);active--;pump();});
     }
   }
   function launch(place){
-    if(stopped||!assetResolver||!validPlace(place)||!perLaunch||!process.env.ROBLOX_OPEN_CLOUD_API_KEY)return 0;
+    const upstreamConfigured=process.env.ROBLOX_OPEN_CLOUD_API_KEY || process.env.ROBLOX_ASSET_FETCH==='1' || process.env.AYA_ASSET_FALLBACK_URL;
+    if(stopped||!assetResolver||!validPlace(place)||!perLaunch||!upstreamConfigured)return 0;
     // Multiple players launching one place should not extend the queue repeatedly.
     if((placeCooldown.get(place)||0)>Date.now())return 0;
     const file=path.join(serverDir,'native','asset-reports',place+'.json');
@@ -33,11 +35,12 @@ export function createNativeAssetPrefetch({serverDir,assetResolver,maxPerLaunch=
     let added=0;
     for(const item of report.assets){
       const id=item?.id;
-      if(!validId(id)|| !['missing','skipped','pending'].includes(item.status) || pending.has(id))continue;
-      if(assetResolver.lookup(id))continue;
+      const version=item?.version??null,key=version===null?id:id+'.v'+version;
+      if(!validId(id)||!validAssetVersion(version)|| !['missing','skipped','pending','deferred'].includes(item.status) || pending.has(key))continue;
+      if(assetResolver.lookup(id,{version}))continue;
       if(queue.length>=128 || added>=perLaunch)break;
-      pending.add(id);
-      queue.push(id);
+      pending.add(key);
+      queue.push({id,version,key});
       added++;
     }
     if(added){

@@ -111,7 +111,13 @@ namespace RBX {
             route = "legacy-shared?path=";
             name = relative.substr(11);
         }
-        else return false;
+        else
+        {
+            // Called only after packaged content lookup fails. Preserve the
+            // full relative path so the server can disambiguate archives.
+            route = "archive-content?path=";
+            name = relative;
+        }
 
         // Only an exact path made from safe ASCII letters, digits, slashes,
         // underscores, periods and dashes. Block traversal and query injection.
@@ -122,12 +128,12 @@ namespace RBX {
             const unsigned char c = static_cast<unsigned char>(name[i]);
             if (!((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') ||
                   (c >= '0' && c <= '9') || c == '/' || c == '.' ||
-                  c == '-' || c == '_')) return false;
+                  c == '-' || c == '_' || c == ' ')) return false;
         }
 
         std::string url = baseUrl;
         if (url[url.size()-1] != '/') url += '/';
-        id = ContentId(url + route + name);
+        id = ContentId(url + route + Http::urlEncode(name));
         return true;
     }
 
@@ -713,7 +719,7 @@ namespace RBX {
 			if (assetBase[assetBase.size()-1] != '/') assetBase += '/';
 			id = ContentId(assetBase + "content-asset?id=" + numericValue);
 		}
-		if (!redirectLegacyAssetToBase(id, baseUrl))
+		if (!redirectLegacyAssetToBase(id, baseUrl) && id.isAsset() && findAsset(id).empty())
 			redirectLegacySharedFileToBase(id, baseUrl);
 		id.convertToLegacyContent(baseUrl);
 
