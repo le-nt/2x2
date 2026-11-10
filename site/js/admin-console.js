@@ -24,6 +24,11 @@ async function init(){
   const status=await api("/status");
   state.role=status.staffRole;state.verified=status.verified;state.enrolled=status.enrolled;
   $("role").textContent="Staff role: "+state.role;
+  if(state.role!=="Unprivileged"){
+    const img=document.createElement("img");img.src="/img/staff-badges/"+encodeURIComponent(state.role)+"-48.png";
+    img.alt=state.role+" badge";img.width=32;img.height=32;img.style.cssText="vertical-align:middle;margin-left:8px;object-fit:contain";
+    $("role").append(img);
+  }
   $("nav").hidden=!state.verified;$("logout").hidden=!state.verified;$("auth").hidden=state.verified;
   $("setup").hidden=state.enrolled;
   $("authHelp").textContent=state.enrolled?"Enter your authenticator code to start a six-hour staff session.":"Verify your password, then enroll an authenticator app before using the admin panel.";

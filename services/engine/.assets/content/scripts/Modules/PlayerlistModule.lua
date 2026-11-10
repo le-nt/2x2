@@ -134,14 +134,50 @@ local SHADOW_IMAGE = 'rbxasset://textures/ui/PlayerList/TileShadowMissingTop.png
 local SHADOW_SLICE_SIZE = 5
 local SHADOW_SLICE_RECT = Rect.new(SHADOW_SLICE_SIZE+1, SHADOW_SLICE_SIZE+1, SHADOW_SLICE_SIZE*2-1, SHADOW_SLICE_SIZE*2-1)
 
-local ADMINS = {	-- Admins with special icons
-    -- ['7210880'] = 'http://www.roblox.com/asset/?id=134032333', -- Jeditkacheff
-    -- ['13268404'] = 'http://www.roblox.com/asset/?id=113059239', -- Sorcus
-    -- ['261'] = 'http://www.projectpizza.net/api/asset?id=105897927', -- shedlestky
-    -- ['20396599'] = 'http://www.roblox.com/asset/?id=161078086', -- Robloxsai
-
-	['2'] = 'https://www.projectpizza.net/api/asset?id=105897927' -- gimme epic its cool -bamar
+-- 2x2 server-authenticated staff badges.
+-- A trusted server script must replicate a StringValue named "2x2StaffRole" in Player.
+-- Client-created values do not grant any server-side privilege.
+local STAFF_BADGE_ICONS = {
+    ForumModerator = 'rbxasset://textures/ui/2x2StaffBadges/ForumModerator-24.png',
+    AssetManager = 'rbxasset://textures/ui/2x2StaffBadges/AssetManager-24.png',
+    Moderator = 'rbxasset://textures/ui/2x2StaffBadges/Moderator-24.png',
+    Administrator = 'rbxasset://textures/ui/2x2StaffBadges/Administrator-24.png',
+    SuperAdmin = 'rbxasset://textures/ui/2x2StaffBadges/SuperAdmin-24.png'
 }
+local function getStaffBadgeIcon(player)
+    local marker = player:FindFirstChild("2x2StaffRole")
+    if marker and marker:IsA("StringValue") then
+        return STAFF_BADGE_ICONS[marker.Value]
+    end
+    return nil
+end
+
+-- Cosmetic-only role lookup. Failure must never break the player list.
+-- Legacy HttpRbxApiService URL resolution depends on the chosen client build;
+-- a server-replicated 2x2StaffRole StringValue remains the reliable fallback.
+local requestedStaffRoles = {}
+local function request2x2StaffRole(player)
+    local userId = tonumber(player.userId)
+    if not userId or userId < 1 or requestedStaffRoles[userId] then return end
+    requestedStaffRoles[userId] = true
+    if player:FindFirstChild("2x2StaffRole") then return end
+    spawn(function()
+        local success, payload = pcall(function()
+            return HttpRbxApiService:GetAsync("public/staff-badges?ids=" .. tostring(userId), true)
+        end)
+        if not success then return end
+        local parsed = nil
+        local valid = pcall(function() parsed = HttpService:JSONDecode(payload) end)
+        if not valid or type(parsed) ~= "table" or type(parsed.roles) ~= "table" then return end
+        local staffRole = parsed.roles[tostring(userId)]
+        if type(staffRole) ~= "string" or not STAFF_BADGE_ICONS[staffRole] then return end
+        if not player.Parent or player:FindFirstChild("2x2StaffRole") then return end
+        local marker = Instance.new("StringValue")
+        marker.Name = "2x2StaffRole"
+        marker.Value = staffRole
+        marker.Parent = player
+    end)
+end
 
 local ABUSES = {
 	"Swearing",
@@ -267,20 +303,7 @@ local function getFollowerStatusIcon(followerStatus)
 end
 
 local function getAdminIcon(player)
-	local userIdStr = tostring(player.userId)
-	if ADMINS[userIdStr] then return nil end
-	--
-	local success, result = pcall(function()
-		return player:IsInGroup(1200769)	-- yields
-	end)
-	if not success then
-		print("PlayerListScript2: getAdminIcon() failed because", result)
-		return nil
-	end
-	--
-	if result then
-		return ADMIN_ICON
-	end
+    return getStaffBadgeIcon(player)
 end
 
 local function setAvatarIconAsync(player, iconImage)
@@ -319,8 +342,9 @@ local function getMembershipIcon(player)
 		else
 			local userIdStr = tostring(player.userId)
 			local membershipType = player.MembershipType
-			if ADMINS[userIdStr] then
-				return ADMINS[userIdStr]
+			local staffBadge = getStaffBadgeIcon(player)
+			if staffBadge then
+				return staffBadge
 			elseif player.userId == game.CreatorId and game.CreatorType == Enum.CreatorType.User then
 				return PLACE_OWNER_ICON
 			elseif membershipType == Enum.MembershipType.None then
@@ -1312,6 +1336,29 @@ local function createPlayerEntry(player, isTopStat)
 		-- event. This event is fired when any player joins the game. onFriendshipChanged will check Follower status in
 		-- the case that we are not friends with the new player who is joining.
 	end)
+
+    -- Staff markers may arrive after this player list entry is initially created.
+    -- Refresh the icon when the trusted server replicates or changes the role value.
+    local function refreshStaffBadge()
+        local icon = getStaffBadgeIcon(player)
+        if icon then
+            if membershipIcon then
+                membershipIcon.Image = icon
+            else
+                membershipIcon = createImageIcon(icon, "MembershipIcon", 1, entryFrame)
+            end
+        end
+    end
+    local function connectRoleMarker(child)
+        if child.Name == "2x2StaffRole" and child:IsA("StringValue") then
+            refreshStaffBadge()
+            child.Changed:connect(refreshStaffBadge)
+        end
+    end
+    player.ChildAdded:connect(connectRoleMarker)
+    local existingRoleMarker = player:FindFirstChild("2x2StaffRole")
+    if existingRoleMarker then connectRoleMarker(existingRoleMarker) end
+    request2x2StaffRole(player)
 
 	local playerNameXSize = entryFrame.Size.X.Offset - currentXOffset
 	local playerName = createEntryNameText("PlayerName", name, playerNameXSize, currentXOffset)

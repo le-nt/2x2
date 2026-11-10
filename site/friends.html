@@ -59,7 +59,7 @@
     return list.map((f) => `
       <div class="Friend" data-user="${RB.esc(f.username)}">
         <a class="Thumb" href="profile.html?u=${encodeURIComponent(f.username)}" aria-label="${RB.esc(f.username)}"><div data-av></div></a>
-        <span class="Dot${f.online ? " on" : ""}" title="${f.online ? "Online" : "Offline"}"></span>${RB.userLink(f.username)}
+        <span class="Dot${f.online ? " on" : ""}" title="${f.online ? "Online" : "Offline"}"></span>${RB.userLink(f.username, "", f.staffRole)}
         ${f.status ? `<div class="Label">&ldquo;${RB.esc(f.status.slice(0, 40))}&rdquo;</div>` : ""}
         <div class="Actions">${buttons}</div>
       </div>`).join("");
@@ -87,7 +87,7 @@
     const d = await RB.api("users?q=" + encodeURIComponent(q));
     const others = d.users.filter((u) => u.username !== me.username);
     $("People").innerHTML = others.length ? others.map((u) => `<div class="PersonRow"><span class="Dot${u.online ? " on" : ""}"></span>
-      <span class="Who">${RB.userLink(u.username)}</span><span class="Label">joined ${RB.date(u.joined)}</span></div>`).join("") : `<p class="Label">Nobody found.</p>`;
+      <span class="Who">${RB.userLink(u.username, "", u.staffRole)}</span><span class="Label">joined ${RB.date(u.joined)}</span></div>`).join("") : `<p class="Label">Nobody found.</p>`;
   }
 
   document.addEventListener("click", async (e) => {

@@ -46,11 +46,19 @@ export function createApi({ db, cfg, catalog, places, secure }) {
   const userByName = (name) => q("SELECT * FROM users WHERE username = ?").get(String(name || ""));
   const isAdmin = (u) => !!u && (u.id === 1 || (cfg.admins || []).some((a) => a.toLowerCase() === u.username.toLowerCase()));
   const featureOn = key => q("SELECT enabled FROM site_features WHERE key=?").get(key)?.enabled !== 0;
+  // Public badge designation is derived only from server-side staff assignments.
+  const staffRole = (u) => {
+    if (!u) return "Unprivileged";
+    if (u.username.toLowerCase() === "2x2" || u.id === 1 ||
+        (cfg.admins || []).some(name => name.toLowerCase() === u.username.toLowerCase())) return "SuperAdmin";
+    return q("SELECT role FROM admin_staff WHERE user_id=?").get(u.id)?.role || "Unprivileged";
+  };
+
   const online = (u) => Date.now() - u.last_seen < ONLINE_MS;
   const postCount = (id) => q("SELECT COUNT(*) AS n FROM posts WHERE user_id = ?").get(id).n;
 
   function pub(u) {
-    return { id: u.id, username: u.username, joined: u.created_at, online: online(u), status: u.status };
+    return { id: u.id, username: u.username, joined: u.created_at, online: online(u), status: u.status, staffRole: staffRole(u) };
   }
 
   function getAvatar(u) {
@@ -100,7 +108,7 @@ export function createApi({ db, cfg, catalog, places, secure }) {
   function me(u) {
     return {
       id: u.id, username: u.username, joined: u.created_at, tix: u.tix, robux: u.robux,
-      blurb: u.blurb, status: u.status, signature: u.signature, admin: isAdmin(u),
+      blurb: u.blurb, status: u.status, signature: u.signature, admin: isAdmin(u), staffRole: staffRole(u),
     };
   }
 
@@ -123,7 +131,7 @@ export function createApi({ db, cfg, catalog, places, secure }) {
 
   function author(u) {
     return { username: u.username, joined: u.created_at, postCount: postCount(u.id), signature: u.signature, online: online(u),
-      avatar: getAvatar(u) };
+      avatar: getAvatar(u), staffRole: staffRole(u) };
   }
 
   function page(v) { return Math.max(1, Math.min(100000, parseInt(v, 10) || 1)); }

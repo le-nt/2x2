@@ -122,8 +122,14 @@ const RB = {
     return RB.esc(s).replace(/https?:\/\/[^\s<>"']+/g, (u) => `<a href="${u}" target="_blank" rel="noopener noreferrer nofollow">${u}</a>`)
       .replace(/\n/g, "<br>");
   },
-  userLink(name, cls = "") {
-    return `<a${cls ? ` class="${cls}"` : ""} href="profile.html?u=${encodeURIComponent(name)}">${RB.esc(name)}</a>`;
+  staffBadge(role, size = 18) {
+    const allowed = ["ForumModerator", "AssetManager", "Moderator", "Administrator", "SuperAdmin"];
+    if (!allowed.includes(role)) return "";
+    const px = Math.max(16, Math.min(96, Number(size) || 18));
+    return `<img class="StaffBadge" src="/img/staff-badges/${role}-48.png" width="${px}" height="${px}" alt="${RB.esc(role)} badge" title="2x2 ${RB.esc(role)}" loading="lazy" style="object-fit:contain;vertical-align:middle;margin-left:4px">`;
+  },
+  userLink(name, cls = "", role = "") {
+    return `<a${cls ? ` class="${cls}"` : ""} href="profile.html?u=${encodeURIComponent(name)}">${RB.esc(name)}</a>` + RB.staffBadge(role);
   },
   playerName() {
     try { return localStorage.getItem("rb.name") || "Player"; } catch { return "Player"; }
