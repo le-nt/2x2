@@ -18,6 +18,16 @@ on:
       - 'docs/AYAEX-INTEGRATION-PLAN.md'
       - 'tests/ads.test.mjs'
       - 'tests/asset-resolver.test.mjs'
+      - 'tests/asset-upstream-errors.test.mjs'
+      - 'server/lib/asset-discovery.mjs'
+      - 'tools/seed-native-assets.mjs'
+      - 'tools/seed-full-archive.mjs'
+      - 'tools/scan-binary-asset-ids.py'
+      - 'tools/rbxl_binary_inventory.py'
+      - 'tests/native-asset-seeder.test.mjs'
+      - 'tools/audit-asset-coverage.mjs'
+      - 'tools/seed-novetus-assets.mjs'
+      - 'services/engine/App/util/ContentProvider.cpp'
       - 'tests/test_engine_core_sources.py'
       - 'services/engine/.assets/content/scripts/**'
       - '.github/workflows/source-integration.yml'
@@ -43,9 +53,17 @@ jobs:
         with:
           python-version: '3.12'
       - name: Asset and advertisement tests
-        run: node --test tests/ads.test.mjs tests/asset-resolver.test.mjs tests/native-avatar-deps.test.mjs tests/native-chat.test.mjs
+        run: node --test tests/ads.test.mjs tests/asset-resolver.test.mjs tests/asset-upstream-errors.test.mjs tests/native-asset-seeder.test.mjs tests/native-avatar-deps.test.mjs tests/native-chat.test.mjs
       - name: Administrator syntax checks
         run: |
+          node --check tools/audit-asset-coverage.mjs
+          node --check tools/seed-novetus-assets.mjs
+          node --check tools/seed-native-assets.mjs
+          node --check tools/seed-full-archive.mjs
+          node --check server/lib/asset-discovery.mjs
+          python -m py_compile tools/scan-binary-asset-ids.py tools/rbxl_binary_inventory.py
+          node --check server/lib/asset-resolver.mjs
+          node --check server/lib/native.mjs
           node --check server/server.mjs
           node --check server/lib/admin.mjs
           node --check server/lib/api.mjs

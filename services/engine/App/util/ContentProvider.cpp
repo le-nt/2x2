@@ -75,6 +75,129 @@ namespace {
 }
 
 namespace RBX {
+
+    // Archived files referenced by relative names, unlike numeric asset IDs.
+    // Use dedicated local 2x2 paths; never construct an arbitrary URL.
+    static bool redirectLegacySharedFileToBase(ContentId& id, const std::string& baseUrl)
+    {
+        if (baseUrl.empty()) return false;
+        const std::string raw = id.toString();
+        const std::string lower = boost::algorithm::to_lower_copy(raw);
+        const std::string scheme = "rbxasset://";
+        if (lower.compare(0, scheme.size(), scheme) != 0) return false;
+
+        std::string relative = raw.substr(scheme.size());
+        while (relative.compare(0, 3, "../") == 0) relative.erase(0, 3);
+        while (relative.compare(0, 2, "./") == 0) relative.erase(0, 2);
+        const std::string lowerRelative = boost::algorithm::to_lower_copy(relative);
+        const std::string custom = "shareddata/charcustom/";
+        const std::string texture = "shareddata/textures/";
+        std::string route, name;
+        if (lowerRelative.compare(0, custom.size(), custom) == 0)
+        {
+            route = "content?path=";
+            name = relative.substr(custom.size());
+        }
+        else if (lowerRelative.compare(0, texture.size(), texture) == 0)
+        {
+            route = "legacy-texture?name=";
+            name = relative.substr(texture.size());
+        }
+        else return false;
+
+        // Only an exact path made from safe ASCII letters, digits, slashes,
+        // underscores, periods and dashes. Block traversal and query injection.
+        if (name.empty() || name.size() > 256 || name[0] == '/' ||
+            name.find("..") != std::string::npos) return false;
+        for (size_t i = 0; i < name.size(); ++i)
+        {
+            const unsigned char c = static_cast<unsigned char>(name[i]);
+            if (!((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') ||
+                  (c >= '0' && c <= '9') || c == '/' || c == '.' ||
+                  c == '-' || c == '_')) return false;
+        }
+
+        std::string url = baseUrl;
+        if (url[url.size()-1] != '/') url += '/';
+        id = ContentId(url + route + name);
+        return true;
+    }
+
+    // Older maps may contain absolute Roblox asset URLs and shareddata paths.
+    // Convert only numeric asset references from known Roblox hosts (or the
+    // exact Novetus shareddata pattern) to this game's own asset endpoint.
+    // Do this at request time as well as XML import time: binary RBXM/RBXL
+    // assets cannot be safely modified by text substitution.
+    static bool redirectLegacyAssetToBase(ContentId& id, const std::string& baseUrl)
+    {
+        if (baseUrl.empty()) return false;
+        const std::string raw = id.toString();
+        const std::string lower = boost::algorithm::to_lower_copy(raw);
+        std::string assetId;
+
+        const std::string sharedPrefix = "rbxasset://";
+        if (lower.compare(0, sharedPrefix.size(), sharedPrefix) == 0)
+        {
+            std::string relative = lower.substr(sharedPrefix.size());
+            // Only historical relative paths are redirected. Built-in
+            // rbxasset://textures/... and fonts/... must remain local.
+            while (relative.compare(0, 3, "../") == 0) relative.erase(0, 3);
+            while (relative.compare(0, 2, "./") == 0) relative.erase(0, 2);
+            const std::string assetPrefix = "shareddata/assets/";
+            const std::string sbcrPrefix = "shareddata/sbcr/";
+            if (relative.compare(0, assetPrefix.size(), assetPrefix) == 0)
+                assetId = relative.substr(assetPrefix.size());
+            else if (relative.compare(0, sbcrPrefix.size(), sbcrPrefix) == 0)
+                assetId = relative.substr(sbcrPrefix.size());
+            else return false;
+        }
+        else
+        {
+            const size_t schemeEnd = lower.find("://");
+            if (schemeEnd == std::string::npos ||
+                (lower.substr(0, schemeEnd) != "https" && lower.substr(0, schemeEnd) != "http"))
+                return false;
+            const size_t authorityStart = schemeEnd + 3;
+            const size_t authorityEnd = lower.find_first_of("/?#", authorityStart);
+            const std::string host = lower.substr(authorityStart, authorityEnd - authorityStart);
+            if (host != "roblox.com" && host != "www.roblox.com" &&
+                host != "assetdelivery.roblox.com" &&
+                host != "projectpizza.net" && host != "www.projectpizza.net")
+                return false;
+            if (authorityEnd == std::string::npos || lower[authorityEnd] != '/')
+                return false;
+            const size_t queryStart = lower.find('?', authorityEnd);
+            if (queryStart == std::string::npos) return false;
+            const std::string requestPath = lower.substr(authorityEnd, queryStart - authorityEnd);
+            if (requestPath != "/asset" && requestPath != "/asset/" &&
+                requestPath != "/api/asset" && requestPath != "/api/asset/" &&
+                requestPath != "/v1/asset" && requestPath != "/v1/asset/" &&
+                requestPath != "/v2/asset" && requestPath != "/v2/asset/")
+                return false;
+            const size_t fragment = lower.find('#', queryStart);
+            const std::string query = lower.substr(queryStart + 1,
+                fragment == std::string::npos ? std::string::npos : fragment - queryStart - 1);
+            size_t cursor = 0;
+            while (cursor < query.size())
+            {
+                const size_t stop = query.find('&', cursor);
+                const std::string param = query.substr(cursor,
+                    stop == std::string::npos ? std::string::npos : stop - cursor);
+                if (param.compare(0, 3, "id=") == 0) { assetId = param.substr(3); break; }
+                if (stop == std::string::npos) break;
+                cursor = stop + 1;
+            }
+        }
+
+        if (assetId.empty() || assetId.size() > 16 || assetId[0] == '0')
+            return false;
+        for (size_t i = 0; i < assetId.size(); ++i)
+            if (assetId[i] < '0' || assetId[i] > '9') return false;
+        std::string url = baseUrl;
+        if (url[url.size() - 1] != '/') url += '/';
+        id = ContentId(url + "content-asset?id=" + assetId);
+        return true;
+    }
 	extern void ThrowLastError(const char* message);
 
 	const char* const sContentProvider = "ContentProvider";
@@ -570,7 +693,20 @@ namespace RBX {
 			}
 		}
 
+		// Keep place downloads (/native/asset?id=<place>) separate from
+		// actual media (/native/content-asset?id=<asset>), preventing ID clashes.
+		const bool isNativeBase = baseUrl.find("/native") != std::string::npos;
+		const bool numericAssetId = isNativeBase && id.isAssetId();
+		const std::string numericValue = numericAssetId ? id.getAssetId() : "";
 		id.convertAssetId(baseUrl, DataModel::get(this)->getUniverseId());
+		if (numericAssetId && !numericValue.empty())
+		{
+			std::string assetBase = baseUrl;
+			if (assetBase[assetBase.size()-1] != '/') assetBase += '/';
+			id = ContentId(assetBase + "content-asset?id=" + numericValue);
+		}
+		if (!redirectLegacyAssetToBase(id, baseUrl))
+			redirectLegacySharedFileToBase(id, baseUrl);
 		id.convertToLegacyContent(baseUrl);
 
 		// fuck you roblox
@@ -874,6 +1010,22 @@ namespace RBX
 			filePath = assetFolderPath / pathName;
             if (!boost::filesystem::exists(filePath, ec))
             {
+#ifdef EMSCRIPTEN
+                // The original Windows client has case-insensitive paths, but
+                // the Emscripten /content filesystem is case-sensitive.
+                // Older maps frequently request rbxasset://Textures/...
+                // while our archived content is under /content/textures/.
+                // Only normalize this known built-in directory; do not
+                // lowercase arbitrary filenames or external shareddata paths.
+                const std::string relativeName(pathName);
+                if (relativeName.size() > 9 &&
+                    boost::algorithm::iequals(relativeName.substr(0, 9), "textures/"))
+                {
+                    filePath = assetFolderPath / "textures" / relativeName.substr(9);
+                    if (boost::filesystem::exists(filePath, ec))
+                        return pathToString(filePath);
+                }
+#endif
 				return "";
             }
 		}

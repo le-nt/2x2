@@ -25,6 +25,9 @@ export function createNative({db,cfg,root,port,sessionUser,isGated,assetResolver
  const base=publicOrigin+'/native';
  const serverDir=path.join(root,'../server');
  const charRoot=path.join(root,'../clients/shareddata/charcustom');
+ const legacyTexturesRoot=path.join(root,'native-legacy-assets/textures');
+ const engineTexturesRoot=path.join(root,'../services/engine/.assets/content/textures');
+ const catalogFacesRoot=path.join(root,'img/catalog/faces');
  const mapRoot=path.join(serverDir,'native/maps');
  // Optional on-demand place repair. Original maps and the registry are never modified.
  const preparedMaps=new Map(),prepareAttempted=new Set();
@@ -97,12 +100,24 @@ export function createNative({db,cfg,root,port,sessionUser,isGated,assetResolver
  function appearance(id){const row=db.prepare('SELECT avatar FROM users WHERE id=?').get(id);let avatar={};try{avatar=JSON.parse(row?.avatar||'{}');}catch{}return avatar;}
  function appearanceURL(id){return `${base}/appearance/${id}`;}
  function avatarPaths(av){return inspectAvatarDependencies(charRoot,av).files;}
- function machineAllowed(url){return /^\/native\/(?:asset\/?$|appearance\/\d+$|bodycolors\/\d+$|content$|api\/game\/players\/[1-9][0-9]{0,15}$|api\/moderation\/filtertext$|internal\/gameserver\/(?:heartbeat|shutdown)$|Game\/LoadPlaceInfo\.ashx)$/.test(url.pathname);}
+ function machineAllowed(url){return /^\/native\/(?:legacy-texture\/?$|content-asset\/?$|asset\/?$|appearance\/\d+$|bodycolors\/\d+$|content$|api\/game\/players\/[1-9][0-9]{0,15}$|api\/moderation\/filtertext$|internal\/gameserver\/(?:heartbeat|shutdown)$|Game\/LoadPlaceInfo\.ashx)$/.test(url.pathname);}
  function machine(req,url){return machineAllowed(url)&&!!n.accessKey&&equal(req.headers.accesskey,n.accessKey);}
  async function route(req,res,url,user,sessionHash){
   const p=url.pathname;
   if(p==='/api/native/version')return json(res,200,{version:'2x2-native-map-pack-v1',registeredPlaces:places.size});
   if(p==='/api/native/status'){if(!user)return json(res,401,{error:'Log in first.'});return json(res,200,{engine:'Project Pizda / UniversalClient',clientInstalled:clientReady(),arbiterConfigured:configured(),importedPlaces:[...places.values()].filter(hasMap).length,publicOrigin});}
+  if(p==='/api/native/asset-coverage'){
+   if(!user)return json(res,401,{error:'Log in first.'});
+   const classic=url.searchParams.get('id')||'';
+   if(!/^[a-z0-9-]{1,150}$/.test(classic))return json(res,400,{error:'Invalid game ID.'});
+   if(![...places.values()].some(entry=>entry.classic===classic))
+    return json(res,404,{error:'Unknown game.'});
+   const reportFile=path.join(serverDir,'native','asset-reports',classic+'.json');
+   try{
+    const report=JSON.parse(fs.readFileSync(reportFile,'utf8'));
+    return json(res,200,report);
+   }catch{return json(res,404,{error:'Asset coverage report unavailable. Run the seeder for this game.'});}
+  }
   if(p==='/api/native/launch'){
    if(req.method!=='GET')return json(res,405,{error:'Use GET.'});
    if(!user)return json(res,401,{error:'Log in first.'});
@@ -169,10 +184,25 @@ export function createNative({db,cfg,root,port,sessionUser,isGated,assetResolver
   if(p==='/native/content'){
    const rel=url.searchParams.get('path');file=beneath(charRoot,rel);
    if(file&&!/\.(rbxm|rbxmx|png|jpe?g|mesh|dds|wav|mp3)$/i.test(file))file=null;
+   // A minimal public avatar archive is checked in even if clients/shareddata
+   // is absent. Reuse only exact face filenames; do not guess other content.
+   if(!file && /^faces\/[A-Za-z0-9_-]+\.(?:png|jpe?g)$/i.test(rel||''))
+    file=beneath(catalogFacesRoot,rel.slice('faces/'.length));
    kind=path.extname(file||'');
-  }else if(/^\/native\/asset\/?$/.test(p)){
+  }else if(p==='/native/legacy-texture'){
+   const name=url.searchParams.get('name');
+   // Only archive-relative image filenames; path traversal and arbitrary
+   // files are not accepted. No unbounded filename-based upstream proxy.
+   if(/^[A-Za-z0-9_-]+\.(?:png|jpe?g|dds)$/i.test(name||'')){
+    file=beneath(legacyTexturesRoot,name) ||
+         beneath(engineTexturesRoot,name);
+    kind=path.extname(file||'');
+   }
+  }else if(/^\/native\/(?:asset|content-asset)\/?$/.test(p)){
    const assetId=url.searchParams.get('id');
-   const entry=/^[1-9][0-9]*$/.test(assetId||'')?places.get(Number(assetId)):null;
+   // Places retain the old /native/asset route; media uses /native/content-asset.
+   const isPlaceRoute=/^\/native\/asset\/?$/.test(p);
+   const entry=isPlaceRoute&&/^[1-9][0-9]*$/.test(assetId||'')?places.get(Number(assetId)):null;
    file=preparedMaps.get(entry?.id)||hasMap(entry);kind=file?'.rbxl':undefined;
    // Place IDs retain priority; every other numeric ID can resolve to a cached
    // mesh, texture, model, audio file, or exact linked Lua dependency.
@@ -182,7 +212,10 @@ export function createNative({db,cfg,root,port,sessionUser,isGated,assetResolver
    const id=Number(url.searchParams.get('PlaceId'));if(!places.has(id))return json(res,404,{error:'Unknown place.'});
    res.writeHead(200,{'Content-Type':'text/plain','Cache-Control':'no-store'});return res.end(`--rbxsig%=0\npcall(function() game:SetPlaceID(${id}, false) end)`);
   }else return json(res,404,{error:'Unknown native endpoint.'});
-  if(!file)return json(res,404,{error:'Native content not found.'});
+  if(!file){
+   const reason=/^\/native\/(?:asset|content-asset)\/?$/.test(p) ? assetResolver?.getFailureReason(url.searchParams.get('id')) : null;
+   return json(res,404,{error:'Native content not found.',reason:reason||'not_in_archive'});
+  }
   let data=fs.readFileSync(file);
   const xmlHeader = data.subarray(0,1024).toString('utf8').replace(/^\uFEFF/,'');
   // AyaEX's XML-only asset substitution belongs on the native client endpoint.

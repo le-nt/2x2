@@ -18,7 +18,7 @@ SCRIPT_CLASSES = {'Script', 'LocalScript', 'ModuleScript'}
 TOOL_CLASSES = {'Tool', 'HopperBin'}
 ASSET_PROPERTIES = {'Texture', 'TextureID', 'TextureId', 'MeshId', 'MeshID', 'SoundId', 'SoundID',
                     'AnimationId', 'ShirtTemplate', 'PantsTemplate', 'Graphic', 'LinkedSource'}
-ASSET_RE = re.compile(r'(?:rbxassetid://|https?://(?:www\.)?roblox\.com/asset/\?(?:[^#]*?&)?id=|https?://assetdelivery\.roblox\.com/v1/asset\?(?:[^#]*?&)?id=)([1-9][0-9]{0,15})(?!\d)', re.I)
+ASSET_RE = re.compile(r'(?:rbxassetid://|https?://(?:www\.)?roblox\.com/asset/?\?[^\s\"\x27<>]{0,256}?\bid=|https?://assetdelivery\.roblox\.com/v[12]/asset/?\?[^\s\"\x27<>]{0,256}?\bid=|https?://(?:www\.)?projectpizza\.net/(?:api/)?asset/?\?[^\s\"\x27<>]{0,256}?\bid=|h?rbxasset://(?:\.\./|\./)*shareddata/(?:SBCR|assets)/)([1-9][0-9]{0,15})(?!\d)', re.I)
 
 class BinaryFormatError(ValueError):
     pass
@@ -150,6 +150,10 @@ def inspect_binary(path):
                 # PROP string values use consecutive length-prefixed strings.
                 for ref in ids:
                     val = r.string()
+                    # Scan every decoded string property that may contain asset IDs,
+                    # including Source strings embedded in Scripts/LocalScripts.
+                    if pname != 'Name':
+                        assets.update(ASSET_RE.findall(val))
                     if pname == 'Name': names[ref] = val
                     elif pname == 'Source' and cname in SCRIPT_CLASSES:
                         encoded = val.encode('utf-8')

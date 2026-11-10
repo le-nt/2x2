@@ -55,3 +55,9 @@ site/native-client.previous-*/
 
 # On-demand downloaded Roblox asset cache
 server/native/asset-cache/
+
+server/native/asset-seed/
+server/native/asset-reports/
+server/native/asset-index.json
+server/native/asset-audit.json
+server/native/asset-seed-report.json

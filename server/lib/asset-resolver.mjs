@@ -29,36 +29,37 @@ function trustedRobloxRedirect(url) {
   return url.protocol === 'https:' && !url.username && !url.password &&
     (url.hostname === 'assetdelivery.roblox.com' || url.hostname.endsWith('.rbxcdn.com'));
 }
-async function downloadBytes(startURL, {roblox = false} = {}) {
+async function downloadBytes(startURL, {roblox = false, report = () => {}, headers = {}} = {}) {
   let url = new URL(startURL);
   const abort = AbortSignal.timeout(12000);
   for (let redirects = 0; redirects < 4; redirects++) {
-    if (roblox && !trustedRobloxRedirect(url)) return null;
-    const response = await fetch(url, {redirect:'manual', signal:abort});
+    if (roblox && !trustedRobloxRedirect(url)) { report('untrusted_redirect'); return null; }
+    const response = await fetch(url, {redirect:'manual', signal:abort, headers});
     if ([301,302,303,307,308].includes(response.status)) {
       const location = response.headers.get('location');
-      if (!location) return null;
+      if (!location) { report('redirect_without_location'); return null; }
       const next = new URL(location, url);
-      if (roblox ? !trustedRobloxRedirect(next) : next.origin !== url.origin) return null;
+      if (roblox ? !trustedRobloxRedirect(next) : next.origin !== url.origin) { report('redirect_blocked'); return null; }
       url = next;
       continue;
     }
-    if (!response.ok || !response.body) return null;
+    if (!response.ok || !response.body) { report('HTTP_' + response.status); return null; }
     const length = Number(response.headers.get('content-length') || 0);
-    if (!Number.isFinite(length) || length > MAX_DOWNLOAD) return null;
+    if (!Number.isFinite(length) || length > MAX_DOWNLOAD) { report('content_too_large'); return null; }
     const parts = [];
     let total = 0;
     for await (const chunk of response.body) {
       total += chunk.length;
-      if (total > MAX_DOWNLOAD) return null;
+      if (total > MAX_DOWNLOAD) { report('stream_too_large'); return null; }
       parts.push(chunk);
     }
-    if (!total) return null;
+    if (!total) { report('empty_body'); return null; }
     const result = Buffer.concat(parts, total);
     const prefix = result.subarray(0, 128).toString('utf8');
-    if (/^\s*(?:<!doctype html|<html\b|\{\s*"(?:errors|error|message)"\s*:)/i.test(prefix)) return null;
+    if (/^\s*(?:<!doctype html|<html\b|\{\s*"(?:errors|error|message)"\s*:)/i.test(prefix)) { report('error_document'); return null; }
     return result;
   }
+  report('too_many_redirects');
   return null;
 }
 function trimCache(dir, limit, keep) {
@@ -108,14 +109,14 @@ export function rewriteLegacyAssetUrls(xml, publicOrigin) {
     origin = url.origin + (url.pathname === '/native' ? '/native' : '');
   } catch { return xml; }
   // Rewrite asset references only; keep external URLs and non-XML binaries intact.
-  const target = id => origin + (origin.endsWith('/native') ? '/asset?id=' : '/api/asset?id=') + id;
+  const target = id => origin + (origin.endsWith('/native') ? '/content-asset?id=' : '/api/asset?id=') + id;
   return xml
-    .replace(/https?:\/\/(?:www\.)?roblox\.com\/asset\/?\?id=([1-9]\d{0,15})(?=[^0-9]|$)/gi,
+    .replace(/https?:\/\/(?:(?:www\.)?roblox\.com\/asset\/?|(?:www\.)?projectpizza\.net\/api\/asset\/?)\?id=([1-9]\d{0,15})(?=[^0-9]|$)/gi,
       (match, id) => validId(id) ? target(id) : match)
     // Old archived places use rbxasset://../../../shareddata/assets/<id>.
     // This is a local-file locator, so the HTTP URL redirect in the engine
     // cannot rewrite it. Translate only the exact numeric shareddata pattern.
-    .replace(/h?rbxasset:\/\/(?:\.\.\/)*shareddata\/assets\/([1-9]\d{0,15})(?![A-Za-z0-9._/-])/gi,
+    .replace(/h?rbxasset:\/\/(?:\.\.\/)*shareddata\/(?:assets|SBCR)\/([1-9]\d{0,15})(?![A-Za-z0-9._/-])/gi,
       (match, id) => validId(id) ? target(id) : match);
 }
 
@@ -139,7 +140,20 @@ function detectExtension(file) {
 
 export function createAssetResolver({serverDir, siteDir, publicOrigin = ''}) {
   const cacheDir = path.join(serverDir, 'native', 'asset-cache');
+  const seedDir = path.join(serverDir, 'native', 'asset-seed');
+  // On-demand successful lookups can be retained indefinitely, within a cap.
+  const persistDownloads = process.env.ASSET_PERSIST_DOWNLOADS !== '0';
+  const archiveMaxBytes = Math.max(0,Math.min(1000,Number(process.env.ASSET_ARCHIVE_MAX_GB || 20))) * 1024 ** 3;
+  let archiveBytes = 0;
+  try {
+    for(const name of fs.readdirSync(seedDir)) {
+      const p=path.join(seedDir,name);
+      if(fs.statSync(p).isFile())archiveBytes += fs.statSync(p).size;
+    }
+  } catch {}
   const roots = [
+    // Permanently seeded, exact-ID archive is always preferred over mutable cache.
+    {dir:path.join(serverDir,'native','asset-seed'), prefix:''},
     {dir:path.join(serverDir,'native','asset-library'), prefix:''},
     {dir:path.join(siteDir,'data','scenes','assets'), prefix:'assets_'},
     {dir:path.join(serverDir,'native','asset-recovery','scripts'), prefix:''},
@@ -148,6 +162,9 @@ export function createAssetResolver({serverDir, siteDir, publicOrigin = ''}) {
   ];
   const missing = new Map();
   const upstreamMissing = new Map();
+  // Store a bounded, short-lived reason so 401s are not silently misreported as missing files.
+  const failureReasons = new Map();
+  const debug = process.env.ASSET_DEBUG === '1';
   const pending = new Map();
   const waiters = [];
   let active = 0;
@@ -158,6 +175,12 @@ export function createAssetResolver({serverDir, siteDir, publicOrigin = ''}) {
   const cacheMax = Math.max(MAX_DOWNLOAD, Math.min(8 * 1024 ** 3, Number(process.env.ASSET_CACHE_MAX_MB || 1024) * 1024 ** 2 || 1024 ** 3));
   function lookup(id) {
     if (!validId(id)) return null;
+    // Newly seeded files must become visible immediately, even when this ID
+    // previously had a short-lived negative lookup entry.
+    for(const ext of extensions) {
+      const seed=safeFile(seedDir,id+ext);
+      if(seed) { missing.delete(id); return {...seed,ext:ext||detectExtension(seed.file)}; }
+    }
     const expiration = missing.get(id);
     if (expiration && expiration > Date.now()) return null;
     if (expiration) missing.delete(id);
@@ -192,15 +215,28 @@ export function createAssetResolver({serverDir, siteDir, publicOrigin = ''}) {
         if (cached) return cached;
         const aya = upstreamURL(process.env.AYA_ASSET_FALLBACK_URL, id);
         let bytes = null;
+        const failures = [];
+        const note = (source, reason) => failures.push(source + ':' + reason);
         if (aya) {
-          try { bytes = await downloadBytes(aya); }
-          catch (error) { console.warn('[2x2 assets] Aya lookup failed for', id, error.message); }
+          try {
+            const accessKey = process.env.AYA_ASSET_FALLBACK_ACCESS_KEY;
+            bytes = await downloadBytes(aya, {report: reason => note('aya',reason),
+              headers:accessKey ? {accesskey:accessKey} : {}});
+          }
+          catch (error) { note('aya','network_error'); if (debug) console.warn('[2x2 assets] Aya lookup failed for', id, error.message); }
         }
         if (!bytes && process.env.ROBLOX_ASSET_FETCH !== '0') {
-          try { bytes = await downloadBytes('https://assetdelivery.roblox.com/v1/asset/?id=' + id, {roblox:true}); }
-          catch (error) { console.warn('[2x2 assets] Roblox lookup failed for', id, error.message); }
+          try { bytes = await downloadBytes('https://assetdelivery.roblox.com/v1/asset/?id=' + id, {roblox:true,report:reason=>note('roblox',reason)}); }
+          catch (error) { note('roblox','network_error'); if (debug) console.warn('[2x2 assets] Roblox lookup failed for', id, error.message); }
         }
         if (!bytes) {
+          const reason = failures.some(x => /HTTP_401|HTTP_403/.test(x)) ? 'upstream_auth_required' :
+            failures.some(x => /HTTP_404/.test(x)) ? 'upstream_not_found' :
+            failures.length ? 'upstream_failed' : 'no_upstream_configured';
+          if (failureReasons.size >= MISS_LIMIT) failureReasons.delete(failureReasons.keys().next().value);
+          failureReasons.set(id, {reason, details: failures.join(', ')});
+          if (debug || reason === 'upstream_auth_required')
+            console.warn('[2x2 assets] Unresolved', id, reason, failures.join(', '));
           if (upstreamMissing.size >= MISS_LIMIT) upstreamMissing.delete(upstreamMissing.keys().next().value);
           upstreamMissing.set(id, Date.now() + UPSTREAM_MISS_TTL);
           return null;
@@ -214,6 +250,23 @@ export function createAssetResolver({serverDir, siteDir, publicOrigin = ''}) {
         } finally { try { fs.unlinkSync(temporary); } catch {} }
         missing.delete(id);
         upstreamMissing.delete(id);
+        failureReasons.delete(id);
+        // Persistent best-effort archive, separate from the evictable cache.
+        // Store original bytes under the numeric ID; never overwrite an
+        // existing seed and never allow archiving to break asset delivery.
+        if (persistDownloads && archiveBytes + bytes.length <= archiveMaxBytes) {
+          try {
+            fs.mkdirSync(seedDir,{recursive:true});
+            const destination=path.join(seedDir,id);
+            if(!fs.existsSync(destination) && !extensions.some(ext => ext && fs.existsSync(path.join(seedDir,id+ext)))) {
+              fs.copyFileSync(final,destination,fs.constants.COPYFILE_EXCL);
+              archiveBytes += bytes.length;
+            }
+          } catch(error) {
+            if(error.code !== 'EEXIST')
+              console.warn('[2x2 assets] Could not persist asset',id,error.message);
+          }
+        }
         trimCache(cacheDir, cacheMax, final);
         console.log('[2x2 assets] Cached upstream asset', id, bytes.length, 'bytes');
         return lookup(id);
@@ -235,8 +288,11 @@ export function createAssetResolver({serverDir, siteDir, publicOrigin = ''}) {
     }
     void resolve(id).then(found => {
     if (!found) {
-      res.writeHead(404, {'Content-Type':'application/json','Cache-Control':'no-store'})
-        .end(JSON.stringify({error:'Asset not present in local asset library.',id,
+      const failure = failureReasons.get(id);
+      res.writeHead(404, {'Content-Type':'application/json','Cache-Control':'no-store',
+        'X-2x2-Asset-Reason':failure?.reason || 'not_in_archive'})
+        .end(JSON.stringify({error:'Asset could not be resolved.',id,
+          reason:failure?.reason || 'not_in_archive',
           expectedDirectory:'server/native/asset-library',supportedExtensions:extensions}));
       return true;
     }
@@ -262,5 +318,5 @@ export function createAssetResolver({serverDir, siteDir, publicOrigin = ''}) {
     });
     return true;
   }
-  return {lookup,resolve,handle};
+  return {lookup,resolve,handle, getFailureReason: id => failureReasons.get(String(id))?.reason || null};
 }
