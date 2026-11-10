@@ -919,7 +919,20 @@ void Player::onCharacterDied()
 	{
 		calculateNextSpawnLocation(ServiceProvider::findServiceProvider(this));
 		if (TimerService* timer = ServiceProvider::create<TimerService>(this)) {
-			timer->delay(boost::bind(&Player::loadCharacter, shared_from(this), true, ""), 5.0);
+			boost::weak_ptr<Player> weakPlayer(shared_from(this));
+			boost::weak_ptr<ModelInstance> deadCharacter(character);
+			timer->delay([weakPlayer, deadCharacter]() {
+				shared_ptr<Player> player = weakPlayer.lock();
+				shared_ptr<ModelInstance> expected = deadCharacter.lock();
+				if (!player || !expected || player->getCharacter() != expected.get())
+					return;
+				Players* players = ServiceProvider::find<Players>(player.get());
+				Humanoid* humanoid = Humanoid::modelIsCharacter(expected.get());
+				// Scripts may replace the character or disable automatic loading
+				// while the death timer waits. Never overwrite that newer state.
+				if (players && players->getCharacterAutoSpawnProperty() && humanoid && humanoid->getHealth() <= 0)
+					player->loadCharacter(true, "");
+			}, 5.0);
 		}
 	}
 }

@@ -1,0 +1,46 @@
+{
+  "jobId": "53048b5e-2ad6-416f-a86b-3e9676d18c7e",
+  "placeId": 6,
+  "serverObservedUserIds": [
+    1,
+    2
+  ],
+  "guardedServerOriginalWinMessages": 3,
+  "newBrowserBuildObserved": true,
+  "browserScriptPathObserved": "/native-client/UniversalClient.js?v=350045015484e4d6d381d5fd3d6bb8f8ce6328c542d11e693574dea0efab556d",
+  "newBrowserOriginalWinScreenObserved": true,
+  "clientManifest": {
+    "format": 1,
+    "entry": "UniversalClient.js",
+    "files": {
+      "UniversalClient.js": {
+        "path": "UniversalClient.js",
+        "sha256": "350045015484e4d6d381d5fd3d6bb8f8ce6328c542d11e693574dea0efab556d",
+        "bytes": 546483
+      },
+      "UniversalClient.wasm": {
+        "path": "UniversalClient.wasm",
+        "sha256": "f8ceab4ba6c326a506e33849e60016d1e6e636c227e0b4dc56f30154717c8c9e",
+        "bytes": 36849098
+      },
+      "UniversalClient.data": {
+        "path": "UniversalClient.data",
+        "sha256": "2c5ce946490a2de8855105c48835bde5e8c708e5d9a21661bd5ab1da4cc067d4",
+        "bytes": 163670687
+      },
+      "ClientAppSettings.json": {
+        "path": "ClientAppSettings.json",
+        "sha256": "05f02c20236a960147b86fd25dd1246a07f8c1b44131053b8c86a6ab3379bb9b",
+        "bytes": 81
+      }
+    }
+  },
+  "originalPlaceScriptsModified": false,
+  "gameplayInjected": false,
+  "rollbackVerified": true,
+  "productionChanged": false,
+  "limitations": [
+    "No pistol-hit damage or sustained multiplayer combat claim.",
+    "The guarded trace observed global round messages and the player present when installed; character event counts are not a controlled before/after comparison."
+  ]
+}

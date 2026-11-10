@@ -26,7 +26,7 @@ def unused_port():
     with socket.socket() as server:
         server.bind(('127.0.0.1',0));return server.getsockname()[1]
 
-def fixture(character_health=False, legacy_controller=False):
+def fixture(character_health=False, legacy_controller=False, respawn_timers=False):
     root=ET.Element('roblox',version='4')
     workspace=ET.SubElement(root,'Item',{'class':'Workspace','referent':'RBX0'})
     for name,source,disabled in [('ProbeSuccess','local value=Instance.new("StringValue"); value.Name="RuntimeSentinel"; value.Value="native Lua executed"; value.Parent=workspace',False),
@@ -105,6 +105,24 @@ local ok,err=pcall(function()
  end
 end)
 sentinel.Value=ok and "player controller numeric enum clone reset passed" or tostring(err)'''
+    if respawn_timers:
+        item=ET.SubElement(workspace,'Item',{'class':'Script','referent':'RBXRespawnTimerProbe'})
+        props=ET.SubElement(item,'Properties')
+        ET.SubElement(props,'string',name='Name').text='ProbeRespawnTimers'
+        ET.SubElement(props,'ProtectedString',name='Source').text='''local result=Instance.new("StringValue",workspace);result.Name="RespawnTimerSentinel";result.Value="running"
+local ok,err=pcall(function()
+ local players=game:GetService("Players");local player=assert(players.LocalPlayer,"Missing trusted test player")
+ players.CharacterAutoLoads=true;player:LoadCharacter()
+ local original=player.Character;original.Humanoid.Health=0
+ wait(6);assert(player.Character~=original,"Normal automatic respawn failed")
+ local manual=player.Character;manual.Humanoid.Health=0
+ wait(0.3);player:LoadCharacter();local replacement=player.Character
+ wait(6);assert(player.Character==replacement,"Old death timer replaced the newer character")
+ replacement.Humanoid.Health=0;wait(0.3);players.CharacterAutoLoads=false
+ wait(6);assert(player.Character==replacement,"Disabled automatic loading still respawned")
+end)
+result.Value=ok and "normal respawn manual replacement disabled loading passed" or tostring(err)
+print("[2x2 respawn timers] "..result.Value)'''
     return ET.tostring(root,encoding='utf8')
 
 def main():
@@ -116,14 +134,16 @@ def main():
     p.add_argument('--resource',type=Path,help='Optional genuine WAV used only to probe native archive HTTP fallback, not playback')
     p.add_argument('--character-health-resource',type=Path,help='Original Health bootstrap model; verify its presence at three CharacterAdded signals')
     p.add_argument('--legacy-controller',action='store_true',help='Verify historical player Controller values, cloning and explicit unsupported motor modes')
+    p.add_argument('--respawn-timers',action='store_true',help='Verify normal respawn, manual replacement and disabling automatic loading (requires at least 20 seconds)')
     p.add_argument('--working-directory',type=Path,help='Use existing runtime content while comparing an audited backup executable')
-    p.add_argument('--seconds',type=int,default=2,choices=range(1,11))
+    p.add_argument('--seconds',type=int,default=2,choices=range(1,31))
     p.add_argument('--gameserver-port-conflict',action='store_true',help='Run the real bootstrap against an occupied UDP port; require an attributed shutdown')
     a=p.parse_args();binary=a.rcc.resolve(strict=True);a.output.mkdir(parents=True,exist_ok=True)
     if not 0<a.place_id<2147483647:raise ValueError('Invalid native place ID')
     if a.character_health_resource and (a.place or a.gameserver_port_conflict):raise ValueError('Character bootstrap is a separate trusted fixture')
     if a.legacy_controller and a.place:raise ValueError('Controller probe requires the trusted fixture')
-    payload=a.place.read_bytes() if a.place else fixture(bool(a.character_health_resource),a.legacy_controller)
+    if a.respawn_timers and (a.place or a.gameserver_port_conflict or a.character_health_resource or a.legacy_controller or a.seconds<20):raise ValueError('Respawn timer probe requires a separate trusted fixture and at least 20 seconds')
+    payload=a.place.read_bytes() if a.place else fixture(bool(a.character_health_resource),a.legacy_controller,a.respawn_timers)
     health_resource=a.character_health_resource.read_bytes() if a.character_health_resource else None
     if health_resource is not None and not 0<len(health_resource)<=2*1024*1024:raise ValueError('Health resource exceeds fixture limit')
     resource=a.resource.read_bytes() if a.resource else None
@@ -180,7 +200,7 @@ sc.ScriptsDisabled=false
 game:GetService("RunService"):Run()
 RESOURCE_PROBE
 '''.replace('BASE',base).replace('PORT',str(network_port)).replace('PLACE_ID',str(a.place_id))
-    script=script.replace('CHARACTER_PLAYER','local players=game:GetService("Players");players.CharacterAutoLoads=false;players:CreateLocalPlayer(999999)' if health_resource is not None else '')
+    script=script.replace('CHARACTER_PLAYER','local players=game:GetService("Players");players.CharacterAutoLoads=false;players:CreateLocalPlayer(999999)' if health_resource is not None or a.respawn_timers else '')
     # The archived file has an uppercase R. The lowercase reference exercises
     # the missing packaged-path fallback on the case-sensitive Linux runtime.
     script=script.replace('RESOURCE_PROBE','game:GetService("ContentProvider"):Preload("rbxasset://sounds/rocket whoosh 01.wav")' if resource is not None else '')
@@ -188,7 +208,7 @@ RESOURCE_PROBE
         bootstrap=(Path(__file__).resolve().parents[1]/'services/arbiter/resources/scripts/GameServer.lua').read_text()
         if ']====]' in bootstrap:raise ValueError('Unexpected trusted bootstrap delimiter')
         script='local bootstrap=assert(loadstring([====['+bootstrap+']====], "GameServerStartupFixture")); bootstrap('+str(a.place_id)+','+str(network_port)+','+json.dumps(base)+')'
-    body='<OpenJob xmlns="http://roblox.com/"><job><id>isolated-probe</id><expirationInSeconds>20</expirationInSeconds><category>0</category><cores>1</cores></job><script><name>IsolatedRuntimeProbe</name><script>'+escape(script)+'</script><arguments/></script></OpenJob>'
+    body='<OpenJob xmlns="http://roblox.com/"><job><id>isolated-probe</id><expirationInSeconds>'+str(max(20,a.seconds+10))+'</expirationInSeconds><category>0</category><cores>1</cores></job><script><name>IsolatedRuntimeProbe</name><script>'+escape(script)+'</script><arguments/></script></OpenJob>'
     envelope=('<?xml version="1.0"?><soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"><soap:Body>'+body+'</soap:Body></soap:Envelope>').encode()
     with log_file.open('wb') as output:
         child=subprocess.Popen([str(binary),'-Port',str(soap_port),'-BaseUrl:'+base],cwd=a.working_directory.resolve(strict=True) if a.working_directory else binary.parent,env=env,stdout=output,stderr=subprocess.STDOUT)
@@ -216,6 +236,7 @@ RESOURCE_PROBE
             observe='local probe=workspace:FindFirstChild("TemplateReleaseProbe"); local released=probe and game:GetService("HttpService"):JSONDecode(probe:Invoke()) or {}; '+observe.replace('templateAncestry=','templateReleased=released,templateAncestry=')
             observe='local health=workspace:FindFirstChild("CharacterHealthSentinel"); '+observe.replace('templateAncestry=','characterHealth=health and health.Value or "",templateAncestry=')
             observe='local controller=workspace:FindFirstChild("LegacyControllerSentinel"); '+observe.replace('templateAncestry=','legacyController=controller and controller.Value or "",templateAncestry=')
+            observe='local respawn=workspace:FindFirstChild("RespawnTimerSentinel"); '+observe.replace('templateAncestry=','respawnTimers=respawn and respawn.Value or "",templateAncestry=')
             execute='<Execute xmlns="http://roblox.com/"><jobID>isolated-probe</jobID><script><name>ObserveNativeRuntime</name><script>'+escape(observe)+'</script><arguments/></script></Execute>'
             execute_envelope=('<?xml version="1.0"?><soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"><soap:Body>'+execute+'</soap:Body></soap:Envelope>').encode()
             request=urllib.request.Request('http://127.0.0.1:'+str(soap_port)+'/',data=execute_envelope,
@@ -255,6 +276,8 @@ RESOURCE_PROBE
                     assert report['characterHealth']=='present,present,present',report
                 if a.legacy_controller:
                     assert report['legacyController']=='player controller numeric enum clone reset passed',report
+                if a.respawn_timers:
+                    assert report['respawnTimers']=='normal respawn manual replacement disabled loading passed',report
                 assert report['sentinel']=='native Lua executed',report
                 assert report['signalWait']=='native signal resumed',report
                 assert report['detachedTemplate']=='OriginalDetachedTemplate',report
