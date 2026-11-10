@@ -11,6 +11,7 @@ import { gunzipSync } from 'node:zlib';
 import { issue,verify,equal,clientTicket,safeRelative } from './native-security.mjs';
 import {createNativeChat} from './native-chat.mjs';
 import {createNativeSocial} from './native-social.mjs';
+import {createNativeJobCleanup} from './native-job-cleanup.mjs';
 import {createNativeDataStore} from './native-datastore.mjs';
 import {rewriteLegacyAssetUrls,validAssetVersion} from './asset-resolver.mjs';
 import {inspectAvatarDependencies} from './native-avatar-deps.mjs';
@@ -87,8 +88,8 @@ export function createNative({db,cfg,root,port,sessionUser,isGated,assetResolver
  }
  refreshPlaces();
  db.exec(`CREATE TABLE IF NOT EXISTS native_jobs (job_id TEXT PRIMARY KEY,place_id INTEGER NOT NULL,ready INTEGER NOT NULL DEFAULT 0,last_heartbeat INTEGER NOT NULL,players TEXT NOT NULL DEFAULT '[]',closed INTEGER NOT NULL DEFAULT 0)`);
- // A server restart invalidates transports; do not advertise old jobs as ready.
- db.prepare('UPDATE native_jobs SET closed=1').run();
+ // A restart invalidates transports and must also retire their owned RCC workers.
+ const jobCleanup=createNativeJobCleanup({db,stopJob:(jobId,signal)=>arbiter('/gameserver/reported-closed',{job_id:jobId},signal)});
  const spawning=new Map(),early=new Map(),sockets=new Set();
  const persistence=createNativeDataStore({db,signingKey:n.signingKey,authorize(req,placeId){
   const jobId=req.headers['roblox-game-id'];
@@ -100,10 +101,10 @@ export function createNative({db,cfg,root,port,sessionUser,isGated,assetResolver
   if(!job && spawning.has(placeId))return {jobId,placeId};
   return null;
  }});
- async function arbiter(endpoint,payload){
+ async function arbiter(endpoint,payload,signal){
   if(!n.arbiterOrigin)throw Error('Configure native.arbiterOrigin first.');
   const target=new URL(endpoint,origin(n.arbiterOrigin));
-  const response=await fetch(target,{method:payload===undefined?'GET':'POST',headers:{AccessKey:n.accessKey,'Content-Type':'application/json'},body:payload===undefined?undefined:JSON.stringify(payload),redirect:'error',signal:AbortSignal.timeout(90000)});
+  const response=await fetch(target,{method:payload===undefined?'GET':'POST',headers:{AccessKey:n.accessKey,'Content-Type':'application/json'},body:payload===undefined?undefined:JSON.stringify(payload),redirect:'error',signal:signal||AbortSignal.timeout(90000)});
   if(!response.ok)throw Error('Arbiter returned '+response.status);
   return endpoint==='/health'?response.text():response.json();
  }
@@ -121,6 +122,11 @@ export function createNative({db,cfg,root,port,sessionUser,isGated,assetResolver
    if(!result.success||!/^[A-Za-z0-9-]{1,100}$/.test(result.job_id||''))throw Error(result.message||'Game worker creation failed.');
    const heartbeat=early.get(result.job_id);early.delete(result.job_id);
    db.prepare('INSERT INTO native_jobs(job_id,place_id,ready,last_heartbeat,players) VALUES(?,?,?,?,?)').run(result.job_id,id,heartbeat?1:0,Date.now(),JSON.stringify(heartbeat?.userIds||[]));
+   if(jobCleanup.pending(result.job_id)){
+    jobCleanup.request(result.job_id);
+    jobCleanup.tick().catch(error=>console.warn('[2x2 native] Worker cleanup failed:',error.message));
+    throw Error('Game worker shut down during startup.');
+   }
    // OpenJob may complete after its initial heartbeat; renew once registered.
    await arbiter('/gameserver/renew-lease',{job_id:result.job_id,lease:120});
   })();
@@ -130,9 +136,11 @@ export function createNative({db,cfg,root,port,sessionUser,isGated,assetResolver
  }
  const failures=new Map();
  const maintenance=setInterval(()=>{
+  jobCleanup.tick().catch(error=>console.warn('[2x2 native] Worker cleanup failed:',error.message));
   for(const [job,pending]of early)if(Date.now()-pending.time>120000)early.delete(job);
   for(const entry of sockets){const current=sessionUser(entry.cookies);if(!current.user||current.sessionHash!==entry.sid||!isGated(entry.cookies)){entry.socket.destroy();entry.upstream?.destroy();sockets.delete(entry);}}
  },15000);maintenance.unref();
+ jobCleanup.tick().catch(error=>console.warn('[2x2 native] Worker cleanup failed:',error.message));
  function hasMap(item){return item&&beneath(mapRoot,item.file);}
  function clientReady(){try{const manifest=JSON.parse(fs.readFileSync(path.join(root,'native-client/manifest.json'),'utf8'));return manifest.format===1&&['UniversalClient.js','UniversalClient.wasm','UniversalClient.data'].every(name=>manifest.files?.[name]&&beneath(path.join(root,'native-client'),manifest.files[name].path));}catch{return false;}}
  function configured(){return !!n.arbiterOrigin&&!!n.accessKey&&!!n.signingKey;}
@@ -202,7 +210,7 @@ export function createNative({db,cfg,root,port,sessionUser,isGated,assetResolver
    if(!service)return json(res,403,{error:'Worker credentials required.'});
    const payload=await body(req),jobId=payload.jobId;
    if(!/^[A-Za-z0-9-]{1,100}$/.test(jobId||''))return json(res,400,{error:'Invalid jobId.'});
-   if(p.endsWith('/shutdown')){db.prepare('UPDATE native_jobs SET closed=1 WHERE job_id=?').run(jobId);arbiter('/gameserver/reported-closed',{job_id:jobId}).catch(()=>{});return json(res,200,{ok:true});}
+   if(p.endsWith('/shutdown')){jobCleanup.request(jobId);jobCleanup.tick().catch(error=>console.warn('[2x2 native] Worker cleanup failed:',error.message));return json(res,200,{ok:true});}
    const ids=(Array.isArray(payload.userIds)?payload.userIds:[]).filter(v=>Number.isSafeInteger(v)&&v>0).slice(0,100);
    const result=db.prepare('UPDATE native_jobs SET ready=1,last_heartbeat=?,players=? WHERE job_id=? AND closed=0').run(Date.now(),JSON.stringify(ids),jobId);
    if(!result.changes)early.set(jobId,{userIds:ids,time:Date.now()});
@@ -361,5 +369,5 @@ export function createNative({db,cfg,root,port,sessionUser,isGated,assetResolver
   });
   upstream.on('response',()=>{socket.destroy();cleanup();});upstream.on('timeout',()=>{socket.destroy();cleanup();});upstream.on('error',()=>{socket.destroy();cleanup();});upstream.end();return true;
  }
- return {machine,route,upgrade,close(){clearInterval(maintenance);for(const entry of sockets){entry.socket.destroy();entry.upstream?.destroy();}}};
+ return {machine,route,upgrade,close(){clearInterval(maintenance);jobCleanup.close();for(const entry of sockets){entry.socket.destroy();entry.upstream?.destroy();}}};
 }

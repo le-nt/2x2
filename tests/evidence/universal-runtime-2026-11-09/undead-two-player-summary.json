@@ -1,0 +1,23 @@
+{
+  "placeId": 6,
+  "jobId": "4915a727-2722-4226-9d6e-fcc2ab4f89f5",
+  "users": [
+    1,
+    2
+  ],
+  "originalScriptsModified": false,
+  "gameplayInjected": false,
+  "observedOriginalZombieWins": 2,
+  "originalRoundRestartObserved": true,
+  "originalPistolActivationObserved": true,
+  "damageAndRespawnsObserved": true,
+  "browserInputs": [
+    "Survivor: W, equip 1, primary click",
+    "Other player: W across the following round"
+  ],
+  "limitations": [
+    "Pistol activation is verified; damage from a pistol hit is not.",
+    "Repeated zombie character replacements need diagnosis.",
+    "No claim of sustained combat or universal compatibility."
+  ]
+}

@@ -38,6 +38,8 @@ on:
       - 'server/lib/native-datastore.mjs'
       - 'server/lib/native-social.mjs'
       - 'tests/native-social.test.mjs'
+      - 'server/lib/native-job-cleanup.mjs'
+      - 'tests/native-job-cleanup.test.mjs'
       - 'tests/native-datastore.test.mjs'
       - 'server/lib/native-asset-prefetch.mjs'
       - 'server/lib/legacy-shared-assets.mjs'
@@ -72,6 +74,7 @@ jobs:
           node --check tools/import-any-native.mjs
           node --check server/lib/native.mjs
           node --check server/lib/native-social.mjs
+          node --check server/lib/native-job-cleanup.mjs
           node --check server/lib/native-asset-prefetch.mjs
           node --check server/lib/legacy-shared-assets.mjs
           python -m py_compile tools/import-native.py tools/install-native-asset-fixes.py tools/find-legacy-files.py tools/audit-native-place-scripts.py
@@ -79,7 +82,7 @@ jobs:
           python -m py_compile tools/setup-browser-validation-users.py
           python -m py_compile tools/probe-native-social.py
       - name: Run offline regression tests
-        run: node --test tests/asset-vfs.test.mjs tests/roblox-open-cloud.test.mjs tests/asset-delivery.test.mjs tests/native-asset-seeder.test.mjs tests/asset-resolver.test.mjs tests/asset-upstream-errors.test.mjs tests/native-asset-prefetch.test.mjs tests/legacy-shared-assets.test.mjs tests/legacy-texture-map.test.mjs tests/native-http.test.mjs tests/native-datastore.test.mjs tests/native-social.test.mjs
+        run: node --test tests/asset-vfs.test.mjs tests/roblox-open-cloud.test.mjs tests/asset-delivery.test.mjs tests/native-asset-seeder.test.mjs tests/asset-resolver.test.mjs tests/asset-upstream-errors.test.mjs tests/native-asset-prefetch.test.mjs tests/legacy-shared-assets.test.mjs tests/legacy-texture-map.test.mjs tests/native-http.test.mjs tests/native-datastore.test.mjs tests/native-social.test.mjs tests/native-job-cleanup.test.mjs
       - name: Validate structural place analysis
         run: python -m unittest discover -s tests -p test_place_analysis.py -v
       - name: Validate browser fixture storage isolation
