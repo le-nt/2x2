@@ -103,6 +103,14 @@ namespace RBX {
             route = "legacy-texture?name=";
             name = relative.substr(texture.size());
         }
+        else if (lowerRelative.compare(0, 11, "shareddata/") == 0)
+        {
+            // Preserve archived relative paths such as Sky/*.png,
+            // RiseOfTheKillbots/fonts/*.mesh, and legacy sound files.
+            // The 2x2 server validates all paths against its shareddata root.
+            route = "legacy-shared?path=";
+            name = relative.substr(11);
+        }
         else return false;
 
         // Only an exact path made from safe ASCII letters, digits, slashes,

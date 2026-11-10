@@ -3,6 +3,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
+import {fetchRobloxOpenCloudAsset} from './roblox-open-cloud.mjs';
 
 const extensions = ['.rbxm', '.rbxmx', '.mesh', '.png', '.jpg', '.jpeg', '.dds', '.wav', '.mp3', '.ogg', '.txt', '.lua', ''];
 const types = {'.rbxm':'application/octet-stream','.rbxmx':'application/xml','.mesh':'application/octet-stream','.png':'image/png','.jpg':'image/jpeg','.jpeg':'image/jpeg','.dds':'application/octet-stream','.wav':'audio/wav','.mp3':'audio/mpeg','.ogg':'audio/ogg','.txt':'text/plain; charset=utf-8','.lua':'text/plain; charset=utf-8'};
@@ -225,13 +226,20 @@ export function createAssetResolver({serverDir, siteDir, publicOrigin = ''}) {
           }
           catch (error) { note('aya','network_error'); if (debug) console.warn('[2x2 assets] Aya lookup failed for', id, error.message); }
         }
+        // Use scoped Open Cloud access first; a missing key must not break local assets.
+        if (!bytes && process.env.ROBLOX_OPEN_CLOUD_API_KEY) {
+          const cloud = await fetchRobloxOpenCloudAsset(id);
+          if (cloud.bytes) bytes = cloud.bytes;
+          else note('opencloud',cloud.reason);
+        }
         if (!bytes && process.env.ROBLOX_ASSET_FETCH !== '0') {
           try { bytes = await downloadBytes('https://assetdelivery.roblox.com/v1/asset/?id=' + id, {roblox:true,report:reason=>note('roblox',reason)}); }
           catch (error) { note('roblox','network_error'); if (debug) console.warn('[2x2 assets] Roblox lookup failed for', id, error.message); }
         }
         if (!bytes) {
-          const reason = failures.some(x => /HTTP_401|HTTP_403/.test(x)) ? 'upstream_auth_required' :
-            failures.some(x => /HTTP_404/.test(x)) ? 'upstream_not_found' :
+          const reason = failures.some(x => /HTTP_401|HTTP_403|upstream_auth_required/.test(x)) ? 'upstream_auth_required' :
+            failures.some(x => /HTTP_404|upstream_not_found/.test(x)) ? 'upstream_not_found' :
+            failures.some(x => /upstream_rate_limited/.test(x)) ? 'upstream_rate_limited' :
             failures.length ? 'upstream_failed' : 'no_upstream_configured';
           if (failureReasons.size >= MISS_LIMIT) failureReasons.delete(failureReasons.keys().next().value);
           failureReasons.set(id, {reason, details: failures.join(', ')});

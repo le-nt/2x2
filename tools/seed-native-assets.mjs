@@ -42,7 +42,7 @@ const nativeDir=path.join(serverDir,'native');
 const mapDir=path.join(nativeDir,'maps');
 const seedDir=path.join(nativeDir,'asset-seed');
 const reportsDir=path.join(nativeDir,'asset-reports');
-const indexPath=path.join(nativeDir,'asset-index.json');
+const indexPath=path.join(nativeDir,opts.place ? 'asset-index.'+opts.place+'.json' : 'asset-index.json');
 const resolver=createAssetResolver({serverDir,siteDir:path.join(root,'site')});
 const places=JSON.parse(fs.readFileSync(path.join(nativeDir,'places.json'),'utf8')).places;
 if (opts.place && !Object.hasOwn(places,opts.place)) throw Error('Unknown place ID: '+opts.place);

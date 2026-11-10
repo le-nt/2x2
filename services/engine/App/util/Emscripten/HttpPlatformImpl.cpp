@@ -47,7 +47,11 @@ namespace HttpPlatformImpl
             "http://www.roblox.com/asset?", "https://www.roblox.com/asset?",
             "http://www.roblox.com/asset/?", "https://www.roblox.com/asset/?",
             "http://roblox.com/asset?", "https://roblox.com/asset?",
-            "http://roblox.com/asset/?", "https://roblox.com/asset/?"
+            "http://roblox.com/asset/?", "https://roblox.com/asset/?",
+            "http://www.projectpizza.net/api/asset?", "https://www.projectpizza.net/api/asset?",
+            "http://www.projectpizza.net/api/asset/?", "https://www.projectpizza.net/api/asset/?",
+            "http://projectpizza.net/api/asset?", "https://projectpizza.net/api/asset?",
+            "http://projectpizza.net/api/asset/?", "https://projectpizza.net/api/asset/?"
         };
         for (unsigned int i = 0; i < sizeof(prefixes) / sizeof(prefixes[0]); ++i)
         {
@@ -67,7 +71,7 @@ namespace HttpPlatformImpl
                     bool numeric = true;
                     for (std::string::size_type j = 0; j < id.size(); ++j)
                         if (id[j] < '0' || id[j] > '9') { numeric = false; break; }
-                    if (numeric) return "/native/asset?id=" + id;
+                    if (numeric) return "/native/content-asset?id=" + id;
                     return url;
                 }
                 if (end == std::string::npos) break;

@@ -12,6 +12,9 @@ import { issue,verify,equal,clientTicket,safeRelative } from './native-security.
 import {createNativeChat} from './native-chat.mjs';
 import {rewriteLegacyAssetUrls} from './asset-resolver.mjs';
 import {inspectAvatarDependencies} from './native-avatar-deps.mjs';
+import {loadLegacyTextureMap,legacyTextureAssetId} from './legacy-texture-map.mjs';
+import {createNativeAssetPrefetch} from './native-asset-prefetch.mjs';
+import {archiveRoots,findLegacyArchiveFile} from './legacy-shared-assets.mjs';
 
 const json=(res,status,value)=>{res.writeHead(status,{'Content-Type':'application/json','Cache-Control':'no-store'});res.end(JSON.stringify(value));};
 const xmlEscape=value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;'}[c]));
@@ -27,6 +30,9 @@ export function createNative({db,cfg,root,port,sessionUser,isGated,assetResolver
  const charRoot=path.join(root,'../clients/shareddata/charcustom');
  const legacyTexturesRoot=path.join(root,'native-legacy-assets/textures');
  const engineTexturesRoot=path.join(root,'../services/engine/.assets/content/textures');
+ const legacyTextureIds=loadLegacyTextureMap(path.join(serverDir,'native/legacy-texture-ids.json'));
+ const sharedRoots=archiveRoots(path.resolve(root,'..'));
+ const assetPrefetch=createNativeAssetPrefetch({serverDir,assetResolver});
  const catalogFacesRoot=path.join(root,'img/catalog/faces');
  const mapRoot=path.join(serverDir,'native/maps');
  // Optional on-demand place repair. Original maps and the registry are never modified.
@@ -77,6 +83,9 @@ export function createNative({db,cfg,root,port,sessionUser,isGated,assetResolver
    const count=db.prepare('SELECT count(*) AS n FROM native_jobs WHERE closed=0 AND last_heartbeat>?').get(Date.now()-100000).n;
    if(count+spawning.size>=Number(n.maxJobs||4))throw Error('All game workers are busy. Try again shortly.');
    await preparePlace(id);
+   // Prefetch only already-discovered missing IDs; never delay game-server startup.
+   const classic=places.get(id)?.classic;
+   if(classic) assetPrefetch.launch(classic);
    const result=await arbiter('/gameserver/new',{place_id:id});
    if(!result.success||!/^[A-Za-z0-9-]{1,100}$/.test(result.job_id||''))throw Error(result.message||'Game worker creation failed.');
    const heartbeat=early.get(result.job_id);early.delete(result.job_id);
@@ -100,7 +109,7 @@ export function createNative({db,cfg,root,port,sessionUser,isGated,assetResolver
  function appearance(id){const row=db.prepare('SELECT avatar FROM users WHERE id=?').get(id);let avatar={};try{avatar=JSON.parse(row?.avatar||'{}');}catch{}return avatar;}
  function appearanceURL(id){return `${base}/appearance/${id}`;}
  function avatarPaths(av){return inspectAvatarDependencies(charRoot,av).files;}
- function machineAllowed(url){return /^\/native\/(?:legacy-texture\/?$|content-asset\/?$|asset\/?$|appearance\/\d+$|bodycolors\/\d+$|content$|api\/game\/players\/[1-9][0-9]{0,15}$|api\/moderation\/filtertext$|internal\/gameserver\/(?:heartbeat|shutdown)$|Game\/LoadPlaceInfo\.ashx)$/.test(url.pathname);}
+ function machineAllowed(url){return /^\/native\/(?:legacy-shared\/?$|legacy-texture\/?$|content-asset\/?$|asset\/?$|appearance\/\d+$|bodycolors\/\d+$|content$|api\/game\/players\/[1-9][0-9]{0,15}$|api\/moderation\/filtertext$|internal\/gameserver\/(?:heartbeat|shutdown)$|Game\/LoadPlaceInfo\.ashx)$/.test(url.pathname);}
  function machine(req,url){return machineAllowed(url)&&!!n.accessKey&&equal(req.headers.accesskey,n.accessKey);}
  async function route(req,res,url,user,sessionHash){
   const p=url.pathname;
@@ -189,6 +198,10 @@ export function createNative({db,cfg,root,port,sessionUser,isGated,assetResolver
    if(!file && /^faces\/[A-Za-z0-9_-]+\.(?:png|jpe?g)$/i.test(rel||''))
     file=beneath(catalogFacesRoot,rel.slice('faces/'.length));
    kind=path.extname(file||'');
+  }else if(p==='/native/legacy-shared'){
+   // Local archive paths only; no arbitrary file browsing or network fallback.
+   file=findLegacyArchiveFile(sharedRoots,url.searchParams.get('path'));
+   kind=path.extname(file||'');
   }else if(p==='/native/legacy-texture'){
    const name=url.searchParams.get('name');
    // Only archive-relative image filenames; path traversal and arbitrary
@@ -197,6 +210,12 @@ export function createNative({db,cfg,root,port,sessionUser,isGated,assetResolver
     file=beneath(legacyTexturesRoot,name) ||
          beneath(engineTexturesRoot,name);
     kind=path.extname(file||'');
+    // Only use Cloud when a verified numeric asset ID is explicitly mapped.
+    // The local built-in resource always takes precedence.
+    if(!file){
+     const mapped=legacyTextureAssetId(name,legacyTextureIds);
+     if(mapped){const asset=await assetResolver?.resolve(mapped);if(asset){file=asset.file;kind=asset.ext;}}
+    }
    }
   }else if(/^\/native\/(?:asset|content-asset)\/?$/.test(p)){
    const assetId=url.searchParams.get('id');
