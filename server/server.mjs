@@ -14,6 +14,7 @@ import { createApi } from "./lib/api.mjs";
 import { createAdmin } from "./lib/admin.mjs";
 import { gatePage } from "./lib/gate.mjs";
 import { createGame } from "./lib/game.mjs";
+import { createWebsiteProxy, isLegacyRuntimePath } from "./lib/website-2016.mjs";
 import { hmac, safeEqual, sha256, parseCookies, cookie, RateLimiter } from "./lib/auth.mjs";
 import { clientIp as netClientIp, startHttps, printBanner } from "./lib/net.mjs";
 
@@ -29,6 +30,7 @@ const secure = !!cfg.secureCookies;
 const api = createApi({ db, cfg, catalog, places, secure });
 const admin = createAdmin({ db, cfg, secure, serverDir:here });
 const game = createGame({ db, root }); // game agent: avatar overlay zips, multiplayer servers
+const website2016 = createWebsiteProxy();
 
 const GATE_COOKIE = "rbxgate";
 const gateValue = hmac(cfg.secret, "gate:" + cfg.accessToken);
@@ -276,6 +278,9 @@ async function handler(req, res) {
   }
   if (urlPath === "/cs" || urlPath === "/cs/") { res.writeHead(302, { Location: "/admin.html", "Cache-Control": "no-store" }).end(); return; }
   if (game(req, res, urlPath)) return;
+  // When enabled, the 2016 ASP.NET site replaces the public frontend. Only
+  // the native runtime assets/pages stay on the original Node static server.
+  if (website2016 && !isLegacyRuntimePath(urlPath)) return website2016(req, res);
   if (req.method !== "GET" && req.method !== "HEAD") { res.writeHead(405).end(); return; }
   serveStatic(req, res, urlPath);
 }
