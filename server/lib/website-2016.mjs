@@ -60,7 +60,13 @@ export function isLegacyRuntimePath(pathname) {
   return pathname === "/play.html" || pathname === "/native-test.html" ||
     pathname === "/not-approved.html" ||
     pathname.startsWith("/native-client/") || pathname.startsWith("/native-client.") ||
-    pathname.startsWith("/js/") || pathname.startsWith("/css/") || pathname.startsWith("/img/") ||
-    pathname.startsWith("/data/") || pathname.startsWith("/emu/") ||
-    pathname.startsWith("/img/catalog/");
+    // Only the legacy game client's exact assets bypass ASP.NET. The 2016
+    // recreation owns /CSS, /Scripts, /images and their MVC/handler routes.
+    pathname.startsWith("/js/native-") ||
+    pathname === "/js/common.js" || pathname === "/js/effects.js" ||
+    pathname === "/js/motion.js" || pathname === "/js/not-approved.js" ||
+    ["/css/site.css", "/css/retro.css", "/css/modern.css", "/css/r16.css",
+      "/native-test.css", "/img/logo-2x2.png", "/img/mark.svg"].includes(pathname) ||
+    pathname.startsWith("/img/catalog/") ||
+    pathname.startsWith("/data/") || pathname.startsWith("/emu/");
 }
