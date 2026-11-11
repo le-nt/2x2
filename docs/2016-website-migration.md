@@ -4,6 +4,23 @@ This branch includes the **actual 2016 website source** as a pinned Git submodul
 Source: https://github.com/Intelinsidecom/Roblox-Website (branch `2016`).
 The 2016 website uses ASP.NET Framework 4.x / IIS; 2x2 uses Node.js and SQLite.
 
+## Safe test setup using D:\2x2-integration (recommended)
+
+This is the active development route after the production rollback. **Never** switch or reset the restored D:\RBXBanland installation to test this migration.
+
+Download the two testing scripts from this branch into a temporary folder, then run:
+
+~~~powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\setup-2016-integration.ps1 -DownloadWebsite
+powershell -NoProfile -ExecutionPolicy Bypass -File .\run-2016-integration.ps1
+~~~
+
+The setup script is **hard-coded to refuse paths other than D:\2x2-integration**; it saves a copy of the test server file before adding its proxy hooks and downloads the real 2016 GitHub ZIP instead of using a Git submodule. The launcher uses **http://127.0.0.1:8091** for 2x2 and **127.0.0.1:8090** for IIS Express, and puts SQLite in the separate **D:\2x2-integration\.2016-test-data** directory. The restored production account database, server processes, maps, and WASM client are untouched.
+
+You must have .NET Framework build dependencies / IIS Express installed to execute the ASP.NET site. If the ASP.NET source needs building, use \`-Build\` with the test launcher. See the source repository's README.
+
+The 2016 website source alone is not a working 2x2 identity/catalog migration. Logging in on the original ASP.NET website and logging in through the 2x2 API are **not yet unified**. The test environment intentionally starts with a separate empty account database. Do not deploy or merge the draft PR until that work is finished.
+
 ## What is implemented here
 
 - When `RBX_2016_WEBSITE_URL` is set, requests for website pages (including `/`, `/Home`, `/Games`, `/Login`, and the 2016 site's styles and handlers) are forwarded by the existing 2x2 public Node entrypoint to the **real running ASP.NET application**.
