@@ -1,6 +1,6 @@
 # 2x2 -> Intelinsidecom/Roblox-Website migration
 
-This branch begins a **real frontend switch**, not a stylesheet replacement.
+This branch includes the **actual 2016 website source** as a pinned Git submodule and begins a frontend switch, not a stylesheet replacement.
 Source: https://github.com/Intelinsidecom/Roblox-Website (branch `2016`).
 The 2016 website uses ASP.NET Framework 4.x / IIS; 2x2 uses Node.js and SQLite.
 
@@ -16,13 +16,14 @@ The 2016 website uses ASP.NET Framework 4.x / IIS; 2x2 uses Node.js and SQLite.
 ## Running the first migration stage (Windows)
 
 1. Keep your **existing 2x2 directory and database** untouched. Run this branch in a separate checkout. Do not overwrite `D:\RBXBanland`.
-2. Clone `Intelinsidecom/Roblox-Website` separately and check out its `2016` branch. Follow its original README to install .NET Framework 4.8.1 development tools and IIS / Visual Studio requirements; run `Build.cmd` and launch/host the ASP.NET site bound to **127.0.0.1**, e.g. port 8090. This is a separate application, not a static site.
-3. Point the Node 2x2 entrypoint at it in the terminal where you start 2x2:
+2. The actual 2016 website source is now pinned as the Git submodule `third_party/Roblox-Website`. Retrieve it with `git submodule update --init --recursive` (the first download is large). Install the .NET Framework 4.8.1 targeting pack, Visual Studio build tools and IIS Express required by the upstream project. Build the ASP.NET project before testing.
+3. Use the provided launcher to initialize the source, build (optional) and start IIS Express plus Node:
 
 ```powershell
-$env:RBX_2016_WEBSITE_URL = "http://127.0.0.1:8090"
-node server/server.mjs
+.\\tools\\start-2016-website.ps1 -Build
 ```
+
+This is a local development launcher, not a production deploy. The website is hosted at `http://127.0.0.1:8090` and Node serves the usual public 2x2 port. If you already have Node running, stop it first or use `-SkipNode` and set `RBX_2016_WEBSITE_URL=http://127.0.0.1:8090` in the environment of your separately started Node process.
 
 4. Visit the normal Node 2x2 address. The root route should now be served by ASP.NET **after** the existing 2x2 access gate. Test `/api/me`, `/api/native/launch?id=2008m-crossroads`, and `/play.html?id=2008m-crossroads` independently.
 5. Run `node --test tests/website-2016.test.mjs` for the proxy test.
