@@ -34,10 +34,10 @@ test("proxy rejects arbitrary remote or credentialed upstreams", () => {
 });
 
 test("only legacy game runtime paths bypass the website", () => {
-  for (const p of ["/play.html", "/native-client/UniversalClient.wasm", "/data/maps.json", "/emu/index.html"]) {
+  for (const p of ["/play.html", "/native-client/UniversalClient.wasm", "/data/maps.json", "/emu/index.html", "/js/native-client.js", "/js/common.js", "/css/site.css"]) {
     assert.equal(isLegacyRuntimePath(p), true, p);
   }
-  for (const p of ["/", "/Home", "/Games", "/Login", "/CSS/Base/CSS/FetchCSS"]) {
+  for (const p of ["/", "/Home", "/Games", "/Login", "/CSS/Base/CSS/FetchCSS", "/Scripts/modernizr.js", "/css/2016-site.css", "/images/roblox-logo.png"]) {
     assert.equal(isLegacyRuntimePath(p), false, p);
   }
 });
