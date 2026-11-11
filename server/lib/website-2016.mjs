@@ -60,7 +60,7 @@ export function isLegacyRuntimePath(pathname) {
   return pathname === "/play.html" || pathname === "/native-test.html" ||
     pathname === "/not-approved.html" ||
     pathname.startsWith("/native-client/") || pathname.startsWith("/native-client.") ||
-    pathname.startsWith("/js/native-") || pathname.startsWith("/js/not-approved.") ||
+    pathname.startsWith("/js/") || pathname.startsWith("/css/") || pathname.startsWith("/img/") ||
     pathname.startsWith("/data/") || pathname.startsWith("/emu/") ||
     pathname.startsWith("/img/catalog/");
 }
