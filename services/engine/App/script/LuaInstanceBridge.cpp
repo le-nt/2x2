@@ -347,6 +347,28 @@ static const char* PropertyNameCorrection(const shared_ptr<Instance>& object, co
 
 namespace RBX { namespace Lua {
 
+	static int getPropertyChangedSignal(lua_State* L)
+	{
+		shared_ptr<Instance> instance = ObjectBridge::getInstance(L, 1);
+		if (!instance)
+			throw RBX::runtime_error("Expected an Instance for GetPropertyChangedSignal");
+		const char* name = luaL_checkstring(L, 2);
+		const PropertyDescriptor* property = instance->findPropertyDescriptor(name);
+		if (!property || !property->isScriptable())
+			throw RBX::runtime_error("%s is not a scriptable property", name);
+
+		RBX::Security::Context& security = RBX::Security::Context::current();
+		instance->securityCheck(security);
+		if (instance->getRobloxLocked())
+			security.requirePermission(RBX::Security::Plugin, name);
+		if (property->security != RBX::Security::None)
+			security.requirePermission(property->security, name);
+
+		EventInstance event = { instance->findSignalDescriptor("Changed"), instance, property };
+		EventBridge::pushNewObject(L, event);
+		return 1;
+	}
+
 	template<>
 	int Bridge< shared_ptr<Instance>, false >::on_index(const shared_ptr<Instance>& object, const char* name, lua_State *L)
 	{
@@ -366,6 +388,11 @@ namespace RBX { namespace Lua {
 		{
 			object->securityCheck(securityContext);
 			pushLuaValue(Property(*prop, object.get()), L, securityContext);
+			return 1;
+		}
+		if (strcmp(name, "GetPropertyChangedSignal") == 0)
+		{
+			lua_pushcfunction(L, getPropertyChangedSignal);
 			return 1;
 		}
 
@@ -432,7 +459,7 @@ namespace RBX { namespace Lua {
 			if (object->getRobloxLocked())
 				securityContext.requirePermission(RBX::Security::Plugin, name);
 
-			EventInstance evt = { signal, object };
+			EventInstance evt = { signal, object, NULL };
 			EventBridge::pushNewObject(L, evt);
 			return 1;
 		}

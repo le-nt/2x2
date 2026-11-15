@@ -930,7 +930,7 @@ void Player::onCharacterDied()
 				Humanoid* humanoid = Humanoid::modelIsCharacter(expected.get());
 				// Scripts may replace the character or disable automatic loading
 				// while the death timer waits. Never overwrite that newer state.
-				if (players && players->getCharacterAutoSpawnProperty() && humanoid && humanoid->getHealth() <= 0)
+				if (players && players->getCharacterAutoSpawnProperty() && humanoid && humanoid->getDead())
 					player->loadCharacter(true, "");
 			}, 5.0);
 		}

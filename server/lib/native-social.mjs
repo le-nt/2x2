@@ -3,6 +3,11 @@
 // Roblox user IDs and purchases are never inferred from local IDs.
 const socialPath='/native/Game/LuaWebService/HandleSocialRequest.ashx';
 const passPath='/native/Game/GamePass/GamePassHandler.ashx';
+const groupDefaults=new Map([
+  ['IsInGroup',['boolean',false]],
+  ['GetGroupRank',['integer',0]],
+  ['GetGroupRole',[null,'Guest']],
+]);
 const escapeXml=value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;'}[c]));
 const reply=(res,status,body,type='text/plain')=>{
   res.writeHead(status,{'Content-Type':type+'; charset=utf-8','Cache-Control':'no-store'});
@@ -26,11 +31,18 @@ export function createNativeSocial({db}){
     if(req.method!=='GET')return reply(res,405,'Use GET.');
     const q=url.searchParams,player=id(q,pass?'UserID':'playerid');
     if(!player)return reply(res,400,'Invalid local player.');
-    if(!service&&user?.id!==player)return reply(res,403,'Worker credentials required.');
-    if(!db.prepare('SELECT id FROM users WHERE id=?').get(player))return reply(res,404,'Unknown local player.');
     const methods=q.getAll(pass?'Action':'method');
     if(methods.length!==1)return reply(res,400,'Provide one method.');
     const method=methods[0];
+    if(!pass&&groupDefaults.has(method)){
+      if(!service&&!user)return reply(res,403,'Authentication required.');
+      if(!id(q,'groupid'))return reply(res,400,'Invalid group query.');
+      const [type,data]=groupDefaults.get(method);
+      // The engine returns a raw string for roles and parses typed XML for the other calls.
+      return type?value(res,type,data):reply(res,200,data);
+    }
+    if(!service&&user?.id!==player)return reply(res,403,'Worker credentials required.');
+    if(!db.prepare('SELECT id FROM users WHERE id=?').get(player))return reply(res,404,'Unknown local player.');
     if(pass){
       const passId=id(q,'PassID');
       if(method!=='HasPass'||!passId)return reply(res,400,'Invalid pass query.');
@@ -44,12 +56,6 @@ export function createNativeSocial({db}){
         AND ((requester_id=? AND addressee_id=?) OR (requester_id=? AND addressee_id=?))`).get(player,other,other,player);
       return value(res,'boolean',friend);
     }
-    if(!['IsInGroup','GetGroupRank','GetGroupRole'].includes(method))return reply(res,400,'Unknown social method.');
-    const group=id(q,'groupid');
-    if(!group)return reply(res,400,'Invalid group query.');
-    if(method==='IsInGroup')return value(res,'boolean',false);
-    if(method==='GetGroupRank')return value(res,'integer',0);
-    // LuaWebService's string overload returns the raw response, unlike bool/int.
-    return reply(res,200,'Guest');
+    return reply(res,400,'Unknown social method.');
   };
 }

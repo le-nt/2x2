@@ -15,10 +15,11 @@ namespace RBX
 			// We use a weak pointer because references to a Event shouldn't lock the source of the event.
 			// If the source has been collected, then connecting to the Event will return an empty connection.
 			weak_ptr<Instance> source;
+			const Reflection::PropertyDescriptor* property;
 
 			bool operator== (const EventInstance& other) const
 			{
-				if (descriptor != other.descriptor)
+				if (descriptor != other.descriptor || property != other.property)
 					return false;
 
 				shared_ptr<Instance> l = source.lock();

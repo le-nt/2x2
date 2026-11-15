@@ -68,7 +68,7 @@ test('native protocol shares 2x2 identity, requires the key, and gates WebSocket
   const workerPort=await listen(worker);const probe=http.createServer();appPort=await listen(probe);await close(probe);
   const cfg={accessToken:'the-entry-key',secret:'s'.repeat(64),native:{accessKey:key,signingKey:sign,arbiterOrigin:`http://127.0.0.1:${workerPort}`,publicOrigin:`http://127.0.0.1:${appPort}`}};
   fs.writeFileSync(path.join(tmp,'server/config.json'),JSON.stringify(cfg));
-  child=spawn(process.execPath,[path.join(tmp,'server/server.mjs'),String(appPort)],{env:{...process.env,ROBLOX_ASSET_FETCH:'0',RBX_ASSET_VFS_CONFIG:path.join(tmp,'vfs-config.json')}});child.stdout.on('data',c=>logs+=c);child.stderr.on('data',c=>logs+=c);
+  child=spawn(process.execPath,[path.join(tmp,'server/server.mjs'),String(appPort)],{env:{...process.env,ROBLOX_OPEN_CLOUD_API_KEY:'',ROBLOX_ASSET_FETCH:'0',AYA_ASSET_FALLBACK_URL:'',RBX_ASSET_VFS_CONFIG:path.join(tmp,'vfs-config.json')}});child.stdout.on('data',c=>logs+=c);child.stderr.on('data',c=>logs+=c);
   const base=`http://127.0.0.1:${appPort}`;
   let ready=false;const startupDeadline=Date.now()+10000;
   while(Date.now()<startupDeadline){
@@ -84,7 +84,7 @@ test('native protocol shares 2x2 identity, requires the key, and gates WebSocket
   assert.equal((await request('/api/ads')).status,401,'ad discovery keeps the entrance gate');
   assert.equal((await request('/native/internal/gameserver/heartbeat',{method:'POST',headers:{AccessKey:'wrong'},body:'{}'})).status,401);
   assert.equal((await request('/api/me',{headers:{AccessKey:key}})).status,401,'machine key cannot bypass the account API');
-  const entry=await request('/?key='+cfg.accessToken);cookies=entry.headers.getSetCookie().map(x=>x.split(';')[0]).join('; ');assert.equal(entry.status,303);
+  const entry=await request('/?key='+cfg.accessToken);cookies=entry.headers.getSetCookie().map(x=>x.split(';')[0]).filter(x=>!x.endsWith('=')).join('; ');assert.equal(entry.status,303);
   assert.equal((await request('/api/native/status')).status,401,'key is not a login');
   assert.deepEqual((await(await request('/api/ads')).json()).images,[],'a missing ad folder is harmless');
   assert.equal((await(await request('/api/native/version')).json()).version,'2x2-native-map-pack-v1');
