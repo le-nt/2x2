@@ -1,0 +1,218 @@
+{
+  "scope": "Five-second headless RCC startup per original file with a loopback fixture. No browser, production credentials, or archived script changes.",
+  "errorLimitPerFile": 100,
+  "fixture": {
+    "runServiceAndPropertySignals": true,
+    "respawnTimers": "normal respawn dead regeneration manual replacement disabled loading passed"
+  },
+  "cases": [
+    {
+      "slug": "tprr",
+      "sha256": "64857404e6e2305f5cd2f1b7a6fd20b54196e279956e9fa39479af9b5862fc03",
+      "startupPassed": true,
+      "scriptErrorsBefore": 6,
+      "scriptErrorsAfter": 1
+    },
+    {
+      "slug": "user-retail-tycoon",
+      "sha256": "cce1e447e6fe03f364d00ea665a13a08d15ea31721ca6772068e661fd4fdea5a",
+      "startupPassed": true,
+      "scriptErrorsBefore": 1,
+      "scriptErrorsAfter": 1
+    },
+    {
+      "slug": "user-clone-tycoon-2",
+      "sha256": "329ed92d0620bb6a628014b374af34ef628a2ae68ce6a92c9ce6b2aa611efdd1",
+      "startupPassed": true,
+      "scriptErrorsBefore": 40,
+      "scriptErrorsAfter": 0
+    },
+    {
+      "slug": "user-super-mario-multiverse-roleplay",
+      "sha256": "1c48b7a0cc45ff9bdf20b34729349bc4fdf73370dc9319813dbbb77f9c0c9070",
+      "startupPassed": true,
+      "scriptErrorsBefore": 100,
+      "scriptErrorsAfter": 100
+    },
+    {
+      "slug": "user-flood-escape-adevnture-mode-beta",
+      "sha256": "a82af2a9f53816bfd002793f4802341ac9b9cfa91f20f688c25de73d969ad434",
+      "startupPassed": true,
+      "scriptErrorsBefore": 0,
+      "scriptErrorsAfter": 0
+    },
+    {
+      "slug": "user-flood-escape-april-2013-1-3-45",
+      "sha256": "ab52521fff7d0820a66cabfc893839b57737b691474c541f654fc4aa79704840",
+      "startupPassed": true,
+      "scriptErrorsBefore": 0,
+      "scriptErrorsAfter": 0
+    },
+    {
+      "slug": "user-flood-escape-april-2013-1-3-47",
+      "sha256": "7d51d568cbd86d9d735ea37ff40608ffcfca18a0a09d7a6ba0da05097535b626",
+      "startupPassed": true,
+      "scriptErrorsBefore": 0,
+      "scriptErrorsAfter": 0
+    },
+    {
+      "slug": "user-flood-escape-april-2013-1-3-48",
+      "sha256": "304fa956d24010fa951ac04ba3856fa086b8f6c6fe8201606b899779053fd8aa",
+      "startupPassed": true,
+      "scriptErrorsBefore": 0,
+      "scriptErrorsAfter": 0
+    },
+    {
+      "slug": "user-flood-escape-christmas-2013-1-4-2-xmas",
+      "sha256": "6f400b3ccb072dcdf7b790c9c79516ee466d1a6ea0631170ee81d72623cbbbb7",
+      "startupPassed": true,
+      "scriptErrorsBefore": 0,
+      "scriptErrorsAfter": 0
+    },
+    {
+      "slug": "user-flood-escape-early-2014-1-4-3",
+      "sha256": "a70340c3411a3f86eb3e556d42f3f7fd7db54f51edb5ed44a99f975198394c24",
+      "startupPassed": true,
+      "scriptErrorsBefore": 0,
+      "scriptErrorsAfter": 0
+    },
+    {
+      "slug": "user-flood-escape-holloween-2014-1-6-1",
+      "sha256": "5e51221bd9c78adc6140cbb876ab3c38a340d504983a42a49216b996cc4cb2f8",
+      "startupPassed": true,
+      "scriptErrorsBefore": 1,
+      "scriptErrorsAfter": 1
+    },
+    {
+      "slug": "user-flood-escape-mid-2014-1-5",
+      "sha256": "8db728daa98b1217c0729961248decd9c84d43b6bfb9c40cc429645e83331308",
+      "startupPassed": true,
+      "scriptErrorsBefore": 2,
+      "scriptErrorsAfter": 2
+    },
+    {
+      "slug": "user-flood-escape-winter-games-2015",
+      "sha256": "a8163ffa5220719cc89eab24aee1aca2e846e5a0b61e071786d747e1af3cc499",
+      "startupPassed": true,
+      "scriptErrorsBefore": 1,
+      "scriptErrorsAfter": 1
+    },
+    {
+      "slug": "user-flood-escape-august-2013-1-4",
+      "sha256": "c990b8db6b81d3ba4c1314a296a57c587669275349e5b0429f071b6c87550174",
+      "startupPassed": true,
+      "scriptErrorsBefore": 0,
+      "scriptErrorsAfter": 0
+    },
+    {
+      "slug": "user-flood-escape-early-november-2014-1-6-1-2",
+      "sha256": "c8a33e6b90fe8243f4391608f4cb378c98fef6877c66cf30f0fd8d5f8a158988",
+      "startupPassed": true,
+      "scriptErrorsBefore": 1,
+      "scriptErrorsAfter": 1
+    },
+    {
+      "slug": "user-flood-escape-februrary-2015-1-6-2",
+      "sha256": "867e99faaf64f6b0b3d01ae30cdd2475616cc09bfa6ff447d8b5f93f2949d7c5",
+      "startupPassed": true,
+      "scriptErrorsBefore": 1,
+      "scriptErrorsAfter": 1
+    },
+    {
+      "slug": "user-flood-escape-june-2013-1-3-62",
+      "sha256": "da8e4c0c196867e21c347ffbff1cc1903f0e8771030b5fb0c9a320e070bf7021",
+      "startupPassed": true,
+      "scriptErrorsBefore": 0,
+      "scriptErrorsAfter": 0
+    },
+    {
+      "slug": "user-flood-escape-late-2013-1-4-2",
+      "sha256": "af07f2765879545ee5623e0e159339d9b37df21f919759d5ecc332c128168cd3",
+      "startupPassed": true,
+      "scriptErrorsBefore": 1,
+      "scriptErrorsAfter": 1
+    },
+    {
+      "slug": "user-flood-escape-late-november-2014-1-6-1-2",
+      "sha256": "e92f305f1b54bad84a7ebba3495457eadf67131bd2bf875241cd08132f8a09b9",
+      "startupPassed": true,
+      "scriptErrorsBefore": 1,
+      "scriptErrorsAfter": 1
+    },
+    {
+      "slug": "user-flood-escape-mid-2013-v2-0-beta",
+      "sha256": "bdd10715884eee4e6ec9e12940c03c50871b5c2068e720d411460d78fdf05b02",
+      "startupPassed": true,
+      "scriptErrorsBefore": 0,
+      "scriptErrorsAfter": 0
+    },
+    {
+      "slug": "floodesc2016",
+      "sha256": "d62cbd1d0262a23648a2e924ee90ff19e3f9c9ea61545fd58036002b709d52b0",
+      "startupPassed": true,
+      "scriptErrorsBefore": 2,
+      "scriptErrorsAfter": 2
+    },
+    {
+      "slug": "user-flood-escape-sept-2013-1-4-1",
+      "sha256": "14681279f6d3b7ed794e8f3ab96c3e7effd62ce59fb731735a26e8b2fc2a3e12",
+      "startupPassed": true,
+      "scriptErrorsBefore": 0,
+      "scriptErrorsAfter": 0
+    },
+    {
+      "slug": "user-flood-escape-winter-2016-1-6-6",
+      "sha256": "46fbfac3fdcdfc4bb5784aa3a7830458f4ca799619ff6ce9aeea9580885b415a",
+      "startupPassed": true,
+      "scriptErrorsBefore": 2,
+      "scriptErrorsAfter": 2
+    },
+    {
+      "slug": "user-flood-escape-late-2016-beta-nerf-event",
+      "sha256": "e70cb61fa04c1297e2a38a28507cdb1720e80d639eaf21efc464bfd41e8cee9d",
+      "startupPassed": true,
+      "scriptErrorsBefore": 2,
+      "scriptErrorsAfter": 2
+    },
+    {
+      "slug": "user-flood-escape-october-2014-1-6",
+      "sha256": "cdd63f158fd02b88906767d89de405d39cd892970e11412290206d0bcfa5e2fb",
+      "startupPassed": true,
+      "scriptErrorsBefore": 1,
+      "scriptErrorsAfter": 1
+    },
+    {
+      "slug": "newer-mogadishu-transit-christmas",
+      "sha256": "fecabcf25433dff42cabfd2dd4e7b1e4be750544154fc0808174a55a2f188397",
+      "startupPassed": true,
+      "scriptErrorsBefore": 0,
+      "scriptErrorsAfter": 0
+    },
+    {
+      "slug": "newer-reason-2-die-2014",
+      "sha256": "5b36f58739e58056b48c48b39fe1b267c0c344675cf3d780d7e43529c329261f",
+      "startupPassed": true,
+      "scriptErrorsBefore": 0,
+      "scriptErrorsAfter": 0
+    },
+    {
+      "slug": "newer-roblox-gaming-room",
+      "sha256": "3e19af4106319d7f6b18d72b2e62facab9ba8aab3d116127d7ea95549b9bd095",
+      "startupPassed": true,
+      "scriptErrorsBefore": 1,
+      "scriptErrorsAfter": 1
+    },
+    {
+      "slug": "newer-sunset-2018",
+      "sha256": "438d6a6bd5193337739e6121aabc444ef9f7c3f6a2f5f15f03300f949fe37793",
+      "startupPassed": true,
+      "scriptErrorsBefore": 0,
+      "scriptErrorsAfter": 0
+    }
+  ],
+  "knownRemaining": [
+    "1993 Steam notifier exception",
+    "Mario morph scripts reference arrows absent in parts of the original map",
+    "Some jobs request unsupported MarketplaceService or fixture-unavailable persistence and assets"
+  ]
+}

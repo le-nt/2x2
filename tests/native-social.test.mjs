@@ -35,8 +35,10 @@ test('legacy social and pass calls use native XML/raw-string formats, local reco
   assert.equal((await get(query,worker,'GET',social+'/extra')).status,401);
   assert.equal((await get(query,worker,'GET','/api/me')).status,401);
   assert.equal((await get(query,worker,'POST')).status,405);
-  assert.equal((await get({...query,playerid:'102'},session)).status,403);
-  assert.equal((await get({...query,playerid:'999'})).status,404);
+  assert.equal(await(await get({...query,playerid:'102'},session)).text(),'<Value Type="integer">0</Value>');
+  assert.equal(await(await get({...query,playerid:'999',method:'IsInGroup'})).text(),'<Value Type="boolean">false</Value>');
+  assert.equal(await(await get({...query,playerid:'999',method:'GetGroupRole'},session)).text(),'Guest');
+  assert.equal((await get({method:'IsFriendsWith',playerid:102,userid:101},session)).status,403);
   for(const playerid of ['0','-1','1e2','2147483648','101junk'])assert.equal((await get({...query,playerid})).status,400);
   assert.equal((await get({...query,method:'Unknown'})).status,400);
   assert.equal((await fetch(base+social+'?method=GetGroupRank&method=IsInGroup&playerid=101&groupid=42',{headers:worker})).status,400);

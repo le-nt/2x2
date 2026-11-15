@@ -26,7 +26,7 @@ def unused_port():
     with socket.socket() as server:
         server.bind(('127.0.0.1',0));return server.getsockname()[1]
 
-def fixture(character_health=False, legacy_controller=False, respawn_timers=False):
+def fixture(character_health=False, legacy_controller=False, respawn_timers=False, compatibility=False):
     root=ET.Element('roblox',version='4')
     workspace=ET.SubElement(root,'Item',{'class':'Workspace','referent':'RBX0'})
     for name,source,disabled in [('ProbeSuccess','local value=Instance.new("StringValue"); value.Name="RuntimeSentinel"; value.Value="native Lua executed"; value.Parent=workspace',False),
@@ -115,14 +115,44 @@ local ok,err=pcall(function()
  players.CharacterAutoLoads=true;player:LoadCharacter()
  local original=player.Character;original.Humanoid.Health=0
  wait(6);assert(player.Character~=original,"Normal automatic respawn failed")
+ local regenerating=player.Character;regenerating.Humanoid.Health=0
+ wait(0.5)
+ local regeneration=regenerating.Humanoid.HealthChanged:connect(function(health) if health<=0 then regenerating.Humanoid.Health=25 end end)
+ regenerating.Humanoid.Health=25
+ assert(regenerating.Humanoid:GetState()==Enum.HumanoidStateType.Dead,"Fixture is not in the Dead state")
+ wait(5.5);regeneration:disconnect();assert(player.Character~=regenerating,"Positive health on a dead character cancelled respawn")
  local manual=player.Character;manual.Humanoid.Health=0
  wait(0.3);player:LoadCharacter();local replacement=player.Character
  wait(6);assert(player.Character==replacement,"Old death timer replaced the newer character")
  replacement.Humanoid.Health=0;wait(0.3);players.CharacterAutoLoads=false
  wait(6);assert(player.Character==replacement,"Disabled automatic loading still respawned")
 end)
-result.Value=ok and "normal respawn manual replacement disabled loading passed" or tostring(err)
+result.Value=ok and "normal respawn dead regeneration manual replacement disabled loading passed" or tostring(err)
 print("[2x2 respawn timers] "..result.Value)'''
+    if compatibility:
+        item=ET.SubElement(workspace,'Item',{'class':'Script','referent':'RBXCompatibilityProbe'})
+        props=ET.SubElement(item,'Properties')
+        ET.SubElement(props,'string',name='Name').text='CompatibilityProbe'
+        ET.SubElement(props,'ProtectedString',name='Source').text='''local run=game:GetService("RunService")
+assert(run:IsServer() and not run:IsClient() and not run:IsStudio() and not run:IsRunMode())
+local value=Instance.new("IntValue",workspace)
+local valueSignal=value:GetPropertyChangedSignal("Value")
+local nameSignal=value:GetPropertyChangedSignal("Name")
+assert(valueSignal==value:GetPropertyChangedSignal("Value") and valueSignal~=nameSignal)
+assert(not pcall(function() value:GetPropertyChangedSignal("NoSuchProperty") end))
+local calls, ordinary, waited=0,0,false
+local connection=valueSignal:Connect(function(...) assert(select("#",...)==0);calls=calls+1 end)
+value.Changed:Connect(function(newValue) if newValue==3 then ordinary=ordinary+1 end end)
+coroutine.wrap(function() assert(select("#",nameSignal:Wait())==0);waited=true end)()
+value.Name="ChangedName";value.Value=3;value.Value=3
+wait(0.1)
+assert(waited and calls==1 and ordinary==1)
+connection:disconnect();value.Value=4;wait(0.1);assert(calls==1)
+local seat=Instance.new("VehicleSeat",workspace)
+local throttleChanged=false
+seat:GetPropertyChangedSignal("Throttle"):Connect(function() throttleChanged=true end)
+seat.Throttle=1;wait(0.1);assert(throttleChanged)
+local marker=Instance.new("BoolValue",workspace);marker.Name="CompatibilityProbePassed"'''
     return ET.tostring(root,encoding='utf8')
 
 def main():
@@ -134,7 +164,8 @@ def main():
     p.add_argument('--resource',type=Path,help='Optional genuine WAV used only to probe native archive HTTP fallback, not playback')
     p.add_argument('--character-health-resource',type=Path,help='Original Health bootstrap model; verify its presence at three CharacterAdded signals')
     p.add_argument('--legacy-controller',action='store_true',help='Verify historical player Controller values, cloning and explicit unsupported motor modes')
-    p.add_argument('--respawn-timers',action='store_true',help='Verify normal respawn, manual replacement and disabling automatic loading (requires at least 20 seconds)')
+    p.add_argument('--respawn-timers',action='store_true',help='Verify respawn, dead-state regeneration, manual replacement and disabling automatic loading (requires at least 26 seconds)')
+    p.add_argument('--compatibility',action='store_true',help='Verify RunService context and native property signals in the trusted fixture')
     p.add_argument('--working-directory',type=Path,help='Use existing runtime content while comparing an audited backup executable')
     p.add_argument('--seconds',type=int,default=2,choices=range(1,31))
     p.add_argument('--gameserver-port-conflict',action='store_true',help='Run the real bootstrap against an occupied UDP port; require an attributed shutdown')
@@ -142,8 +173,9 @@ def main():
     if not 0<a.place_id<2147483647:raise ValueError('Invalid native place ID')
     if a.character_health_resource and (a.place or a.gameserver_port_conflict):raise ValueError('Character bootstrap is a separate trusted fixture')
     if a.legacy_controller and a.place:raise ValueError('Controller probe requires the trusted fixture')
-    if a.respawn_timers and (a.place or a.gameserver_port_conflict or a.character_health_resource or a.legacy_controller or a.seconds<20):raise ValueError('Respawn timer probe requires a separate trusted fixture and at least 20 seconds')
-    payload=a.place.read_bytes() if a.place else fixture(bool(a.character_health_resource),a.legacy_controller,a.respawn_timers)
+    if a.respawn_timers and (a.place or a.gameserver_port_conflict or a.character_health_resource or a.legacy_controller or a.seconds<26):raise ValueError('Respawn timer probe requires a separate trusted fixture and at least 26 seconds')
+    if a.compatibility and (a.place or a.gameserver_port_conflict):raise ValueError('Compatibility probe requires the trusted fixture')
+    payload=a.place.read_bytes() if a.place else fixture(bool(a.character_health_resource),a.legacy_controller,a.respawn_timers,a.compatibility)
     health_resource=a.character_health_resource.read_bytes() if a.character_health_resource else None
     if health_resource is not None and not 0<len(health_resource)<=2*1024*1024:raise ValueError('Health resource exceeds fixture limit')
     resource=a.resource.read_bytes() if a.resource else None
@@ -237,6 +269,7 @@ RESOURCE_PROBE
             observe='local health=workspace:FindFirstChild("CharacterHealthSentinel"); '+observe.replace('templateAncestry=','characterHealth=health and health.Value or "",templateAncestry=')
             observe='local controller=workspace:FindFirstChild("LegacyControllerSentinel"); '+observe.replace('templateAncestry=','legacyController=controller and controller.Value or "",templateAncestry=')
             observe='local respawn=workspace:FindFirstChild("RespawnTimerSentinel"); '+observe.replace('templateAncestry=','respawnTimers=respawn and respawn.Value or "",templateAncestry=')
+            observe=observe.replace('templateAncestry=','compatibilityPassed=workspace:FindFirstChild("CompatibilityProbePassed")~=nil,templateAncestry=')
             execute='<Execute xmlns="http://roblox.com/"><jobID>isolated-probe</jobID><script><name>ObserveNativeRuntime</name><script>'+escape(observe)+'</script><arguments/></script></Execute>'
             execute_envelope=('<?xml version="1.0"?><soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"><soap:Body>'+execute+'</soap:Body></soap:Envelope>').encode()
             request=urllib.request.Request('http://127.0.0.1:'+str(soap_port)+'/',data=execute_envelope,
@@ -271,13 +304,15 @@ RESOURCE_PROBE
                 result['networkStartup']={'failureLogged':failed,'shutdownReported':shutdown,'advertisedReady':heartbeat}
                 assert failed and shutdown and not heartbeat,result['networkStartup']
             elif not a.place:
+                if a.compatibility:
+                    assert report['compatibilityPassed'],report
                 if health_resource is not None:
                     result['characterHealthBootstrap']={'observations':report['characterHealth'],'resourceSha256':hashlib.sha256(health_resource).hexdigest()}
                     assert report['characterHealth']=='present,present,present',report
                 if a.legacy_controller:
                     assert report['legacyController']=='player controller numeric enum clone reset passed',report
                 if a.respawn_timers:
-                    assert report['respawnTimers']=='normal respawn manual replacement disabled loading passed',report
+                    assert report['respawnTimers']=='normal respawn dead regeneration manual replacement disabled loading passed',report
                 assert report['sentinel']=='native Lua executed',report
                 assert report['signalWait']=='native signal resumed',report
                 assert report['detachedTemplate']=='OriginalDetachedTemplate',report

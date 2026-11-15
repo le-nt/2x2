@@ -317,6 +317,19 @@ public:
 	}
 };
 
+static rbx::event_signals::connection connectEvent(const EventInstance& event,
+	const shared_ptr<Instance>& source, const shared_ptr<Reflection::GenericSlotWrapper>& wrapper)
+{
+	if (!event.property)
+		return event.descriptor->connectGeneric(source.get(), wrapper);
+
+	const Reflection::PropertyDescriptor* property = event.property;
+	return source->propertyChangedSignal.connect([property, wrapper](const Reflection::PropertyDescriptor* changed) {
+		if (changed == property)
+			wrapper->execute(Reflection::EventArguments());
+	});
+}
+
 int EventBridge::connect(lua_State *L) 
 {
 	RobloxExtraSpace* space = RobloxExtraSpace::get(L);
@@ -324,7 +337,7 @@ int EventBridge::connect(lua_State *L)
 	
 	rbx::event_signals::connection connection;
 
-	shared_ptr<Reflection::DescribedBase> source = ei.source.lock();
+	shared_ptr<Instance> source = ei.source.lock();
 	if (source && ei.descriptor->isScriptable() && !space->context()->shouldPreventNewConnections())
 	{
 		if (ei.descriptor->security!=RBX::Security::None)
@@ -347,7 +360,7 @@ int EventBridge::connect(lua_State *L)
 		{
 			wrapper->slot.setWeakSelf(wrapper);
 		}
-		connection = ei.descriptor->connectGeneric(source.get(), wrapper);
+		connection = connectEvent(ei, source, wrapper);
 		wrapper->slot.assignConnection(connection);
 	}
 
@@ -363,7 +376,7 @@ int EventBridge::wait(lua_State *L)
 		
 		EventInstance& ei(getObject(L, 1));
 
-		shared_ptr<Reflection::DescribedBase> source = ei.source.lock();
+		shared_ptr<Instance> source = ei.source.lock();
 		if (source && ei.descriptor->isScriptable())
 		{
 			if (ei.descriptor->security!=RBX::Security::None)
@@ -378,7 +391,7 @@ int EventBridge::wait(lua_State *L)
 			{
 				wrapper->slot.setWeakSelf(wrapper);
 			}
-			wrapper->slot.assignConnection(ei.descriptor->connectGeneric(source.get(), wrapper));
+			wrapper->slot.assignConnection(connectEvent(ei, source, wrapper));
 		}
 
 		RBXASSERT(!RobloxExtraSpace::get(L)->yieldCaptured);
